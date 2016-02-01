@@ -22,6 +22,8 @@ namespace BackupServer
         private int port;
         private MainWindow mainWindow;
         private int counterClient = 0;
+
+        #region Costanti
         private const int BUFFERSIZE = 1024;
         public const string OK = "+OK+";
         public const string ERRORE = "+ERR+";
@@ -47,6 +49,7 @@ namespace BackupServer
         public const string NUMFILE = "+NUMFL+";
         public const string FLP = "+FLP+";
         public const string ENDLIST = "+ENDLIST+"; //+ENDSYN+username
+        #endregion
 
         public static bool serverKO = true;
 
