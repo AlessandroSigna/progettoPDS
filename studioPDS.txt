@@ -31,6 +31,9 @@ Applcations could be created by have a single Window and displaying lots of User
 LoginRegisterControl gestisce i bottoni Login, Registrati e Back collegando gli eventi alle callback adatte
 Login_Click passa il controllo a LoginControl e relativa finestra di login
 Registrati_Click passa il controllo a RegistratiControl e relativa finestra di registrazione
+il controllo si passa con:
+LoginControl main = new LoginControl(null); //istanzio l'oggetto a cui voglio passare il controllo
+App.Current.MainWindow.Content = main;      //quell'oggetto diventa il content della main window
 
 RegistratiControl invia le informazioni a ClientLogic.Registrati che provvede ad inviarle al server
 l'invio è fatto tramite la ClientLogic.WriteStringOnStream(string message)
@@ -38,7 +41,7 @@ prepara i dati (converti in ASCII) e invia sul canale
 
 MahApps.Metro
 I dialog box erano fighi ora si sostituiscono con i message box ?
-Il progress ring si deve sostituire
+Il progress ring si deve sostituire :(
 
 idee
 Server stampa il suo IP
@@ -46,4 +49,4 @@ Server stampa il suo IP
 FIX
 se da LoginRegisterControl si torna indietro la finestra non cambia nome
 autenticazione su mac -> ma se è sul mac come abbiamo fatto a connetterci dal mixto?!
-gitignore
+autenticazione a sfida

@@ -99,7 +99,7 @@ namespace Client
             return;
         }
 
-        private async void messaggioDisconnetti()
+        private /*async*/ void messaggioDisconnetti()
         {
             Console.Out.WriteLine("MainWindow: messaggioDisconnetti");
             _customDialog = new CustomDialog();
@@ -126,7 +126,7 @@ namespace Client
             this.Hide();
         }
 
-        public async void DialogDisconnetti()
+        public /*async*/ void DialogDisconnetti()
         {
             Console.Out.WriteLine("MainWindow: DialogDisconnetti");
             customDialog = new CustomDialog();

@@ -67,6 +67,52 @@ namespace Client
             await mw.ShowMessageAsync("Attenzione", "Blocca il monitoraggio per effettuare un restore");
         }
 
+        #region Restore
+        private void RestoreFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (mw.clientLogic.clientsocket.Client.Poll(1000, SelectMode.SelectRead))
+            {
+                MainControl main = new MainControl(1);
+                App.Current.MainWindow.Content = main;
+                messaggioErrore("Connessione Persa");
+                return;
+
+            }
+
+            ClientLogic clRestore = new ClientLogic(mw.clientLogic.ip, mw.clientLogic.porta, mw.clientLogic.folder, mw.clientLogic.username, mw.clientLogic.folderR);
+            Window w = null;
+            try
+            {
+                w = new Restore(clRestore, mw);
+                w.ShowDialog();
+            }
+            catch (Exception)
+            {
+                if (clRestore.clientsocket.Client.Connected)
+                {
+                    clRestore.clientsocket.GetStream().Close();
+                    clRestore.clientsocket.Client.Close();
+                }
+
+                if (mw.clientLogic.clientsocket.Client.Connected)
+                {
+                    mw.clientLogic.clientsocket.GetStream().Close();
+                    mw.clientLogic.clientsocket.Close();
+                }
+
+                if (App.Current.MainWindow is Restore)
+                    App.Current.MainWindow.Close();
+                MainControl main = new MainControl(1);
+                App.Current.MainWindow.Content = main;
+                messaggioErrore("Connessione Persa");
+                return;
+            }
+
+            App.Current.MainWindow = mw;
+            App.Current.MainWindow.Width = 400;
+            App.Current.MainWindow.Height = 400;
+        }
+
         private void RestoreFile_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
             if (RestoreFile.IsEnabled)
@@ -93,53 +139,9 @@ namespace Client
             }
 
         }
+        #endregion
 
-        private void EffettuaBackup_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            if (path != null && !mw.clientLogic.monitorando)
-            {
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F5FFFA");
-            }
-            else if (path != null && mw.clientLogic.monitorando)
-            {
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F6CECE");
-            }
-
-        }
-
-        private void EffettuaBackup_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            if (path != null && !mw.clientLogic.monitorando)
-            {
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
-            }
-            else if (path != null && mw.clientLogic.monitorando)
-            {
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");
-            }
-
-        }
-
-        private void Logout_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            logoutImage.BeginInit();
-            logoutImage.Source = new BitmapImage(new Uri(@"Images/logoutLight.png", UriKind.RelativeOrAbsolute));
-            logoutImage.EndInit();
-        }
-
-        private void Logout_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            logoutImage.BeginInit();
-            logoutImage.Source = new BitmapImage(new Uri(@"Images/logout.png", UriKind.RelativeOrAbsolute));
-            logoutImage.EndInit();
-        }
-
+        #region Backup
         private void EffettuaBackup_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -191,6 +193,56 @@ namespace Client
             }
         }
 
+        private void EffettuaBackup_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            MainWindow mw = (MainWindow)App.Current.MainWindow;
+            if (path != null && !mw.clientLogic.monitorando)
+            {
+                BrushConverter bc = new BrushConverter();
+                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+            }
+            else if (path != null && mw.clientLogic.monitorando)
+            {
+                BrushConverter bc = new BrushConverter();
+                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F6CECE");
+            }
+
+        }
+
+        private void EffettuaBackup_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            MainWindow mw = (MainWindow)App.Current.MainWindow;
+            if (path != null && !mw.clientLogic.monitorando)
+            {
+                BrushConverter bc = new BrushConverter();
+                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
+            }
+            else if (path != null && mw.clientLogic.monitorando)
+            {
+                BrushConverter bc = new BrushConverter();
+                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");
+            }
+
+        }
+        #endregion
+
+        #region Logout
+        private void Logout_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            logoutImage.BeginInit();
+            logoutImage.Source = new BitmapImage(new Uri(@"Images/logoutLight.png", UriKind.RelativeOrAbsolute));
+            logoutImage.EndInit();
+        }
+
+        private void Logout_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            logoutImage.BeginInit();
+            logoutImage.Source = new BitmapImage(new Uri(@"Images/logout.png", UriKind.RelativeOrAbsolute));
+            logoutImage.EndInit();
+        }
+        #endregion
+
+        #region Gestione modifiche
         private void OnDeleted(object sender, FileSystemEventArgs e)
         {
             try
@@ -354,7 +406,7 @@ namespace Client
                 t.Start();
             }
         }
-
+        #endregion
 
 
         private void HideProgress(System.Windows.Controls.ProgressBar obj)
@@ -560,50 +612,7 @@ namespace Client
             }
         }
 
-        private void RestoreFile_Click(object sender, RoutedEventArgs e)
-        {
-            if (mw.clientLogic.clientsocket.Client.Poll(1000, SelectMode.SelectRead))
-            {
-                MainControl main = new MainControl(1);
-                App.Current.MainWindow.Content = main;
-                messaggioErrore("Connessione Persa");
-                return;
 
-            }
-
-            ClientLogic clRestore = new ClientLogic(mw.clientLogic.ip, mw.clientLogic.porta, mw.clientLogic.folder, mw.clientLogic.username, mw.clientLogic.folderR);
-            Window w = null;
-            try
-            {
-                w = new Restore(clRestore, mw);
-                w.ShowDialog();
-            }
-            catch (Exception)
-            {
-                if (clRestore.clientsocket.Client.Connected)
-                {
-                    clRestore.clientsocket.GetStream().Close();
-                    clRestore.clientsocket.Client.Close();
-                }
-
-                if (mw.clientLogic.clientsocket.Client.Connected)
-                {
-                    mw.clientLogic.clientsocket.GetStream().Close();
-                    mw.clientLogic.clientsocket.Close();
-                }
-
-                if (App.Current.MainWindow is Restore)
-                    App.Current.MainWindow.Close();
-                MainControl main = new MainControl(1);
-                App.Current.MainWindow.Content = main;
-                messaggioErrore("Connessione Persa");
-                return;
-            }
-
-            App.Current.MainWindow = mw;
-            App.Current.MainWindow.Width = 400;
-            App.Current.MainWindow.Height = 400;
-        }
 
         private void Logout_Click(object sender, RoutedEventArgs e)
         {

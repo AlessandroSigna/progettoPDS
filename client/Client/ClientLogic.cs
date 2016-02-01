@@ -280,10 +280,11 @@ namespace Client
                 }
                 else
                 {
+                    //se l'autenticazione non va a buon fine torno alla finestra principale e chiude lo stream
                     String tmp = message.Substring(1, message.Length - 1);
-                    MainControl main = new MainControl(1);
+                    MainControl main = new MainControl(1);  //FIXME: magicnumber
                     App.Current.MainWindow.Content = main;
-                    if (mw.clientLogic.clientsocket.Client.Connected)
+                    if (mw.clientLogic.clientsocket.Client.Connected)   //FIXME: ma mw.clientLogic non punta a questo stesso oggetto?!
                     {
                         mw.clientLogic.clientsocket.GetStream().Close();
                         mw.clientLogic.clientsocket.Close();

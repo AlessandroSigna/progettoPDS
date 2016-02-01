@@ -34,7 +34,7 @@ namespace Client
             App.Current.MainWindow.Width = 400;
             App.Current.MainWindow.Height = 400;
             errore = errorePassed;
-            if (errore == 1)
+            if (errore == 1)    //FIXME: magic number + errore può essere solo == 1, farlo bool quindi?!
             {
                 ClientLogic.UpdateNotifyIconDisconnesso();
                 messaggioErrore();
@@ -75,7 +75,7 @@ namespace Client
             if (IpValid && PortValid)
             {
                 showWaitBar();
-                clientsocket = new TcpClient(); //FIXME: a che serve qui se poi viene reinstaziato in ClientLogic ??
+                clientsocket = new TcpClient();
                 MainWindow mw = (MainWindow)Application.Current.MainWindow;
                 client = new ClientLogic(clientsocket, IPAddress.Parse(ip), int.Parse(port), mw);
                 mw.clientLogic = client;
