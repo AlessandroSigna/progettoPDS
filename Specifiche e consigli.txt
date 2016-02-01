@@ -1,0 +1,59 @@
+Specifiche
+
+All’interno del client è presente un servizio che periodicamente osserva i file presenti nella cartella selezionata dall’utente (e nelle sue sottocartelle) 
+MenuControl.xaml.cs
+line 170 - watcher = new System.IO.FileSystemWatcher();
+
+e, se trova delle discrepanze rispetto a quello che è conservato sul server, provvede ad effettuare una sincronizzazione.
+La sincronizzazione può comportare:
+- il trasferimento di un nuovo file verso il server
+- la sostituzione di un file esistente sul server con una nuova versione
+- l’eliminazione di un file dal server.
+ClientLogic.cs
+line 451 - workertranaction_InviaFileCompleted
+line 515 - Workertransaction_InviaFile
+
+Per evitare che operazioni errate da parte dell’utente provochino una perdita irreversibile di dati, il server mantiene non solo lo stato attuale della cartella del client, ma anche le versioni precedenti. 
+ServerLogic.cs
+line 2321 - inserisciFile (BACKUPHISTORY)
+
+Ogni volta che si inizia una sessione di sincronizzazione, il server crea una nuova struttura dati che rappresenta lo stato corrente della cartella sul client.
+All’interno di tale struttura sono riportati i nomi dei file presenti sul client, con il loro path, il riferimento al corrispondente contenuto così come memorizzato sul server 
+ServerLogic.cs
+line 1988 - RiceviFile
+
+ed un checksum che permette di verificare rapidamente se un file è stato modificato. Inoltre, la struttura dati contiene anche la data e l’ora in cui è stata creata, così da permettere l’ordinamento temporale delle diverse versioni.
+ServerLogic.cs
+line 2067 - controlloCheck
+
+La comunicazione tra client e server avviene attraverso un opportuno protocollo di rete che deve consentire tutto lo scambio necessario di informazioni. 
+ClientLogic.cs
+Line 139 - clientsocket.Connect
+
+Per evitare che eventuali interruzioni della connettività producano informazioni parzialmente aggiornate sul server, le operazioni di sincronizzazione devono essere eseguite all’interno di una transazione ACID: in caso di perdita di connettività, la transazione viene interamente cancellata e il sever si riporta nell’ultimo stato valido.
+ClientLogic.cs
+Line 145 - clientsocket.Connect (blocco catch)
+ServerLogic.cs
+Rollback commentate
+Line 2457 - case DISCONNETTI
+
+La componente client deve offrire un’opportuna interfaccia grafica che permetta all’utente di selezionare la cartella da monitorare e di ripristinare eventuali versioni precedenti dei file presenti nella cartella.
+
+Valutazione
+
+- il funzionamento generale;
+- l’aderenza alle specifiche fornite;
+- l’architettura progettuale;
+- la qualità del codice sorgente prodotto;
+- la qualità dell’interfaccia utente.
+
+Consigli Raffaele
+
+- Autenticazione a sfida
+- Identificazione del client (non va bene user + mac address)
+- Problemi con file office
+
+Domande
+
+- Numero di socket che usano e come
+- Sicronizzazione thread
