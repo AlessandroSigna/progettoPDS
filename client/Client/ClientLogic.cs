@@ -26,6 +26,8 @@ namespace Client
         public IPAddress ip;
         private int errore;
         private MainWindow mw;
+
+        #region Costanti
         private const int BUFFERSIZE = 1024;
         public const string OK = "+OK+";
         public const string ERRORE = "+ERR+";
@@ -49,37 +51,39 @@ namespace Client
         public const string GETFOLDERUSER = "+GETFOLDUSER+"; // +GETFOLDUSER+user
         public const string FLP = "+FLP+";
         public const string CONNESSIONE_CHIUSA_SERVER = "Connessione chiusa dal server";
+        #endregion
+
         public volatile Boolean monitorando;
         public volatile Boolean lavorandoInvio;
         public AutoResetEvent event_1;
         public string folder;
         public string folderR;
         public string mac;
-        private string Username;
+        private string _username;
         public bool connesso = false;
         public string username
         {
             get
             {
-                return this.Username;
+                return this._username;
             }
             set
             {
-                this.Username = value;
+                this._username = value;
             }
 
         }
-        private TcpClient Clientsocket;
+        private TcpClient _clientsocket;
 
         public TcpClient clientsocket
         {
             get
             {
-                return this.Clientsocket;
+                return this._clientsocket;
             }
             set
             {
-                this.Clientsocket = value;
+                this._clientsocket = value;
             }
 
         }
@@ -106,6 +110,7 @@ namespace Client
             return macAddress;
         }
 
+        #region Costruttori
         public ClientLogic(TcpClient clientSocketPassed, IPAddress ipPassed, int portPassed, MainWindow mainwindow)
         {
             mw = mainwindow;
@@ -116,8 +121,8 @@ namespace Client
             monitorando = false;
             lavorandoInvio = false;
             workertransaction = new BackgroundWorker();
-            workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Connect);
-            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_ConnectionCompleted);
+            workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Connect); //setto il metodo che deve essere eseguito all'occorrenza di workertransaction.RunWorkerAsync()
+            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_ConnectionCompleted);  //setto la callback da eseguire quando la backgroud operation termina
             workertransaction.RunWorkerAsync();
         }
 
@@ -140,32 +145,13 @@ namespace Client
                     clientsocket.GetStream().Close();
                     clientsocket.Close();
                 }
-                MainControl main = new MainControl(1);
+                MainControl main = new MainControl(1);  //FIXME: magicnumber!
                 App.Current.MainWindow.Content = main;
             }
         }
+        #endregion
 
-        //CONNECTION ZONE
-
-        void Workertransaction_ConnectionCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            if (errore == 1)
-            {
-                MainControl main = new MainControl(errore);
-                App.Current.MainWindow.Content = main;
-                return;
-            }
-            mac = GetMacAddress();
-            if (mac.Equals(String.Empty))
-            {
-                MainControl main = new MainControl(1);
-                App.Current.MainWindow.Content = main;
-                return;
-            }
-            LoginRegisterControl login = new LoginRegisterControl();
-            App.Current.MainWindow.Content = login;
-        }
-
+        #region  Metodi di connessione
         void Workertransaction_Connect(object sender, DoWorkEventArgs e)
         {
             try
@@ -179,10 +165,29 @@ namespace Client
             }
         }
 
-        //END CONNECTION ZONE
 
+        void Workertransaction_ConnectionCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (errore == 1)
+            {
+                MainControl main = new MainControl(errore);
+                App.Current.MainWindow.Content = main;
+                return;
+            }
+            mac = GetMacAddress();  //FIXME: al prof non è piaciuta sta cosa del mac
+            if (mac.Equals(String.Empty))
+            {
+                MainControl main = new MainControl(1);  //FIXME: magicnumber!
+                App.Current.MainWindow.Content = main;
+                return;
+            }
+            LoginRegisterControl login = new LoginRegisterControl();
+            App.Current.MainWindow.Content = login;
+        }
 
-        //LOGIN ZONE
+        #endregion
+
+        #region Metodi di Login e Registrazione
         internal void Login(string username, string pass)
         {
             workertransaction = new BackgroundWorker();
@@ -190,7 +195,7 @@ namespace Client
             object paramObj = username;
             this.username = username;
             object paramObj2 = pass;
-            object[] parameters = new object[] { paramObj, paramObj2, paramAct };
+            object[] parameters = new object[] { paramObj, paramObj2, paramAct };   //incapsulo username, password e azione per poterli passare come parametro (array)
 
             workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_LoginRegistrazione);
             workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_LoginCompleted);
@@ -240,34 +245,6 @@ namespace Client
             }
         }
 
-        private void Workertransaction_LoginRegistrazione(object sender, DoWorkEventArgs e)
-        {
-            object[] parameters = e.Argument as object[];
-            string[] resultArray = Array.ConvertAll(parameters, x => x.ToString());
-            string username = resultArray[0];
-            this.username = username;
-            string password = resultArray[1];
-            string action = resultArray[2];
-            try
-            {
-                WriteStringOnStream(action + username + "+" + password + "+" + mac);
-            }
-            catch
-            {
-                if (clientsocket.Connected)
-                {
-                    clientsocket.GetStream().Close();
-                    clientsocket.Close();
-                }
-                MainControl main = new MainControl(1);
-                App.Current.MainWindow.Content = main;
-            }
-
-        }
-
-        //END LOGIN ZONE
-
-        //REGISTRATI ZONE
         internal void Registrati(string username, string pass)
         {
             workertransaction = new BackgroundWorker();
@@ -283,6 +260,10 @@ namespace Client
 
         }
 
+        /*
+         * Callback lanciata quando termina l'invio delle credenziali per la registrazione. 
+         * Attende risposta da server leggendo dallo stream
+         */
         private void Workertransaction_RegistrazioneCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             try
@@ -291,7 +272,7 @@ namespace Client
                 if (message.Contains(OK))
                 {
 
-                    MenuControl main = new MenuControl();
+                    MenuControl main = new MenuControl();   //il controllo passa a MenuControl
                     App.Current.MainWindow.Content = main;
                     UpdateNotifyIconConnesso();
                     connesso = true;
@@ -323,15 +304,43 @@ namespace Client
             }
         }
 
+        /*callback usata sia in caso di registrazione sia in caso di login
+         il discriminante è cioò che è contenuto in action dopo che l'array dei parametri viene parsificato
+        */
+        private void Workertransaction_LoginRegistrazione(object sender, DoWorkEventArgs e)
+        {
+            object[] parameters = e.Argument as object[];
+            string[] resultArray = Array.ConvertAll(parameters, x => x.ToString());
+            string username = resultArray[0];
+            this.username = username;
+            string password = resultArray[1];
+            string action = resultArray[2];
+            try
+            {
+                WriteStringOnStream(action + username + "+" + password + "+" + mac);    //invio al server le credenziali
+            }
+            catch
+            {
+                if (clientsocket.Connected)
+                {
+                    clientsocket.GetStream().Close();
+                    clientsocket.Close();
+                }
+                MainControl main = new MainControl(1);  //FIXME: magicnumber
+                App.Current.MainWindow.Content = main;
+            }
+
+        }
+
+        #endregion
+
         private async void messaggioErrore(string mess)
         {
             MetroWindow mw = (MetroWindow)App.Current.MainWindow;
             await mw.ShowMessageAsync("Errore", mess);
         }
 
-        //END REGISTRATI ZONE
-
-        //DISCONNECT ZONE
+        #region Metodi di Disconnesione
         internal void DisconnettiServer(Boolean esci)
         {
             workertransaction = new BackgroundWorker();
@@ -375,10 +384,7 @@ namespace Client
             MainControl main = new MainControl(0);
             App.Current.MainWindow.Content = main;
         }
-        //END DISCONNECT ZONE
 
-
-        //UPDATE COLORE NOTIFY ICON
         public static void UpdateNotifyIconDisconnesso()
         {
             MainWindow.MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/disconnessoicon.ico");
@@ -388,31 +394,31 @@ namespace Client
         {
             MainWindow.MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/connessoicon.ico");
         }
+        #endregion
 
-        //UPDATE COLORE NOTIFY ICON
+
 
         public int WriteStringOnStream(string message)
         {
-            TcpState statoConn = GetState(clientsocket);
+            TcpState statoConn = GetState(clientsocket);    //FIXME: istruzione inutile?! controllare statoConn
             NetworkStream stream = clientsocket.GetStream();
             stream.WriteTimeout = 30000;
-            Byte[] data = System.Text.Encoding.ASCII.GetBytes(message);
+            Byte[] data = System.Text.Encoding.ASCII.GetBytes(message); //preparo i dati per l'invio sul canale
             stream.Write(data, 0, data.Length);
-            return 1;
+            return 1;   //FIXME: perchè return 1?
         }
 
 
         public string ReadStringFromStream()
         {
-            TcpState statoConn = GetState(clientsocket);
-
+            TcpState statoConn = GetState(clientsocket);    //FIXME: istruzione inutile?! controllare statoConn
 
             NetworkStream stream = clientsocket.GetStream();
             stream.ReadTimeout = 30000;
             Byte[] data = new Byte[512];
             String responseData = String.Empty;
             Int32 bytes = stream.Read(data, 0, data.Length);
-            responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
+            responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);    //parsifico i byte ricevuti
             return responseData;
 
         }
@@ -426,7 +432,7 @@ namespace Client
         }
 
 
-        //INVIO FILE ZONE
+        #region Metodi invio file
         public void InvioFile(string[] Filenames)
         {
             event_1 = new AutoResetEvent(false);
@@ -631,7 +637,7 @@ namespace Client
                 return 2;
             }
         }
-        //END INVIO FILE ZONE
+        #endregion
 
         public string GetMD5HashFromFile(string fileName)
         {

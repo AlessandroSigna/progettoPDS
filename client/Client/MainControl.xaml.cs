@@ -42,14 +42,29 @@ namespace Client
 
         }
 
-        private async void messaggioErrore()
+        #region Altri Metodi
+        private void messaggioErrore()
         {
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            await mw.ShowMessageAsync("Errore", "Impossibile raggiungere il server");
+            //Window mw = (Window)App.Current.MainWindow;
+            //await mw.ShowMessageAsync("Errore", "Impossibile raggiungere il server");
+            MessageBoxResult result = MessageBox.Show("Impossibile raggiungere il server", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+            
         }
 
+        private void showWaitBar()
+        {
 
+            Window parentWindow = (Window)this.Parent;
+            ProgressRing bar = new ProgressRing();  //FIXME: MetroWindow dependence
+            bar.IsActive = true;
+            bar.Width = 100;
+            bar.Height = 100;
+            parentWindow.Content = bar;
+        }
 
+        #endregion
+
+        #region Button Connetti
         private void connect_button_Click(object sender, RoutedEventArgs e)
         {
             string ip = IpAddressBox.Text;
@@ -60,8 +75,8 @@ namespace Client
             if (IpValid && PortValid)
             {
                 showWaitBar();
-                clientsocket = new TcpClient();
-                MainWindow mw = (MainWindow)App.Current.MainWindow;
+                clientsocket = new TcpClient(); //FIXME: a che serve qui se poi viene reinstaziato in ClientLogic ??
+                MainWindow mw = (MainWindow)Application.Current.MainWindow;
                 client = new ClientLogic(clientsocket, IPAddress.Parse(ip), int.Parse(port), mw);
                 mw.clientLogic = client;
             }
@@ -69,18 +84,6 @@ namespace Client
             {
                 Console.Out.WriteLine("No addr");
             }
-        }
-
-
-        private void showWaitBar()
-        {
-
-            Window parentWindow = (Window)this.Parent;
-            ProgressRing bar = new ProgressRing();
-            bar.IsActive = true;
-            bar.Width = 100;
-            bar.Height = 100;
-            parentWindow.Content = bar;
         }
 
         private void Connect_MouseEnter(object sender, MouseEventArgs e)
@@ -96,6 +99,9 @@ namespace Client
             Connect.Background = (Brush)bc.ConvertFrom("#FF44E572");
 
         }
+        #endregion
+
+        #region Controlli indirizzo e porta
 
         private void PortBox_LostFocus(object sender, RoutedEventArgs e)
         {
@@ -106,7 +112,6 @@ namespace Client
         {
             IsValidIPAddress(IpAddressBox.Text);
         }
-
         //Controllo IP valido
         public bool IsValidIPAddress(string addr)
         {
@@ -162,7 +167,7 @@ namespace Client
             }
 
         }
-
+        #endregion
 
 
     }

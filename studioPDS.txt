@@ -1,0 +1,49 @@
+﻿Client
+
+La prima finestra visibile è MainControl.xaml
+l'entry point del progetto sembra essere MainWindow.xaml (forse di default è così sempre) 
+anche se la sua finestra non si vede
+qui viene istanziata MainControl
+
+La callback del button connect  connect_button_Click istanzia ClientLogic come un TcpClient (windows.Net.Soket)
+se l'indirizzo e la porta sono validi, questi controlli colorano la cornice dei box
+
+MainWindow mw = (MainWindow)Application.Current.MainWindow ritorna l'istanza della MainWindow (tipo singletone?)
+La Mainwindow serve per creare l'oggetto ClientLogic.
+Mainwindow ha un riferimento a clientLogic PUBLIC !! e qui viene assegnato
+nell'attesa della connesione viene visualizzato un progressRing -> MahApps.Metro !!
+
+ClientLogic ha un macello di costanti -> pulire
+ClientLogic è solo .cs no .xaml 
+Ha un riferimento alla main window (vorrei capire a che serve!)
+ClientLogic ha due costruttori, uno che riceve TcpClient e uno no e lo istanzia al suo interno
+il primo viene chiamato dal button conneti della MainWindow
+il secondo viene chiamato dalla RestoreFile
+in ClientLogic la connessione è gestita da TcpClient.Connect(address, port) in un metodo asincrono
+gestito da workertransaction = new BackgroundWorker() a cui si delega l'esecuzione di un task
+
+Se la connessione viene instaurata si passa il controllo a LoginRegisterControl e alla relativa Window (UserControl)
+--
+A window is managed by the OS and is placed on the desktop.
+A UserControl is managed by wpf and is placed in a Window or in another UserControl.
+Applcations could be created by have a single Window and displaying lots of UserControls in that Window.
+--
+LoginRegisterControl gestisce i bottoni Login, Registrati e Back collegando gli eventi alle callback adatte
+Login_Click passa il controllo a LoginControl e relativa finestra di login
+Registrati_Click passa il controllo a RegistratiControl e relativa finestra di registrazione
+
+RegistratiControl invia le informazioni a ClientLogic.Registrati che provvede ad inviarle al server
+l'invio è fatto tramite la ClientLogic.WriteStringOnStream(string message)
+prepara i dati (converti in ASCII) e invia sul canale
+
+MahApps.Metro
+I dialog box erano fighi ora si sostituiscono con i message box ?
+Il progress ring si deve sostituire
+
+idee
+Server stampa il suo IP
+
+FIX
+se da LoginRegisterControl si torna indietro la finestra non cambia nome
+autenticazione su mac -> ma se è sul mac come abbiamo fatto a connetterci dal mixto?!
+gitignore

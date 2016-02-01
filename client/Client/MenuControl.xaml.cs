@@ -46,7 +46,7 @@ namespace Client
         public MenuControl()
         {
             InitializeComponent();
-            ((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true;
+            //((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true;
             exit = false;
             lastCheck = String.Empty;
             App.Current.MainWindow.Title = "Mycloud";
@@ -623,8 +623,12 @@ namespace Client
 
         private void ButtonServerOnClick(object sender, RoutedEventArgs e)
         {
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            mw.HideMetroDialogAsync(customDialog);
+            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+            //mw.HideMetroDialogAsync(customDialog);
+            //MainWindow mainw = (MainWindow)mw;
+
+            Window mw = (Window)App.Current.MainWindow;
+            //mw.HideMetroDialogAsync(customDialog);
             MainWindow mainw = (MainWindow)mw;
 
             exit = true;

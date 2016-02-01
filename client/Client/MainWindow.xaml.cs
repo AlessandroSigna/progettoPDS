@@ -23,7 +23,7 @@ namespace Client
     /// <summary>
     /// Logica di interazione per MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : MetroWindow
+    public partial class MainWindow : Window
     {
         public static System.Windows.Forms.NotifyIcon MyNotifyIcon;
         private CustomDialog _customDialog;
@@ -36,6 +36,7 @@ namespace Client
         public MainWindow()
         {
             InitializeComponent();
+            Console.Out.WriteLine("MainWindow: Costruttore ");
             closing = false;
             this.Left = SystemParameters.PrimaryScreenWidth - this.Width;
             this.Top = SystemParameters.PrimaryScreenHeight - this.Height - 40;
@@ -48,11 +49,13 @@ namespace Client
 
         void MyNotifyIcon_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
         {
+            Console.Out.WriteLine("MainWindow: MouseClick ");
             this.WindowState = WindowState.Normal;
         }
 
-        private void MetroWindow_StateChanged(object sender, EventArgs e)
+        private void Window_StateChanged(object sender, EventArgs e)
         {
+            Console.Out.WriteLine("MainWindow: StateChanged");
             if (this.WindowState == WindowState.Minimized && !(App.Current.MainWindow.Content is LoginControl) && !(App.Current.MainWindow.Content is Disconnetti) && !(App.Current.MainWindow.Content is MainControl) && !(App.Current.MainWindow.Content is RegistratiControl) && !(App.Current.MainWindow.Content is LoginRegisterControl))
             {
                 this.ShowInTaskbar = false;
@@ -65,8 +68,9 @@ namespace Client
             }
         }
 
-        private void MetroWindow_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            Console.Out.WriteLine("MainWindow: Closing");
             if (closing)
             {
                 clientLogic.DisconnettiServer(true);
@@ -97,42 +101,49 @@ namespace Client
 
         private async void messaggioDisconnetti()
         {
+            Console.Out.WriteLine("MainWindow: messaggioDisconnetti");
             _customDialog = new CustomDialog();
             _exitwindow = new Esci();
             _exitwindow.BOk.Click += ButtonOkOnClick;
             _exitwindow.BCancel.Click += ButtonCancelOnClick;
             _customDialog.Content = _exitwindow;
-            await this.ShowMetroDialogAsync(_customDialog);
+            //await this.ShowMetroDialogAsync(_customDialog);
         }
 
         private void ButtonOkOnClick(object sender, RoutedEventArgs e)
         {
-
-            this.HideMetroDialogAsync(_customDialog);
+            Console.Out.WriteLine("MainWindow: ButtonOnClick ");
+            //this.HideMetroDialogAsync(_customDialog);
+            this.Hide();
             closing = true;
             this.Close();
         }
 
         private void ButtonCancelOnClick(object sender, RoutedEventArgs e)
         {
-            this.HideMetroDialogAsync(_customDialog);
+            Console.Out.WriteLine("MainWindow: ButtonCancelOnClick");
+            //this.HideMetroDialogAsync(_customDialog);
+            this.Hide();
         }
 
         public async void DialogDisconnetti()
         {
+            Console.Out.WriteLine("MainWindow: DialogDisconnetti");
             customDialog = new CustomDialog();
             disconnettiWindow = new Disconnetti();
             disconnettiWindow.BServer.Click += ButtonServerOnClick;
             disconnettiWindow.BCancel.Click += ButtonCancellaOnClick;
             customDialog.Content = disconnettiWindow;
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            await mw.ShowMetroDialogAsync(customDialog);
+            Window mw = (Window)App.Current.MainWindow;
+            //await mw.ShowMetroDialogAsync(customDialog);
         }
 
         private void ButtonServerOnClick(object sender, RoutedEventArgs e)
         {
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            mw.HideMetroDialogAsync(customDialog);
+            Console.Out.WriteLine("MainWindow: ButtonServerOnClick");
+            Window mw = (Window)App.Current.MainWindow;
+            //mw.HideMetroDialogAsync(customDialog);
+            mw.Hide();
             MainWindow mainw = (MainWindow)mw;
 
             menuContr.exit = true;
@@ -145,8 +156,10 @@ namespace Client
 
         private void ButtonCancellaOnClick(object sender, RoutedEventArgs e)
         {
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            mw.HideMetroDialogAsync(customDialog);
+            Console.Out.WriteLine("MainWindow: ButtonCancellaOnClick");
+            Window mw = (Window)App.Current.MainWindow;
+            //mw.HideMetroDialogAsync(customDialog);
+            mw.Hide();
         }
 
     }

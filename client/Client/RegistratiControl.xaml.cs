@@ -29,7 +29,7 @@ namespace Client
         {
             InitializeComponent();
             App.Current.MainWindow.Title = "Registrazione";
-            ((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true;
+            //((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true;
             mess = message;
             if (mess != null)
             {
@@ -44,6 +44,15 @@ namespace Client
             await mw.ShowMessageAsync("Errore", mess);
         }
 
+        #region Button Registrati
+        private void Registrati_Click(object sender, RoutedEventArgs e)
+        {
+
+            MainWindow mw = (MainWindow)App.Current.MainWindow;
+            mw.clientLogic.Registrati(Username.Text, Password.Password);
+
+        }
+
         private void Registrati_MouseEnter(object sender, MouseEventArgs e)
         {
             BrushConverter bc = new BrushConverter();
@@ -56,7 +65,9 @@ namespace Client
             Registrati.Background = (Brush)bc.ConvertFrom("#33CCFF");
 
         }
+        #endregion
 
+        #region Button Back
         private void Back_Click(object sender, RoutedEventArgs e)
         {
             LoginRegisterControl main = new LoginRegisterControl();
@@ -76,14 +87,7 @@ namespace Client
             backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
             backImage.EndInit();
         }
-
-        private void Registrati_Click(object sender, RoutedEventArgs e)
-        {
-
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            mw.clientLogic.Registrati(Username.Text, Password.Password);
-
-        }
+        #endregion
 
     }
 }

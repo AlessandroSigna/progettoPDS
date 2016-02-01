@@ -21,12 +21,12 @@ namespace Client
     /// </summary>
     public partial class LoginRegisterControl : UserControl
     {
-
+        #region Button Login
         public LoginRegisterControl()
         {
             InitializeComponent();
-            App.Current.MainWindow.Title = "MyCloud";
-            ((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true;
+            App.Current.MainWindow.Title = "MyCloud - Autenticazione";
+            //((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true; 
         }
 
 
@@ -50,6 +50,14 @@ namespace Client
             Login.Background = (Brush)bc.ConvertFrom("#FF44E572");
 
         }
+        #endregion
+
+        #region Button Registrati
+        private void Registrati_Click(object sender, RoutedEventArgs e)
+        {
+            RegistratiControl main = new RegistratiControl(null);
+            App.Current.MainWindow.Content = main;
+        }
 
         private void Registrati_MouseEnter(object sender, MouseEventArgs e)
         {
@@ -64,12 +72,10 @@ namespace Client
             Registrati.Background = (Brush)bc.ConvertFrom("#FFF5F804");
         }
 
-        private void Registrati_Click(object sender, RoutedEventArgs e)
-        {
-            RegistratiControl main = new RegistratiControl(null);
-            App.Current.MainWindow.Content = main;
-        }
 
+        #endregion
+
+        #region Button Back
         private void Back_Click(object sender, RoutedEventArgs e)
         {
             MainWindow mw = (MainWindow)App.Current.MainWindow;
@@ -89,7 +95,7 @@ namespace Client
             backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
             backImage.EndInit();
         }
-
+        #endregion
 
     }
 }

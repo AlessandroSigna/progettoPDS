@@ -29,7 +29,7 @@ namespace Client
         public LoginControl(string message)
         {
             InitializeComponent();
-            ((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true;
+            //((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true;
             App.Current.MainWindow.Title = "Login";
             mess = message;
             if (mess != null)
