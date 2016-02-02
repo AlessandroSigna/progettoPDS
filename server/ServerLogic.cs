@@ -22,6 +22,8 @@ namespace BackupServer
         private int port;
         private MainWindow mainWindow;
         private int counterClient = 0;
+
+        #region Costanti
         private const int BUFFERSIZE = 1024;
         public const string OK = "+OK+";
         public const string ERRORE = "+ERR+";
@@ -47,6 +49,7 @@ namespace BackupServer
         public const string NUMFILE = "+NUMFL+";
         public const string FLP = "+FLP+";
         public const string ENDLIST = "+ENDLIST+"; //+ENDSYN+username
+        #endregion
 
         public static bool serverKO = true;
 
@@ -69,7 +72,7 @@ namespace BackupServer
             //Call method to hide wait screen
 
         }
-
+        #region Metodi di connessione
         void workertranaction_DoWork(object sender, DoWorkEventArgs e)
         {
             TcpClient clientsocket;
@@ -113,6 +116,11 @@ namespace BackupServer
             readStringFromStream(clientsocket);
 
         }
+        #endregion
+
+        #region Metodi handler comandi
+
+        #region Comandi Login/Logout
 
         private string comandoLogout(string responseData)
         {
@@ -326,6 +334,7 @@ namespace BackupServer
                 return ERRORE + "Errore durante il login";
             }
         }
+        #endregion
 
         private Boolean comandoDisconnetti(string responseData)
         {
@@ -690,6 +699,7 @@ namespace BackupServer
             }
         }
 
+        #region Comandi per gestione file e liste file
         private string comandoFile(string responseData, TcpClient clientsocket, LinkedList<string> fileList)
         {
             //SQLiteTransaction transazioneFile = mainWindow.m_dbConnection.BeginTransaction();
@@ -1655,6 +1665,7 @@ namespace BackupServer
             }
 
         }
+        #endregion
 
         private string comandoEndSync(string responseData, LinkedList<string> fileList)
         {
@@ -1970,6 +1981,8 @@ namespace BackupServer
             }
         }
 
+        #endregion
+
         public TcpState GetState(TcpClient tcpClient)
         {
             var foo = IPGlobalProperties.GetIPGlobalProperties()
@@ -1977,6 +1990,8 @@ namespace BackupServer
               .SingleOrDefault(x => x.LocalEndPoint.Equals(tcpClient.Client.LocalEndPoint));
             return foo != null ? foo.State : TcpState.Unknown;
         }
+
+        #region Metodi ricezione file
 
         public string RiceviFile(TcpClient client, String user, LinkedList<string> listFile, SQLiteTransaction transazioneFile)
         {
@@ -2111,6 +2126,10 @@ namespace BackupServer
                 return BitConverter.ToString(md5.ComputeHash(stream)).Replace("-", string.Empty);
         }
 
+        #endregion
+
+        #region Metodi di elaborazione e inserimento file
+
         private Boolean incasellaFile(string user, string folderRoot, string fileName, Byte[] file, int filesizeC, string checkSum, SQLiteTransaction transazioneFile,String ext)
         {
 
@@ -2145,7 +2164,7 @@ namespace BackupServer
 
             return inserisciFile(user, folderRoot, fileName, sLastVersion, file, filesizeC, checkSum, transazioneFile, sidFile);
         }
-
+        
         private string getFolderRoot(string user)
         {
             SQLiteCommand comandoP1 = new SQLiteCommand(mainWindow.m_dbConnection);
@@ -2371,6 +2390,8 @@ namespace BackupServer
             return true;
         }
 
+        #endregion
+
         public static string RandomString(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -2378,6 +2399,8 @@ namespace BackupServer
             return new string(Enumerable.Repeat(chars, length)
               .Select(s => s[random.Next(s.Length)]).ToArray());
         }
+
+        #region Metodi di lettura e scrittura stringa su stream
 
         public string ReadStringFromStream(TcpClient clientsocket)
         {
@@ -2572,5 +2595,7 @@ namespace BackupServer
             counterClient--;
 
         }
+
+        #endregion
     }
 }
