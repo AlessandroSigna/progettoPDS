@@ -1,21 +1,21 @@
 ﻿Client
 
 La prima finestra visibile è MainControl.xaml
-l'entry point del progetto sembra essere MainWindow.xaml (forse di default è così sempre) 
+l'entry point del progetto sembra essere MainWindow (forse di default è così sempre) 
 anche se la sua finestra non si vede
-qui viene istanziata MainControl
+La MainWindow serve per creare l'oggetto MainControl e per avere il riferimento a ClientLogic.
 
-La callback del button connect  connect_button_Click istanzia ClientLogic come un TcpClient (windows.Net.Soket)
+in MainControla callback del button connect è connect_button_Click 
+che istanzia ClientLogic come un TcpClient (windows.Net.Soket)
 se l'indirizzo e la porta sono validi, questi controlli colorano la cornice dei box
-
 MainWindow mw = (MainWindow)Application.Current.MainWindow ritorna l'istanza della MainWindow (tipo singletone?)
-La Mainwindow serve per creare l'oggetto ClientLogic.
-Mainwindow ha un riferimento a clientLogic PUBLIC !! e qui viene assegnato
+in Mainwindow il riferimento a clientLogic è PUBLIC !!
+e sempre in connect_button_Click viene assegnato il riferimento a ClientLogic di MainWindow
 nell'attesa della connesione viene visualizzato un progressRing -> MahApps.Metro !!
 
 ClientLogic ha un macello di costanti -> pulire
 ClientLogic è solo .cs no .xaml 
-Ha un riferimento alla main window (vorrei capire a che serve!)
+Ha un riferimento a MainWindow (vorrei capire a che serve!)
 ClientLogic ha due costruttori, uno che riceve TcpClient e uno no e lo istanzia al suo interno
 il primo viene chiamato dal button conneti della MainWindow
 il secondo viene chiamato dalla RestoreFile
@@ -37,7 +37,25 @@ App.Current.MainWindow.Content = main;      //quell'oggetto diventa il content d
 
 RegistratiControl invia le informazioni a ClientLogic.Registrati che provvede ad inviarle al server
 l'invio è fatto tramite la ClientLogic.WriteStringOnStream(string message)
-prepara i dati (converti in ASCII) e invia sul canale
+prepara i dati (converti da ASCII a byte) e invia sul canale
+si attende la risposta del server con ReadStringFromStream()
+che parsifica i byte letti da stream come string
+Se la risposta non è OK il controllo torna a MainControl e stream e socket vengono chiusi
+se la risposta è OK il controllo passa a MenuControl e l'icona e il bool connesso si aggiornano come connessi
+
+MenuControl ha una parte backup e una restore
+Entrambe hanno dei button con cui definire la cartella di backup o di restore (risp FolderButton e FolderButtonR)
+Backup
+Una volta settata la cartella di backup e clickato su start se ClientLogic non sta monitornado la callback EffettuaBackup_Click
+invia al server FOLDER + user + path e il server può rispondere con RootFolder Inserita o Stessa RootFolder
+Si inizializza la ProgressBar e si prendono i path di ciascun file nella rootdir con 
+Directory.GetFiles(path, "*.*", System.IO.SearchOption.AllDirectories) //systemIO class
+e si inviano al server con clientLogic.InvioFile(files);
+Si inizializza quindi un FileSystemWatcher e gli si registrano le callback nei vari casi di modifica ai files
+Se invece ClientLogic stava monitornado si invoca la AttendiTermineUpdate
+In caso di eccezione un opportuno thread viene fatto eseguire
+Da analizzare InvioFile() e il Thread dell'eccezione
+
 
 MahApps.Metro
 I dialog box erano fighi ora si sostituiscono con i message box ?

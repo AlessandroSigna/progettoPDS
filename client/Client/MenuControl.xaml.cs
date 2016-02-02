@@ -68,12 +68,17 @@ namespace Client
         }
 
         #region Backup
+        /*
+         * callback del click sul Button FolderButton
+         * setta il path della cartella selezionata nella textbox e relativca logica
+         */
         private void Select_Folder(object sender, RoutedEventArgs e)
         {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            FolderBrowserDialog fbd = new FolderBrowserDialog();    //finestra di sistema per selezionare la cartella
             DialogResult result = fbd.ShowDialog();
             if (fbd.SelectedPath != "")
             {
+                //se il path non è vuoto lo inserisco nella TextBox e cambio colore al Button EffettuaBackup
                 BackupDir.Text = fbd.SelectedPath;
                 path = fbd.SelectedPath;
                 mw.clientLogic.folder = path;
@@ -84,6 +89,9 @@ namespace Client
 
         }
 
+        /*
+         * callback del click sul Button EffettuaBackup
+         */
         private void EffettuaBackup_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -103,15 +111,15 @@ namespace Client
                         FileUploading.Text = "Cartella : " + System.IO.Path.GetDirectoryName(path);
 
 
-                    pbStatus.Value = 0;
+                    pbStatus.Value = 0; //La ProgressBar in questione è Hidden in partenza
                     pbStatus.Maximum = 100;
-                    files = Directory.GetFiles(path, "*.*", System.IO.SearchOption.AllDirectories);
+                    files = Directory.GetFiles(path, "*.*", System.IO.SearchOption.AllDirectories); //si ricavano i nomi dei files nella rootdir
                     if (files.Length != 0)
                     {
                         pbStatus.Visibility = Visibility.Visible;
                         mw.clientLogic.InvioFile(files);
                     }
-                    watcher = new System.IO.FileSystemWatcher();
+                    watcher = new System.IO.FileSystemWatcher();    //FileWatcher a cui si registrano le callback in caso di modifiche sui file
                     watcher.Path = BackupDir.Text;
                     watcher.Filter = "*.*";
                     watcher.NotifyFilter = NotifyFilters.Size | NotifyFilters.FileName | NotifyFilters.DirectoryName;
