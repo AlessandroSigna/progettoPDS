@@ -53,8 +53,8 @@ namespace Client
         public const string CONNESSIONE_CHIUSA_SERVER = "Connessione chiusa dal server";
         #endregion
 
-        public volatile Boolean monitorando;
-        public volatile Boolean lavorandoInvio;
+        public volatile Boolean monitorando;    //true mentre si osserva la rootDir in attesa di cambiamenti
+        public volatile Boolean lavorandoInvio; //true mentre si invia un file al server
         public AutoResetEvent event_1;
         public string folder;
         public string folderR;
@@ -412,7 +412,7 @@ namespace Client
 
         public string ReadStringFromStream()
         {
-            TcpState statoConn = GetState(clientsocket);    //FIXME: istruzione inutile?! controllare statoConn
+            TcpState statoConn = GetState(clientsocket);    //FIXME: istruzione inutile?!  oppure serve solo per lanciare una eccezione?
 
             NetworkStream stream = clientsocket.GetStream();
             stream.ReadTimeout = 30000;
@@ -434,24 +434,106 @@ namespace Client
 
 
         #region Metodi invio file
+        /*
+         * Invocato da MenuControl.EffettuaBackup_Click. Riceve un array di path di file 
+         * e li invia al server sfruttando diversi thread (?) di workertransaction i 
+         */
         public void InvioFile(string[] Filenames)
         {
-            event_1 = new AutoResetEvent(false);
+            event_1 = new AutoResetEvent(false);    //usato per la sincronizzazione dei thread
             workertransaction = new BackgroundWorker();
-            workertransaction.ProgressChanged += new ProgressChangedEventHandler(WorkerProgressChanged);
+            workertransaction.WorkerReportsProgress = true;
+            workertransaction.ProgressChanged += new ProgressChangedEventHandler(WorkerProgressChanged);    //chiamabile tramite ReportProgress se WorkerReportsProgress è true
             workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_InviaFile);
             workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(workertranaction_InviaFileCompleted);
-            workertransaction.WorkerReportsProgress = true;
+
             object[] objFiles = new object[Filenames.Length];
             int i = 0;
             foreach (string s in Filenames)
             {
-                objFiles[i] = (object)s;
+                objFiles[i] = (object)s;    //incapsulo le stringhe come object per permetterne il passaggio all'evento come parametri
                 i++;
             }
-            workertransaction.RunWorkerAsync(objFiles);
+            workertransaction.RunWorkerAsync(objFiles); //per ogni filename si invoca la Workertransaction_InviaFile
         }
 
+        private void Workertransaction_InviaFile(object sender, DoWorkEventArgs e)
+        {
+            lavorandoInvio = true;
+            object[] parameters = e.Argument as object[];
+            string[] resultArray = Array.ConvertAll(parameters, x => x.ToString()); //riottengo le stringhe con i filenames
+            int nFile = 100 / resultArray.Length;   //per calcolare la percentuale di progresso
+            foreach (string name in resultArray)
+            {
+                try
+                {
+                    this.WriteStringOnStream(ClientLogic.FILE + username);  //scrivo ogni filename sullo stream preceduto da FILE
+                }
+                catch
+                {
+                    //gestione eccezione: chiudo socket
+                    if (this.clientsocket.Client.Connected)
+                    {
+                        this.clientsocket.GetStream().Close();
+                        this.clientsocket.Close();
+                    }
+                    e.Result = false;
+                }
+
+                int retVal = InviaFile(name);
+
+                //gestisco i codici di errore ritornati da IviaFile
+                if (retVal == 1)    //FIXME: magicnumber
+                {
+                    try
+                    {
+                        workertransaction.ReportProgress(nFile, "Ultimo file sincronizzato: " + Path.GetFileName(name)); //si invoca la callback per monitorare il progresso
+                        string message = ReadStringFromStream();
+                        if (message == (ERRORE + "Invio file non riuscito"))
+                        {
+                            UpdateNotifyIconDisconnesso();
+                        }
+                        e.Result = true;
+                    }
+                    catch
+                    {
+                        e.Result = false;
+                        break;
+                    }
+                }
+                else if (retVal == 0)   //FIXME: magicnumber
+                {
+                    workertransaction.ReportProgress(nFile, "Ultimo file sincronizzato: " + Path.GetFileName(name));
+                    e.Result = true;
+                }
+                else if (retVal == 2)   //FIXME: magicnumber
+                {
+                    e.Result = false;
+                    break;
+                }
+                if (monitorando == false)
+                {
+                    e.Cancel = true;
+                    return;
+                }
+            }
+            try
+            {
+                this.WriteStringOnStream(ClientLogic.ENDSYNC + username + "+" + folder);    //comunico al server che ho terminato l'invio dei file
+            }
+            catch
+            {
+                if (this.clientsocket.Client.Connected)
+                {
+                    this.clientsocket.GetStream().Close();
+                    this.clientsocket.Close();
+                }
+            }
+        }
+
+        /*
+         * Callback per la fine della sincronizzazione 
+         */
         private void workertranaction_InviaFileCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             try
@@ -516,78 +598,11 @@ namespace Client
 
         }
 
-        private void Workertransaction_InviaFile(object sender, DoWorkEventArgs e)
-        {
-            lavorandoInvio = true;
-            object[] parameters = e.Argument as object[];
-            string[] resultArray = Array.ConvertAll(parameters, x => x.ToString());
-            int nFile = 100 / resultArray.Length;
-            foreach (string name in resultArray)
-            {
-                try
-                {
-                    this.WriteStringOnStream(ClientLogic.FILE + username);
-                }
-                catch
-                {
-                    if (this.clientsocket.Client.Connected)
-                    {
-                        this.clientsocket.GetStream().Close();
-                        this.clientsocket.Close();
-                    }
-                    e.Result = false;
-                }
 
-                int retVal = InviaFile(name);
-
-                if (retVal == 1)
-                {
-                    try
-                    {
-                        workertransaction.ReportProgress(nFile, "Ultimo file sincronizzato: " + Path.GetFileName(name));
-                        string message = ReadStringFromStream();
-                        if (message == (ERRORE + "Invio file non riuscito"))
-                        {
-                            UpdateNotifyIconDisconnesso();
-                        }
-                        e.Result = true;
-                    }
-                    catch
-                    {
-                        e.Result = false;
-                        break;
-                    }
-                }
-                else if (retVal == 0)
-                {
-                    workertransaction.ReportProgress(nFile, "Ultimo file sincronizzato: " + Path.GetFileName(name));
-                    e.Result = true;
-                }
-                else if (retVal == 2)
-                {
-                    e.Result = false;
-                    break;
-                }
-                if (monitorando == false)
-                {
-                    e.Cancel = true;
-                    return;
-                }
-            }
-            try
-            {
-                this.WriteStringOnStream(ClientLogic.ENDSYNC + username + "+" + folder);
-            }
-            catch
-            {
-                if (this.clientsocket.Client.Connected)
-                {
-                    this.clientsocket.GetStream().Close();
-                    this.clientsocket.Close();
-                }
-            }
-        }
-
+        /*
+         * Callback per monitorare il progresso dell'invio chiamata da workertransaction.ReportProgress
+         * Aggiorna la ProgressBar e la TextBox di FileUploading
+         */
         private void WorkerProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             MenuControl mc = (MenuControl)mw.Content;
@@ -595,7 +610,9 @@ namespace Client
             mc.FileUploading.Text = (string)e.UserState;
         }
 
-
+        /*
+         * Invia il file relativo a Filename al server
+         */
         private int InviaFile(string Filename)
         {
             try
@@ -605,23 +622,26 @@ namespace Client
                 byte[] header = null;
                 string checksum = "";
 
-                ReadStringFromStream();
+                ReadStringFromStream();     //?? per svuotare lo stream? per lanciare eccezione?
                 checksum = GetMD5HashFromFile(Filename);
-                FileStream fs = new FileStream(Filename, FileMode.Open);
-                int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));
+                FileStream fs = new FileStream(Filename, FileMode.Open);    //apro il file da inviare come uno stream
+                int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));    //numero di buffer necessari per salvare il file
 
+                //preparo un headre da inviare al server per informarlo sul file che invierò tra poco
                 string headerStr = "Content-length:" + fs.Length.ToString() + "\r\nFilename:" + Filename + "\r\nChecksum:" + checksum + "\r\n";
                 header = new byte[bufferSize];
-                Array.Copy(Encoding.ASCII.GetBytes(headerStr), header, Encoding.ASCII.GetBytes(headerStr).Length);
-                clientsocket.Client.Send(header);
+                Array.Copy(Encoding.ASCII.GetBytes(headerStr), header, Encoding.ASCII.GetBytes(headerStr).Length);  //FIXME: e se il filename è troppo lungo?!
+                clientsocket.Client.Send(header);   //invio l'header tramite il canale socket
                 string streamReady = ReadStringFromStream();
                 if (streamReady.Equals(OK + "File ricevuto correttamente") || streamReady.Equals(INFO + "File non modificato") || streamReady.Equals(ClientLogic.INFO + "file dim 0"))
                 {
+                    //chiudo il FileStream visto che non è necessario inviarlo
                     fs.Close();
                     fs.Dispose();
                     return 0;
                 }
 
+                //invio tanti pezzettini di file quanto necessario
                 for (int i = 0; i < bufferCount; i++)
                 {
                     buffer = new byte[bufferSize];
@@ -631,15 +651,17 @@ namespace Client
                 }
                 fs.Close();
                 fs.Dispose();
-                return 1;
+                return 1;   //FIXME: magicnumber
             }
             catch
             {
-                return 2;
+                return 2;   //FIXME: magicnumber
             }
         }
         #endregion
-
+        /*
+         * Calcola e ritorna l'hash md5 del file relativo a filename 
+         */
         public string GetMD5HashFromFile(string fileName)
         {
             MD5 md5 = MD5.Create();

@@ -21,6 +21,9 @@ il primo viene chiamato dal button conneti della MainWindow
 il secondo viene chiamato dalla RestoreFile
 in ClientLogic la connessione è gestita da TcpClient.Connect(address, port) in un metodo asincrono
 gestito da workertransaction = new BackgroundWorker() a cui si delega l'esecuzione di un task
+workertransaction.DoWork += new DoWorkEventHandler(MyTask); //setta il task da eseguire
+workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(MyTaskCompleted);    //motodo da eseguire quando il task è compiuto
+workertransaction.RunWorkerAsync(); //inizia l'esecuzione del task settato in modo asincrono
 
 Se la connessione viene instaurata si passa il controllo a LoginRegisterControl e alla relativa Window (UserControl)
 --
@@ -52,10 +55,18 @@ Si inizializza la ProgressBar e si prendono i path di ciascun file nella rootdir
 Directory.GetFiles(path, "*.*", System.IO.SearchOption.AllDirectories) //systemIO class
 e si inviano al server con clientLogic.InvioFile(files);
 Si inizializza quindi un FileSystemWatcher e gli si registrano le callback nei vari casi di modifica ai files
-Se invece ClientLogic stava monitornado si invoca la AttendiTermineUpdate
+Se invece ClientLogic stava monitornado quindi cliccando sul bottone si vuole interrompere il monitoring 
+si invoca la AttendiTermineUpdate che gestisce l'attesa di lavori in corso e il rilascio del watcher
 In caso di eccezione un opportuno thread viene fatto eseguire
-Da analizzare InvioFile() e il Thread dell'eccezione
+La ClientLogic.InvioFile(string[] Filenames) prepara le callback del workertransaction per l'effettivo invio dei file
+il task in background è Workertransaction_InviaFile che per ogni file invoca la ClientLogic.InviaFile
+nella quale tramite  clientsocket.Client.Send() si invia al server un header che lo prepara per il file che seguirà
+l'header contiene: Content-length Filename Checksum. In base alla risposta del server all'header si può evitare l'invio
+poi eventualmente si inviano i byte del file effettivo che viene spezzettato in base alla sua grandezza rispetto a una bufferSize
+Dopo ogni InviaFile si controllano eventuali errori e si aggiorna la ProgressBar tramite la workertransaction.ReportProgress()
+finiti i file si invia un messaggio di ENDSYNC + username + folder per comunicare la fine dell'invio
 
+workertranaction_InviaFileCompleted da studiare
 
 MahApps.Metro
 I dialog box erano fighi ora si sostituiscono con i message box ?
@@ -68,3 +79,7 @@ FIX
 se da LoginRegisterControl si torna indietro la finestra non cambia nome
 autenticazione su mac -> ma se è sul mac come abbiamo fatto a connetterci dal mixto?!
 autenticazione a sfida
+
+Dubbi
+Come funziona lo stream? se nessuno legge e qualcuno scrive i dati restano lì? e viceversa?
+Come funziona un socket? Socket.Send(byte[] buffer)? un solo socket per canale? sincrono?

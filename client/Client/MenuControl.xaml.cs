@@ -55,16 +55,18 @@ namespace Client
             updating = false;
         }
 
-        private async void messaggioStop()
+        private /*async*/ void messaggioStop()
         {
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            await mw.ShowMessageAsync("Attendere", "Stiamo chiudendo i canali...  un attimo di pazienza");
+            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+            //await mw.ShowMessageAsync("Attendere", "Stiamo chiudendo i canali...  un attimo di pazienza");
+            MessageBoxResult result = System.Windows.MessageBox.Show("Stiamo chiudendo i canali...  un attimo di pazienza", "Errore", MessageBoxButton.OK, MessageBoxImage.Stop);
         }
 
-        private async void messaggioAttesa()
+        private /*async*/ void messaggioAttesa()
         {
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            await mw.ShowMessageAsync("Attenzione", "Blocca il monitoraggio per effettuare un restore");
+            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+            //await mw.ShowMessageAsync("Attenzione", "Blocca il monitoraggio per effettuare un restore");
+            MessageBoxResult result = System.Windows.MessageBox.Show("Blocca il monitoraggio per effettuare un restore", "Errore", MessageBoxButton.OK, MessageBoxImage.Stop);
         }
 
         #region Backup
@@ -90,7 +92,7 @@ namespace Client
         }
 
         /*
-         * callback del click sul Button EffettuaBackup
+         * callback del click sul Button EffettuaBackup che funziona da toggle tra Start e Stop (monitoring)
          */
         private void EffettuaBackup_Click(object sender, RoutedEventArgs e)
         {
@@ -99,6 +101,7 @@ namespace Client
                 MainWindow mw = (MainWindow)App.Current.MainWindow;
                 if (!mw.clientLogic.monitorando)
                 {
+                    //inizio a monitorare e a inviare al server lo stato attuale della cartella
                     BrushConverter bc = new BrushConverter();
                     EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");   //cambio il colore del bottone
                     EffettuaBackup.Content = "Stop";    //e la scritta
@@ -117,7 +120,7 @@ namespace Client
                     if (files.Length != 0)
                     {
                         pbStatus.Visibility = Visibility.Visible;
-                        mw.clientLogic.InvioFile(files);
+                        mw.clientLogic.InvioFile(files);    //invio al server i nomi dei files nella cartella e nelle sottocartelle
                     }
                     watcher = new System.IO.FileSystemWatcher();    //FileWatcher a cui si registrano le callback in caso di modifiche sui file
                     watcher.Path = BackupDir.Text;
@@ -132,12 +135,14 @@ namespace Client
                 }
                 else
                 {
+                    //termino di monitorare attendendo eventuali lavori in corso
                     AttendiTermineUpdate();
                 }
                 mw.clientLogic.monitorando = !mw.clientLogic.monitorando;
             }
             catch
             {
+                //viene catturata l'eventuale eccezione lanciando un apposito thread
                 Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
                 t.Start();
             }
@@ -469,6 +474,9 @@ namespace Client
             arg4.Text = "Sto sincronizzando: " + arg3;
         }
 
+        /*
+         * Il controllo torna a MainControl lanciando un messaggio di errore
+         */
         private void ChangeWindow(MainWindow obj)
         {
             if (App.Current.MainWindow is Restore)
@@ -492,13 +500,17 @@ namespace Client
         }
 
 
-
+        /*
+         * Chiamata quando si vuole interrompere di monitorare la cartella
+         * Se il client sta ancora inviando i file appare un messaggio di attesa e il watcher viene rilasciato
+         */
         private void AttendiTermineUpdate()
         {
 
             MainWindow mw = (MainWindow)App.Current.MainWindow;
             if (mw.clientLogic.lavorandoInvio)
             {
+                //al posto del bottone EffettuaBackup compare una Label Wait
                 EffettuaBackup.Visibility = Visibility.Hidden;
                 EffettuaBackup.IsEnabled = false;
                 Wait.Visibility = Visibility.Visible;
@@ -517,6 +529,7 @@ namespace Client
                 FolderButton.IsEnabled = true;
                 if (updating)
                 {
+                    //non ho capito che cosa controlla updating 
                     EffettuaBackup.Visibility = Visibility.Hidden;
                     EffettuaBackup.IsEnabled = false;
                     Wait.Visibility = Visibility.Visible;
