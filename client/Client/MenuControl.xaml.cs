@@ -67,81 +67,23 @@ namespace Client
             await mw.ShowMessageAsync("Attenzione", "Blocca il monitoraggio per effettuare un restore");
         }
 
-        #region Restore
-        private void RestoreFile_Click(object sender, RoutedEventArgs e)
-        {
-            if (mw.clientLogic.clientsocket.Client.Poll(1000, SelectMode.SelectRead))
-            {
-                MainControl main = new MainControl(1);
-                App.Current.MainWindow.Content = main;
-                messaggioErrore("Connessione Persa");
-                return;
-
-            }
-
-            ClientLogic clRestore = new ClientLogic(mw.clientLogic.ip, mw.clientLogic.porta, mw.clientLogic.folder, mw.clientLogic.username, mw.clientLogic.folderR);
-            Window w = null;
-            try
-            {
-                w = new Restore(clRestore, mw);
-                w.ShowDialog();
-            }
-            catch (Exception)
-            {
-                if (clRestore.clientsocket.Client.Connected)
-                {
-                    clRestore.clientsocket.GetStream().Close();
-                    clRestore.clientsocket.Client.Close();
-                }
-
-                if (mw.clientLogic.clientsocket.Client.Connected)
-                {
-                    mw.clientLogic.clientsocket.GetStream().Close();
-                    mw.clientLogic.clientsocket.Close();
-                }
-
-                if (App.Current.MainWindow is Restore)
-                    App.Current.MainWindow.Close();
-                MainControl main = new MainControl(1);
-                App.Current.MainWindow.Content = main;
-                messaggioErrore("Connessione Persa");
-                return;
-            }
-
-            App.Current.MainWindow = mw;
-            App.Current.MainWindow.Width = 400;
-            App.Current.MainWindow.Height = 400;
-        }
-
-        private void RestoreFile_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            if (RestoreFile.IsEnabled)
-            {
-                BrushConverter bc = new BrushConverter();
-                RestoreFile.Background = (Brush)bc.ConvertFrom("#99FFFF");
-            }
-            else
-            {
-                RestoreFile.Background = Brushes.LightGray;
-            }
-        }
-
-        private void RestoreFile_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            if (RestoreFile.IsEnabled)
-            {
-                BrushConverter bc = new BrushConverter();
-                RestoreFile.Background = (Brush)bc.ConvertFrom("#33CCFF");
-            }
-            else
-            {
-                RestoreFile.Background = Brushes.LightGray;
-            }
-
-        }
-        #endregion
-
         #region Backup
+        private void Select_Folder(object sender, RoutedEventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            DialogResult result = fbd.ShowDialog();
+            if (fbd.SelectedPath != "")
+            {
+                BackupDir.Text = fbd.SelectedPath;
+                path = fbd.SelectedPath;
+                mw.clientLogic.folder = path;
+                BrushConverter bc = new BrushConverter();
+                EffettuaBackup.IsEnabled = true;
+                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
+            }
+
+        }
+
         private void EffettuaBackup_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -150,9 +92,9 @@ namespace Client
                 if (!mw.clientLogic.monitorando)
                 {
                     BrushConverter bc = new BrushConverter();
-                    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");
-                    EffettuaBackup.Content = "Stop";
-                    FolderButton.IsEnabled = false;
+                    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");   //cambio il colore del bottone
+                    EffettuaBackup.Content = "Stop";    //e la scritta
+                    FolderButton.IsEnabled = false;     //disabilito il bottone folder
                     mw.clientLogic.WriteStringOnStream(ClientLogic.FOLDER + mw.clientLogic.username + "+" + path);
                     string retFolder = mw.clientLogic.ReadStringFromStream();
                     if (retFolder == ClientLogic.OK + "RootFolder Inserita")
@@ -221,6 +163,97 @@ namespace Client
             {
                 BrushConverter bc = new BrushConverter();
                 EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");
+            }
+
+        }
+        #endregion
+
+        #region Restore
+        private void Select_FolderR(object sender, RoutedEventArgs e)
+        {
+            FolderBrowserDialog fbd = new FolderBrowserDialog();
+            DialogResult result = fbd.ShowDialog();
+            if (fbd.SelectedPath != "")
+            {
+                RestoreDir.Text = fbd.SelectedPath;
+                pathR = fbd.SelectedPath;
+                mw.clientLogic.folderR = pathR;
+                BrushConverter bc = new BrushConverter();
+                RestoreFile.IsEnabled = true;
+                RestoreFile.Background = (Brush)bc.ConvertFrom("#33CCFF");
+
+            }
+
+        }
+
+        private void RestoreFile_Click(object sender, RoutedEventArgs e)
+        {
+            if (mw.clientLogic.clientsocket.Client.Poll(1000, SelectMode.SelectRead))
+            {
+                MainControl main = new MainControl(1);
+                App.Current.MainWindow.Content = main;
+                messaggioErrore("Connessione Persa");
+                return;
+
+            }
+
+            ClientLogic clRestore = new ClientLogic(mw.clientLogic.ip, mw.clientLogic.porta, mw.clientLogic.folder, mw.clientLogic.username, mw.clientLogic.folderR);
+            Window w = null;
+            try
+            {
+                w = new Restore(clRestore, mw);
+                w.ShowDialog();
+            }
+            catch (Exception)
+            {
+                if (clRestore.clientsocket.Client.Connected)
+                {
+                    clRestore.clientsocket.GetStream().Close();
+                    clRestore.clientsocket.Client.Close();
+                }
+
+                if (mw.clientLogic.clientsocket.Client.Connected)
+                {
+                    mw.clientLogic.clientsocket.GetStream().Close();
+                    mw.clientLogic.clientsocket.Close();
+                }
+
+                if (App.Current.MainWindow is Restore)
+                    App.Current.MainWindow.Close();
+                MainControl main = new MainControl(1);
+                App.Current.MainWindow.Content = main;
+                messaggioErrore("Connessione Persa");
+                return;
+            }
+
+            App.Current.MainWindow = mw;
+            App.Current.MainWindow.Width = 400;
+            App.Current.MainWindow.Height = 400;
+        }
+
+        private void RestoreFile_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (RestoreFile.IsEnabled)
+            {
+                BrushConverter bc = new BrushConverter();
+                RestoreFile.Background = (Brush)bc.ConvertFrom("#99FFFF");
+            }
+            else
+            {
+                RestoreFile.Background = Brushes.LightGray;
+            }
+        }
+
+        private void RestoreFile_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            if (RestoreFile.IsEnabled)
+            {
+                BrushConverter bc = new BrushConverter();
+                RestoreFile.Background = (Brush)bc.ConvertFrom("#33CCFF");
+            }
+            else
+            {
+                RestoreFile.Background = Brushes.LightGray;
             }
 
         }
@@ -654,37 +687,9 @@ namespace Client
             mw.HideMetroDialogAsync(customDialog);
         }
 
-        private void Select_Folder(object sender, RoutedEventArgs e)
-        {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-            DialogResult result = fbd.ShowDialog();
-            if (fbd.SelectedPath != "")
-            {
-                BackupDir.Text = fbd.SelectedPath;
-                path = fbd.SelectedPath;
-                mw.clientLogic.folder = path;
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.IsEnabled = true;
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
-            }
 
-        }
-        private void Select_FolderR(object sender, RoutedEventArgs e)
-        {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-            DialogResult result = fbd.ShowDialog();
-            if (fbd.SelectedPath != "")
-            {
-                RestoreDir.Text = fbd.SelectedPath;
-                pathR = fbd.SelectedPath;
-                mw.clientLogic.folderR = pathR;
-                BrushConverter bc = new BrushConverter();
-                RestoreFile.IsEnabled = true;
-                RestoreFile.Background = (Brush)bc.ConvertFrom("#33CCFF");
 
-            }
 
-        }
         private async void messaggioErrore(string mess)
         {
             MetroWindow mw = (MetroWindow)App.Current.MainWindow;
