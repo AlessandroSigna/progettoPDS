@@ -23,13 +23,16 @@ namespace Client
     public partial class FileSelection : UserControl
     {
         private ClientLogic clientlogic;
-        private String selFolderPath;
-        private String likeNome;
-        private Boolean search;
+        private String selFolderPath;   //folder da analizzare
+        private String likeNome;    //stringa che il file deve contenere (inserito nella search bar)
+        private Boolean search; //non ho capito :|
         private String relativePath;
         private MainWindow mw;
         List<string> listElement;
 
+        /*
+         * Costruttore
+         */
         public FileSelection(ClientLogic clientLogic, string folder, string likeNomePass, Boolean searchBar, MainWindow mainw)
         {
             try
@@ -43,13 +46,14 @@ namespace Client
                 clientlogic = clientLogic;
                 App.Current.MainWindow.Width = 600;
                 App.Current.MainWindow.Height = 430;
+                //si chiede al server la lista dei file nella folder (che contengono likeNome)
                 clientLogic.WriteStringOnStream(ClientLogic.LISTFILES + clientLogic.username + "+" + folder + "+" + likeNome);
-
 
 
                 String retFiles;
                 Boolean exit = false;
                 Boolean fine = false;
+                //si parsifica opportunamente la stringa che ha inviato il server come risposta
                 while (!exit)
                 {
                     retFiles = clientLogic.ReadStringFromStream();
@@ -58,8 +62,8 @@ namespace Client
                     if (comando.Equals("FLP"))
                     {
                         noFile.Visibility = Visibility.Hidden;
-                        addElementToListbox(parametri[3]);
-                        clientlogic.WriteStringOnStream(ClientLogic.OK);
+                        addElementToListbox(parametri[3]);  //ricevuta la stringa si aggiunge l'elemeno alla ListBox...
+                        clientlogic.WriteStringOnStream(ClientLogic.OK);    //e si manda un ACK al server
                     }
                     else if (comando.Equals("ENDLIST") || comando.Equals("INFO"))
                     {
@@ -106,7 +110,7 @@ namespace Client
 
         void addElementToListbox(String fileInfo)
         {
-            if (fileInfo.Equals("..."))
+            if (fileInfo.Equals("...")) //item per tornare indietro
             {
                 StackPanel sp = new StackPanel();
                 sp.Orientation = Orientation.Horizontal;
@@ -130,7 +134,7 @@ namespace Client
                 sp.Children.Add(folderName);
                 ListBoxItem item = new ListBoxItem();
                 item.Content = sp;
-                item.MouseDoubleClick += item_MouseDoubleClickBack;
+                item.MouseDoubleClick += item_MouseDoubleClickBack; //aggiungo la callback in caso di doppio click sull'item per tornare indietro
                 ListBox.Items.Insert(0, item);
                 return;
             }
@@ -183,7 +187,7 @@ namespace Client
                 sp.Children.Add(id);
                 ListBoxItem item = new ListBoxItem();
                 item.Content = sp;
-                item.MouseDoubleClick += item_MouseDoubleClick;
+                item.MouseDoubleClick += item_MouseDoubleClick; //aggiungo callback per doppio click sulla entry file
                 ListBox.Items.Add(item);
             }
             else if (relativePath.Contains(@"\") && !search)
@@ -213,7 +217,7 @@ namespace Client
                 sp.Children.Add(folderName);
                 ListBoxItem item = new ListBoxItem();
                 item.Content = sp;
-                item.MouseDoubleClick += item_MouseDoubleClickFolder;
+                item.MouseDoubleClick += item_MouseDoubleClickFolder;   //callback click entry cartella
                 ListBox.Items.Insert(0, item);
                 listElement.Add(subfolder[0]);
             }
@@ -349,44 +353,7 @@ namespace Client
 
         }
 
-        private void SearchButton_MouseEnter(object sender, MouseEventArgs e)
-        {
-            searchImage.BeginInit();
-            searchImage.Source = new BitmapImage(new Uri(@"Images/searchon.png", UriKind.RelativeOrAbsolute));
-            searchImage.EndInit();
-        }
-
-        private void SearchButton_MouseLeave(object sender, MouseEventArgs e)
-        {
-            searchImage.BeginInit();
-            searchImage.Source = new BitmapImage(new Uri(@"Images/search.png", UriKind.RelativeOrAbsolute));
-            searchImage.EndInit();
-        }
-
-
-        private void Back_MouseEnter(object sender, MouseEventArgs e)
-        {
-
-            backImage.BeginInit();
-            backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
-            backImage.EndInit();
-        }
-
-        private void Back_MouseLeave(object sender, MouseEventArgs e)
-        {
-
-            backImage.BeginInit();
-            backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
-            backImage.EndInit();
-        }
-
-        private void Back_Click(object sender, RoutedEventArgs e)
-        {
-            SelectActionUI main = new SelectActionUI(clientlogic, selFolderPath, ((Restore)App.Current.MainWindow).mw);
-            if (App.Current.MainWindow is Restore)
-                App.Current.MainWindow.Content = main;
-        }
-
+        #region Search Button
         private void Search_Click(object sender, RoutedEventArgs e)
         {
             if (SearchBar.Text.Length == 0)
@@ -406,6 +373,49 @@ namespace Client
 
         }
 
+        private void SearchButton_MouseEnter(object sender, MouseEventArgs e)
+        {
+            searchImage.BeginInit();
+            searchImage.Source = new BitmapImage(new Uri(@"Images/searchon.png", UriKind.RelativeOrAbsolute));
+            searchImage.EndInit();
+        }
+
+        private void SearchButton_MouseLeave(object sender, MouseEventArgs e)
+        {
+            searchImage.BeginInit();
+            searchImage.Source = new BitmapImage(new Uri(@"Images/search.png", UriKind.RelativeOrAbsolute));
+            searchImage.EndInit();
+        }
+        #endregion
+
+        #region Back Button
+
+        private void Back_Click(object sender, RoutedEventArgs e)
+        {
+            SelectActionUI main = new SelectActionUI(clientlogic, selFolderPath, ((Restore)App.Current.MainWindow).mw);
+            if (App.Current.MainWindow is Restore)
+                App.Current.MainWindow.Content = main;
+        }
+
+        private void Back_MouseLeave(object sender, MouseEventArgs e)
+        {
+
+            backImage.BeginInit();
+            backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
+            backImage.EndInit();
+        }
+
+        private void Back_MouseEnter(object sender, MouseEventArgs e)
+        {
+
+            backImage.BeginInit();
+            backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
+            backImage.EndInit();
+        }
+        #endregion
+
+
+        #region Home Button
         private void HomeButton_MouseEnter(object sender, RoutedEventArgs e)
         {
             homeImage1.BeginInit();
@@ -427,5 +437,7 @@ namespace Client
             if (App.Current.MainWindow is Restore)
                 App.Current.MainWindow.Content = main;
         }
+        #endregion
+ 
     }
 }

@@ -25,9 +25,11 @@ namespace Client
         private string completePath;
         private ClientLogic clientlogic;
         private MainWindow mw;
-        private Boolean search;
+        private Boolean search; //non ho capito a che serve :|
         private string idfile;
-
+        /*
+         * Costruttore
+         */
         public DownloadFile(ClientLogic clientLogic, string root, string nameFile, Boolean searchPass, MainWindow mainw, String idFile)
         {
             try
@@ -41,10 +43,12 @@ namespace Client
                 completePath = folder + @"\" + namefile;
                 App.Current.MainWindow.Width = 600;
                 App.Current.MainWindow.Height = 430;
+                //domando al server le versioni del file selezionato
                 clientLogic.WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + "+" + folder + "+" + completePath + "+" + idFile);
                 String retFiles;
                 Boolean exit = false;
 
+                //parsifico la risposta del server e popolo la ListBox
                 while (!exit)
                 {
                     retFiles = clientLogic.ReadStringFromStream();
@@ -83,6 +87,12 @@ namespace Client
             }
         }
 
+        /*
+         * Si popola la ListBox in base alle info sul file ricevute dal server
+         * - info dim file = 0 -> icona file cancellato + stringa + verisone + timestamp
+         * - info dim file > 0 -> icona file aggiunto + dim + versione + timestamp
+         * nel secondo tipo di entry viene settata anche la callback per il doppioclick
+         */
         void addElementToListbox(String fileInfo)
         {
             if (fileInfo.Equals("..."))

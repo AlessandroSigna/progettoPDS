@@ -24,6 +24,11 @@ namespace Client
     {
         private ClientLogic clientlogic;
         public MainWindow mw;
+        /*
+         * Costruttore
+         * Si salvano i riferimenti al nuovo ClientLogic - quello istanziato appositamente per il restore - e alla MainWindow
+         * Si passa il controllo a RestoreUC appena creato
+         */
         public Restore(ClientLogic client, MainWindow mainw)
         {
             InitializeComponent();

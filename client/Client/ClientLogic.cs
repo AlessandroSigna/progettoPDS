@@ -675,6 +675,11 @@ namespace Client
             return bitret;
         }
 
+        /*
+         * Metodo chiamato da RestoreUC.onSelectionChanged
+         * obj è un oggetto della UI e ritorna il primo figlio (ricorsivo) che è di tipo T
+         * usata per estrarre una Label da un ListBoxItem che contiene StackPanel
+         */
         public T FindDescendant<T>(DependencyObject obj) where T : DependencyObject
         {
             if (obj is T)

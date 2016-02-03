@@ -25,6 +25,9 @@ namespace Client
         private ClientLogic clientLogic;
         private string folderRoot;
         private MainWindow mw;
+        /*
+         * Costruttore
+         */
         public SelectActionUI(ClientLogic client, string folder, MainWindow main)
         {
             InitializeComponent();
@@ -35,6 +38,7 @@ namespace Client
             App.Current.MainWindow.Height = 400;
         }
 
+        #region Download Cartella
         private void Folder_Click(object sender, RoutedEventArgs e)
         {
 
@@ -55,19 +59,12 @@ namespace Client
             BrushConverter bc = new BrushConverter();
             Folder.Background = (Brush)bc.ConvertFrom("#FFF5F804");
         }
+        #endregion
 
-        private void File_MouseEnter(object sender, MouseEventArgs e)
-        {
-            BrushConverter bc = new BrushConverter();
-            File.Background = (Brush)bc.ConvertFrom("#F5FFFA");
-        }
-
-        private void File_MouseLeave(object sender, MouseEventArgs e)
-        {
-            BrushConverter bc = new BrushConverter();
-            File.Background = (Brush)bc.ConvertFrom("#FF44E572");
-        }
-
+        #region Download File
+        /*
+         * Callback del Button Download File che passa il controllo a FileSelection
+         */
         private void File_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -93,6 +90,21 @@ namespace Client
 
         }
 
+        private void File_MouseEnter(object sender, MouseEventArgs e)
+        {
+            BrushConverter bc = new BrushConverter();
+            File.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+        }
+
+        private void File_MouseLeave(object sender, MouseEventArgs e)
+        {
+            BrushConverter bc = new BrushConverter();
+            File.Background = (Brush)bc.ConvertFrom("#FF44E572");
+        }
+
+        #endregion
+
+        #region Back Button
         private void BackButton_Click(object sender, RoutedEventArgs e)
         {
             if (App.Current.MainWindow is Restore)
@@ -118,4 +130,5 @@ namespace Client
         }
 
     }
+        #endregion
 }

@@ -37,6 +37,9 @@ namespace Client
         private string completePath;
         private BackgroundWorker workertransaction;
         private string idFile;
+        /*
+         * costruttore
+         */
         public StartDownload(ClientLogic client, string file, string versionP, string rootF, MainWindow main, String sIdFile)
         {
             InitializeComponent();

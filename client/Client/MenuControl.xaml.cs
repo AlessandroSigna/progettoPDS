@@ -546,6 +546,9 @@ namespace Client
         #endregion
 
         #region Restore
+        /*
+         * Button per selezionare la cartella di restore
+         */
         private void Select_FolderR(object sender, RoutedEventArgs e)
         {
             FolderBrowserDialog fbd = new FolderBrowserDialog();
@@ -563,8 +566,12 @@ namespace Client
 
         }
 
+        /*
+         * Callback per iniziare il restore
+         */
         private void RestoreFile_Click(object sender, RoutedEventArgs e)
         {
+            //verifico connessione
             if (mw.clientLogic.clientsocket.Client.Poll(1000, SelectMode.SelectRead))
             {
                 MainControl main = new MainControl(1);
@@ -574,15 +581,18 @@ namespace Client
 
             }
 
+            //istanzio un nuovo ClientSocket in cui aprirò un socket - perché non usare quello che già c'è? riservato al backup?
             ClientLogic clRestore = new ClientLogic(mw.clientLogic.ip, mw.clientLogic.porta, mw.clientLogic.folder, mw.clientLogic.username, mw.clientLogic.folderR);
             Window w = null;
             try
             {
+                //istanzio Restore e la mostro come finestra di dialogo - NO Metro!
                 w = new Restore(clRestore, mw);
                 w.ShowDialog();
             }
             catch (Exception)
             {
+                //rilascio risorse il caso di eccezione
                 if (clRestore.clientsocket.Client.Connected)
                 {
                     clRestore.clientsocket.GetStream().Close();

@@ -30,6 +30,7 @@ Se la connessione viene instaurata si passa il controllo a LoginRegisterControl 
 A window is managed by the OS and is placed on the desktop.
 A UserControl is managed by wpf and is placed in a Window or in another UserControl.
 Applcations could be created by have a single Window and displaying lots of UserControls in that Window.
+http://stackoverflow.com/questions/5772367/window-vs-user-control
 --
 LoginRegisterControl gestisce i bottoni Login, Registrati e Back collegando gli eventi alle callback adatte
 Login_Click passa il controllo a LoginControl e relativa finestra di login
@@ -82,9 +83,31 @@ FIXME: Due classi diverse che fanno quasi la stessa cosa ?!
 
 RESTORE
 Viene istanziato un nuovo ClientLogic che aprirà un nuovo socket (quello che già c'è è riservato per il backup?)
-il controllo passa a Restore che ha un .xaml non visibile
+il controllo passa a Restore che ha un .xaml non visibile come la MainWindow
 Resotre nel suo costruttore istanzia RestoreUC che gestisce la finestra dalla quale scegliere cartella o file da ripristinare
 la MainWindow diventa Restore che però salva un riferimento alla vecchia MainWindow
+Restore gestisce la chiusura della finestra rilasciando le risorse in modo opportuno a seconda di quale classe sia la MainWindow
+RestoreUC gestisce una ListBox e un Button di selezione
+La ListBox viene popolata con ListBoxItem che è StackPanel con icona + folderPath per ciascuna cartella di backup memorizzata dall'utente
+-invece di usare StackPanel si potrebbe usare una classe derivata da StackPanel con possibilità di ricavare facilmente la stringa-
+i vari folderPath sono stati comunicati dal server come risposta al messaggio di GETFOLDERUSER
+Selezionata la cartella dalla lista si salva il path corrispondente e si abilita il Button di selezione
+Confermata la cartella il controllo passa a SelectActionUI che controlla tre Button: Download file, cartella e back
+download file porta il controllo a FileSelection che gestisce una ListBox navigabile e dinamica 
+viene popolata opportunamente con entry relative a cartelle o file e in base al tipo di entry si linka alla ListBoxItem la callback opportuna
+Si consente anche di cercare un file con un dato nome tramite una search bar ma è superfluo imho
+doppiocliccando su una entry di file il controllo passa a DownloadFile che controlla una ListBox
+Si popola la ListBox in base alle info sul file ricevute dal server
+- info dim file = 0 -> icona file cancellato + stringa + verisone + timestamp
+- info dim file > 0 -> icona file aggiunto + dim + versione + timestamp
+nel secondo tipo di entry viene settata anche la callback per il doppioclick e se lo si fa si passa il controllo a StartDownload
+StartDownload ha una finestra che mostra una ProgressBar 
+Si occupa di farsi mandare dal server il file della versione selezionata
+StartDownload.RiceviFile delega a workertransaction i task necessari per la richiesta e ricezione del file
+
+
+
+
 
 LOGOUT
 Il logout è gestito una un apposito CustomDialog (Metro quindi inutilizzabile) che istanzia Disconnetti con un agestione dei controlli strana:
@@ -100,7 +123,10 @@ http://stackoverflow.com/questions/2796470/wpf-create-a-dialog-prompt
 Il progress ring si deve sostituire :(
 
 idee
-Server stampa il suo IP
+- Server stampa il suo IP
+- navigazione per fare la restore su un'unica finestra in cui è visibile accessibile tutto l'albero delle directory
+a partire dalla root. Se si conferma una cartella si vuole fare la restore della cartella (+file eliminati)
+se si seleziona un file si deve poi confermare la versione. navigando sono visibili i file eliminati
 
 FIX
 se da LoginRegisterControl si torna indietro la finestra non cambia nome
@@ -112,3 +138,4 @@ Come funziona lo stream? se nessuno legge e qualcuno scrive i dati restano lì? 
 usare la dimensione del buffer di 512 e/o 1024 è una scelta o è sempre bene fare così
 Come funziona un socket? Socket.Send(byte[] buffer)? un solo socket per canale? sincrono?
 I controlli dei dialog vanno andrebbero gestiti nel loro .cs ? MenuControl assegna le callback dei Button di Disconnetti
+E' possibile mettere un UserControl dentro un altro così da evitare duplicazione di codice? (Es back/home button)
