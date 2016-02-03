@@ -1,0 +1,17 @@
+Architettura Server
+
+MVC
+
+Model -- Data only. Get methods, set methods, etc. It is isolated -- it knows nothing about the View, nor the Controller.
+
+View -- UI only. Dumb or "humble". Only shows what you tell it to, and never performs any transformation or validation logic -- e.g., it always forwards input via an event/callback system. It is isolated - it knows nothing about the Model, nor the Controller.
+
+Controller -- Sits between Model and View. Does any data transformation (business logic) that is necessary to get the data from the Model to the View. Does most data validation on input that comes back from the View. It "knows" about both the View and the Model.
+
+Model: ServerLogic.cs
+View: Tutti i .xaml
+Controller: MainWindow.xaml.cs
+
+La logica dei .xaml (quindi .xaml.cs) si riferisce effettivamente solo all'interattività, le reazioni ai comportamenti sono implementati in MainWindow. Tuttavia altre funzioni (come il tasto clear) non sono presenti per niente al di fuori del MainWindow e anche il comportamento relativo all'interattività è implementato in MainWindow, nonostante siano praticamente solo View.
+Inoltre MainWindow ha anche un pezzo di comportamento relativo a Model, come ad esempio il controllo e la creazione del Database, oltre all'inizializzazione della connessione e quindi di ServerLogic. Quindi il model si occupa di fare start/stop non solo della connessione tcp, ma anche della connessione al database con relativi controlli. 
+ServerLogic fa un uso forse esagerato di riferimenti MainWindow.

@@ -72,6 +72,7 @@ namespace BackupServer
             //Call method to hide wait screen
 
         }
+        
         #region Metodi di connessione
         void workertranaction_DoWork(object sender, DoWorkEventArgs e)
         {

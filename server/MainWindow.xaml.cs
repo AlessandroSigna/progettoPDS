@@ -53,6 +53,7 @@ namespace BackupServer
             }
         }
 
+        #region UI e controlli su input dell'utente
         //Metodo Che controlla se  sono inseriti solo numeri non lettere o punteggiatura.
         private void NumericText_Validate(object sender, TextCompositionEventArgs e)
         {
@@ -101,6 +102,7 @@ namespace BackupServer
         {
             this.Close();
         }
+        #endregion
 
         private void stopServer()
         {
@@ -216,6 +218,7 @@ namespace BackupServer
             TPorta.BorderBrush = Brushes.Transparent;
             tb.Text += DateTime.Now + " - ***DB selezionato: " + pathDB + "***\n";
 
+            #region Controlli e creazione Database
             if (!File.Exists(pathDB))
                 SQLiteConnection.CreateFile(pathDB);
 
@@ -365,12 +368,16 @@ namespace BackupServer
             statusImage.EndInit();
 
             tb.Text += DateTime.Now + " - DB Inizializzato correttamente\n";
+            #endregion
 
+
+            #region Inizializzazione connessione tcp
             serverSocket = new TcpListener(IPAddress.Any, porta);
             serverSocket.Start();
 
             server = new ServerLogic(ref serverSocket, porta, this);
             ServerLogic.serverKO = false;
+            #endregion
 
             tb.Text += DateTime.Now + " - Server avviato su porta " + porta + "\n";
             MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/connessoicon.ico");
@@ -379,11 +386,7 @@ namespace BackupServer
             TPorta.Background = Brushes.LightGray;
             MFStartStop.Header = "Arresta Server";
             MFSetting.IsEnabled = false;
-
-
         }
-
-
 
         internal void UpdateText(string message)
         {
@@ -406,10 +409,9 @@ namespace BackupServer
 
         }
 
+        #region Chiusura UI
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-
-
             if (avviato)
             {
                 e.Cancel = true;
@@ -431,7 +433,9 @@ namespace BackupServer
             _customDialog.Content = _exitwindow;
             await this.ShowMetroDialogAsync(_customDialog);
         }
+        #endregion
 
+        #region UI di MainWindow
         private void ButtonOkOnClick(object sender, RoutedEventArgs e)
         {
 
@@ -515,6 +519,7 @@ namespace BackupServer
         {
             tb.ScrollToEnd();
         }
+        #endregion
     }
 
 }
