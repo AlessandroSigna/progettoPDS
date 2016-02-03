@@ -48,6 +48,7 @@ se la risposta è OK il controllo passa a MenuControl e l'icona e il bool connes
 
 MenuControl ha una parte backup e una restore
 Entrambe hanno dei button con cui definire la cartella di backup o di restore (risp FolderButton e FolderButtonR)
+
 Backup
 Una volta settata la cartella di backup e clickato su start se ClientLogic non sta monitornado la callback EffettuaBackup_Click
 invia al server FOLDER + user + path e il server può rispondere con RootFolder Inserita o Stessa RootFolder
@@ -55,6 +56,8 @@ Si inizializza la ProgressBar e si prendono i path di ciascun file nella rootdir
 Directory.GetFiles(path, "*.*", System.IO.SearchOption.AllDirectories) //systemIO class
 e si inviano al server con clientLogic.InvioFile(files);
 Si inizializza quindi un FileSystemWatcher e gli si registrano le callback nei vari casi di modifica ai files
+i vari eventi legati al watcher sono sincronizzati su un AutoResetEvent - segnalato si passa, non segnalato stop
+(superata la WaitOne() viene chiamata la Reset() implicitamente - non segnalato - si usa la Set() per segnalarlo)
 Se invece ClientLogic stava monitornado quindi cliccando sul bottone si vuole interrompere il monitoring 
 si invoca la AttendiTermineUpdate che gestisce l'attesa di lavori in corso e il rilascio del watcher
 In caso di eccezione un opportuno thread viene fatto eseguire
@@ -65,8 +68,17 @@ l'header contiene: Content-length Filename Checksum. In base alla risposta del s
 poi eventualmente si inviano i byte del file effettivo che viene spezzettato in base alla sua grandezza rispetto a una bufferSize
 Dopo ogni InviaFile si controllano eventuali errori e si aggiorna la ProgressBar tramite la workertransaction.ReportProgress()
 finiti i file si invia un messaggio di ENDSYNC + username + folder per comunicare la fine dell'invio
+la workertranaction_InviaFileCompleted gestisce l'esito dell'invio dei file in base ai valori di e.Result ed e.Cancel
+il controllo torna a MainControl in caso di errori
 
-workertranaction_InviaFileCompleted da studiare
+il watcher scatena degli eventi - ciascuno in un thread diverso - se qualche file viene modificato (cancellato, rinominato, creato, cambiato) 
+e più o meno i controlli in ciascuna callback sono gli stessi: 
+sincronizzo, verifico estensioni problematiche, verifico di stare effettivamente monitorando
+quindi invio le informazioni necessarie e/o i file al server
+se vengono create directory o creati (rinominati?) file vuoti il server non viene informato (vedi controlli nelle varie callback)
+il file viene inviato con MenuControl.InviaSingoloFile 
+che fa quasi le stesso operazioni della ClienLogic.InviaFile + una gestione ad hoc della ProgressBar 
+FIXME: Due classi diverse che fanno quasi la stessa cosa ?!
 
 MahApps.Metro
 I dialog box erano fighi ora si sostituiscono con i message box ?
@@ -82,4 +94,5 @@ autenticazione a sfida
 
 Dubbi
 Come funziona lo stream? se nessuno legge e qualcuno scrive i dati restano lì? e viceversa?
+usare la dimensione del buffer di 512 e/o 1024 è una scelta o è sempre bene fare così
 Come funziona un socket? Socket.Send(byte[] buffer)? un solo socket per canale? sincrono?

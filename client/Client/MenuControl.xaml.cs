@@ -37,11 +37,12 @@ namespace Client
         private string path;
         private string pathR;
         public volatile bool updating;
-        public volatile bool exit;
+        public volatile bool exit;  //a cosa serve?
         public volatile bool create = false;
         private string lastCheck;
         private string[] files;
 
+        //lista di estensioni problematiche per le quali non voglio sincronizzare il relativo file -  FIXME?
         private List<string> extensions = new List<string>() { "", ".pub", ".pps", ".pptm", ".ppt", ".pptx", ".xlm", ".xlt", ".xls", ".docx", ".doc", ".tmp", ".lnk", ".TMP", ".docm", ".dotx", ".dotcb", ".dotm", ".accdb", ".xlsx", ".jnt" };
         public MenuControl()
         {
@@ -106,7 +107,7 @@ namespace Client
                     EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");   //cambio il colore del bottone
                     EffettuaBackup.Content = "Stop";    //e la scritta
                     FolderButton.IsEnabled = false;     //disabilito il bottone folder
-                    mw.clientLogic.WriteStringOnStream(ClientLogic.FOLDER + mw.clientLogic.username + "+" + path);
+                    mw.clientLogic.WriteStringOnStream(ClientLogic.FOLDER + mw.clientLogic.username + "+" + path);  //invio al server la rootfolder
                     string retFolder = mw.clientLogic.ReadStringFromStream();
                     if (retFolder == ClientLogic.OK + "RootFolder Inserita")
                         FileUploading.Text = "Cartella aggiunta: " + System.IO.Path.GetDirectoryName(path);
@@ -288,32 +289,37 @@ namespace Client
         }
         #endregion
 
-        #region Gestione modifiche
+        #region Gestione modifiche ai file
+        /*
+         * callback del FileSystemWatcher in caso di cancellazione di file
+         */
         private void OnDeleted(object sender, FileSystemEventArgs e)
         {
             try
             {
                 Console.WriteLine(" ONdel");
-                if (!mw.clientLogic.monitorando)
+                if (!mw.clientLogic.monitorando)    //se non sto monitorando no devo gestire l'evento
                     return;
                 if (files.Length != 0)
                 {
-                    mw.clientLogic.event_1.WaitOne();
+                    mw.clientLogic.event_1.WaitOne();   //aspetto che event_1 venga segnalato - sincronizzazione
                 }
                 string extension = System.IO.Path.GetExtension(e.FullPath);
+                //se il file contiene un'estensione problematica ritorno
                 if (extensions.Contains(extension))
                 {
-                    mw.clientLogic.event_1.Set();
+                    mw.clientLogic.event_1.Set();   //segnalo l'evento e ritorno
                     return;
                 }
                 WatcherChangeTypes wct = e.ChangeType;
-                if (e.ChangeType == WatcherChangeTypes.Deleted)
+                if (e.ChangeType == WatcherChangeTypes.Deleted) //bisogna effettivamente controllare il ChangeType? 
                 {
                     updating = true;
+                    //segnalo la cancellazione al server
                     mw.clientLogic.WriteStringOnStream(ClientLogic.CANC + mw.clientLogic.username + "+" + e.FullPath);
-                    mw.clientLogic.ReadStringFromStream();
+                    mw.clientLogic.ReadStringFromStream();  //consumo la risposta senza analizzarla?
                     updating = false;
-                    mw.clientLogic.event_1.Set();
+                    mw.clientLogic.event_1.Set();   //segnalo l'evento
                 }
             }
             catch
@@ -325,6 +331,9 @@ namespace Client
             }
         }
 
+        /*
+         * callback del FileSystemWatcher in caso di modifica di file
+         */
         private void OnChanged(object sender, FileSystemEventArgs e)
         {
             try
@@ -332,28 +341,28 @@ namespace Client
                 Console.WriteLine("Oncha");
                 if (files.Length != 0)
                 {
-                    mw.clientLogic.event_1.WaitOne();
+                    mw.clientLogic.event_1.WaitOne();   //sincronizzazione
                 }
                 string extension = System.IO.Path.GetExtension(e.FullPath);
-                if (extensions.Contains(extension))
+                if (extensions.Contains(extension))     //controllo estensioni problematiche
                 {
                     mw.clientLogic.event_1.Set();
                     return;
                 }
 
                 Console.WriteLine(e.FullPath);
-                if (!mw.clientLogic.monitorando)
+                if (!mw.clientLogic.monitorando)        //contorllo se sto effettivamente monitorando
                 {
                     mw.clientLogic.event_1.Set();
                     return;
                 }
-                if (Directory.Exists(e.FullPath))
+                if (Directory.Exists(e.FullPath))       //controllo se il file in questione è una directory?
                 {
                     mw.clientLogic.event_1.Set();
                     return;
                 }
                 updating = true;
-                InviaSingoloFile(e.FullPath);
+                InviaSingoloFile(e.FullPath);   //invio il file al server
                 updating = false;
                 mw.clientLogic.event_1.Set();
             }
@@ -366,6 +375,9 @@ namespace Client
 
         }
 
+        /*
+         * callback del FileSystemWatcher in caso di creazione di file
+         */
         private void OnCreated(object sender, FileSystemEventArgs e)
         {
 
@@ -374,16 +386,16 @@ namespace Client
                 Console.WriteLine("Oncre");
                 if (files.Length != 0)
                 {
-                    mw.clientLogic.event_1.WaitOne();
+                    mw.clientLogic.event_1.WaitOne();   //sincronizzazione
                 }
                 string extension = System.IO.Path.GetExtension(e.FullPath);
-                if (extensions.Contains(extension))
+                if (extensions.Contains(extension)) //controllo estensioni problematiche
                 {
                     mw.clientLogic.event_1.Set();
                     return;
                 }
                 Console.WriteLine(e.FullPath);
-                if (Directory.Exists(e.FullPath))
+                if (Directory.Exists(e.FullPath))   //controllo se è una directory ?
                 {
                     mw.clientLogic.event_1.Set();
                     return;
@@ -394,7 +406,7 @@ namespace Client
                     return;
                 }
                 updating = true;
-                InviaSingoloFile(e.FullPath, "CREATE");
+                InviaSingoloFile(e.FullPath, "CREATE"); //invio il file al server
                 updating = false;
                 mw.clientLogic.event_1.Set();
             }
@@ -405,10 +417,14 @@ namespace Client
             }
         }
 
+        /*
+         * callback del FileSystemWatcher in caso di renaming di file
+         */
         private void OnRenamed(object sender, RenamedEventArgs e)
         {
             try
             {
+                //i controlli iniziali sono gli stessi
                 Console.WriteLine("Onren");
                 Console.WriteLine(e.FullPath);
                 if (!mw.clientLogic.monitorando)
@@ -424,6 +440,7 @@ namespace Client
                     mw.clientLogic.event_1.Set();
                     return;
                 }
+                //invio al server il nuovo nome sia che sia un file o una directory differenziando i due casi
                 if (Directory.Exists(e.FullPath))
                 {
                     updating = true;
@@ -596,14 +613,18 @@ namespace Client
         private void InviaSingoloFile(string fileName)
         {
 
-            InviaSingoloFile(fileName, "");
+            InviaSingoloFile(fileName, ""); //sfrutto la stessa funzione con un flag diverso
         }
 
+        /*
+         * Invia il file puntato da fileName al sever. Usata nel caso di creazione di file o di renaming
+         */
         private void InviaSingoloFile(string fileName, string onCreate)
         {
 
             try
             {
+                //informo il sevrer di quello che sto per fare
                 if (onCreate.Equals("CREATE"))
                     mw.clientLogic.WriteStringOnStream(ClientLogic.FILE + mw.clientLogic.username + "+" + onCreate);
                 else
@@ -613,8 +634,10 @@ namespace Client
                 byte[] header = null;
                 string checksum = "";
 
-                mw.clientLogic.ReadStringFromStream();
+                mw.clientLogic.ReadStringFromStream();  //consumo lo stream (eventuale risposta del server)
                 Thread.Sleep(100);
+
+                //le operazioni sono molto simili a quanto fatto nella ClientLogic.InviaFile
                 checksum = mw.clientLogic.GetMD5HashFromFile(fileName);
                 FileStream fs = new FileStream(fileName, FileMode.Open);
                 int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));
@@ -630,6 +653,7 @@ namespace Client
                     return;
                 }
 
+                //delego ad un thread il setup della ProgressBar e della TextBox
                 Thread t1 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int, string, System.Windows.Controls.TextBox>(SetProgressBar), pbStatus, bufferCount, System.IO.Path.GetFileName(fileName), FileUploading); }));
                 t1.Start();
 
@@ -637,6 +661,7 @@ namespace Client
                 {
                     if ((i == (bufferCount / 4)) || (i == (bufferCount / 2)) || (i == ((bufferCount * 3) / 4)) || (i == (bufferCount - 1)))
                     {
+                        //delego a un altro thread la gestione del progresso della ProgressBar
                         Thread t2 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int>(UpdateProgressBar), pbStatus, i); }));
                         t2.Start();
                     }
@@ -646,9 +671,11 @@ namespace Client
                     mw.clientLogic.clientsocket.Client.Send(buffer, size, SocketFlags.Partial);
                 }
 
+                //thread per chiudere la ProgressBar
                 Thread t3 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar>(HideProgress), pbStatus); }));
                 t3.Start();
                 fs.Close();
+                //thread per settare il messaggio di ultima sincornizzazione nella TextBox - si poteva fare direttamente nel thread precedente?
                 Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.TextBox>(SetValue), FileUploading); }));
                 t.Start();
                 string message = mw.clientLogic.ReadStringFromStream();
@@ -684,6 +711,9 @@ namespace Client
             await mw.ShowMetroDialogAsync(customDialog);
         }
 
+        /*
+         * FIXME: E' una qualche callback? non capisco da cosa venga chiamata
+         */
         private void ButtonServerOnClick(object sender, RoutedEventArgs e)
         {
             //MetroWindow mw = (MetroWindow)App.Current.MainWindow;

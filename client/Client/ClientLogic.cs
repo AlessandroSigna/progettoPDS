@@ -467,7 +467,7 @@ namespace Client
             {
                 try
                 {
-                    this.WriteStringOnStream(ClientLogic.FILE + username);  //scrivo ogni filename sullo stream preceduto da FILE
+                    this.WriteStringOnStream(ClientLogic.FILE + username);  //scrivo lo username sullo stream preceduto da FILE (per avvisare il server?)
                 }
                 catch
                 {
@@ -483,7 +483,7 @@ namespace Client
                 int retVal = InviaFile(name);
 
                 //gestisco i codici di errore ritornati da IviaFile
-                if (retVal == 1)    //FIXME: magicnumber
+                if (retVal == 1)    //FIXME: magicnumber - file inviato
                 {
                     try
                     {
@@ -501,17 +501,17 @@ namespace Client
                         break;
                     }
                 }
-                else if (retVal == 0)   //FIXME: magicnumber
+                else if (retVal == 0)   //FIXME: magicnumber - Non è stato necessario inviare il file
                 {
                     workertransaction.ReportProgress(nFile, "Ultimo file sincronizzato: " + Path.GetFileName(name));
                     e.Result = true;
                 }
-                else if (retVal == 2)   //FIXME: magicnumber
+                else if (retVal == 2)   //FIXME: magicnumber - eccezione
                 {
                     e.Result = false;
                     break;
                 }
-                if (monitorando == false)
+                if (monitorando == false)   //monitorando vale false in modo anomalo (?) - flaggo il task come canceled
                 {
                     e.Cancel = true;
                     return;
@@ -547,13 +547,14 @@ namespace Client
                 BrushConverter bc = new BrushConverter();
                 if (e.Cancelled)
                 {
+                    //Se l'invio file è stato annullato  si ritorna ad uno stato stabile (senza rollback?) e lo si comunica all'utente nella TextBox FileUploading
                     mc.EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
                     mc.EffettuaBackup.Content = "Start";
                     mc.FolderButton.IsEnabled = true;
                     mc.FileUploading.Text = "Non tutti i dati sono aggiornati";
                     monitorando = false;
                     MenuControl menuC = (MenuControl)App.Current.MainWindow.Content;
-                    if (menuC.exit)
+                    if (menuC.exit) //non capisco exit cosa gestisce
                     {
                         MainWindow mainw = (MainWindow)App.Current.MainWindow;
                         mainw.clientLogic.monitorando = false;
@@ -572,13 +573,15 @@ namespace Client
                 }
                 else
                 {
+                    //altrimenti si comunica il 'successo'
                     mc.FileUploading.Text = "Ultima sincronizzazione : " + DateTime.Now;
                     lavorandoInvio = false;
                     event_1.Set();
 
+                    //se è avvenuto qualche problema nell'esecuzione del task torno a MainControl con un errore
                     if ((bool)e.Result == false)
                     {
-                        MainControl main = new MainControl(1);
+                        MainControl main = new MainControl(1);  //FIXME: magicnumber
                         App.Current.MainWindow.Content = main;
                         return;
                     }
@@ -586,6 +589,7 @@ namespace Client
             }
             catch
             {
+                //gestione eccezione chiudo stream e socket
                 MainWindow mainw = (MainWindow)App.Current.MainWindow;
                 if (mainw.clientLogic.clientsocket.Connected)
                 {
