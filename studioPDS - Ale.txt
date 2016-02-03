@@ -80,8 +80,23 @@ il file viene inviato con MenuControl.InviaSingoloFile
 che fa quasi le stesso operazioni della ClienLogic.InviaFile + una gestione ad hoc della ProgressBar 
 FIXME: Due classi diverse che fanno quasi la stessa cosa ?!
 
+RESTORE
+Viene istanziato un nuovo ClientLogic che aprirà un nuovo socket (quello che già c'è è riservato per il backup?)
+il controllo passa a Restore che ha un .xaml non visibile
+Resotre nel suo costruttore istanzia RestoreUC che gestisce la finestra dalla quale scegliere cartella o file da ripristinare
+la MainWindow diventa Restore che però salva un riferimento alla vecchia MainWindow
+
+LOGOUT
+Il logout è gestito una un apposito CustomDialog (Metro quindi inutilizzabile) che istanzia Disconnetti con un agestione dei controlli strana:
+le callback dei suoi button vengono assegnate in MenuControl invece di stare in Disconnetti.xaml.cs
+la disconnessione avviene tramite ClientLogic.DisconnettiServer 
+che con callback opportune di workertransaction comunica le intenzioni al server e rilascia le risorse di rete
+
+
 MahApps.Metro
-I dialog box erano fighi ora si sostituiscono con i message box ?
+I dialog box erano fighi ora si sostituiscono con i message box ? Lo stesso per i CustomDialog 
+https://msdn.microsoft.com/library/aa969773(v=vs.100).aspx
+http://stackoverflow.com/questions/2796470/wpf-create-a-dialog-prompt
 Il progress ring si deve sostituire :(
 
 idee
@@ -96,3 +111,4 @@ Dubbi
 Come funziona lo stream? se nessuno legge e qualcuno scrive i dati restano lì? e viceversa?
 usare la dimensione del buffer di 512 e/o 1024 è una scelta o è sempre bene fare così
 Come funziona un socket? Socket.Send(byte[] buffer)? un solo socket per canale? sincrono?
+I controlli dei dialog vanno andrebbero gestiti nel loro .cs ? MenuControl assegna le callback dei Button di Disconnetti

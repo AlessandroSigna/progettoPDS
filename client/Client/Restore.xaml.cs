@@ -34,6 +34,10 @@ namespace Client
             App.Current.MainWindow.Content = main;
         }
 
+        /*
+         * Callback di chiusura della finestra che si preoccupa di attendere se non è finito il download
+         * e di rilasciare le risorse
+         */
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (App.Current.MainWindow.Content is DownloadFolder)
