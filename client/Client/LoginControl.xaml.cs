@@ -26,6 +26,8 @@ namespace Client
     {
         private static Regex sUserNameAllowedRegEx = new Regex(@"^[a-zA-Z]{1}[a-zA-Z0-9]{3,23}[^.-]$", RegexOptions.Compiled);
         private string mess;
+
+        #region Costruttore ed Errore
         public LoginControl(string message)
         {
             InitializeComponent();
@@ -39,12 +41,16 @@ namespace Client
             mess = null;
         }
 
-        private async void messaggioErrore(string mess)
+        private /*async*/ void messaggioErrore(string mess)
         {
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            await mw.ShowMessageAsync("Errore", mess);
-        }
+            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+            //await mw.ShowMessageAsync("Errore", mess);
+            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
 
+        }
+        #endregion
+
+        #region Back Button
         private void Back_Click(object sender, RoutedEventArgs e)
         {
             LoginRegisterControl main = new LoginRegisterControl();
@@ -66,6 +72,17 @@ namespace Client
             backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
             backImage.EndInit();
         }
+        #endregion
+
+        #region Login Button
+        private void Login_Click(object sender, RoutedEventArgs e)
+        {
+            //if (string.IsNullOrEmpty(Username.Text) || !sUserNameAllowedRegEx.IsMatch(Username.Text))  
+            // controllo da fare alla fine
+            MainWindow mw = (MainWindow)App.Current.MainWindow;
+            mw.clientLogic.Login(Username.Text, Password.Password);
+
+        }
 
         private void Login_MouseEnter(object sender, MouseEventArgs e)
         {
@@ -80,14 +97,6 @@ namespace Client
             Login.Background = (Brush)bc.ConvertFrom("#33CCFF");
 
         }
-
-        private void Login_Click(object sender, RoutedEventArgs e)
-        {
-            //if (string.IsNullOrEmpty(Username.Text) || !sUserNameAllowedRegEx.IsMatch(Username.Text))  
-            // controllo da fare alla fine
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            mw.clientLogic.Login(Username.Text, Password.Password);
-
-        }
+        #endregion
     }
 }

@@ -1,11 +1,14 @@
-﻿Client
+﻿------------
+|| CLIENT ||
+------------
+
 
 La prima finestra visibile è MainControl.xaml
 l'entry point del progetto sembra essere MainWindow (forse di default è così sempre) 
 anche se la sua finestra non si vede
 La MainWindow serve per creare l'oggetto MainControl e per avere il riferimento a ClientLogic.
 
-in MainControla callback del button connect è connect_button_Click 
+in MainControl la callback del button connect è connect_button_Click 
 che istanzia ClientLogic come un TcpClient (windows.Net.Soket)
 se l'indirizzo e la porta sono validi, questi controlli colorano la cornice dei box
 MainWindow mw = (MainWindow)Application.Current.MainWindow ritorna l'istanza della MainWindow (tipo singletone?)
@@ -17,7 +20,7 @@ ClientLogic ha un macello di costanti -> pulire
 ClientLogic è solo .cs no .xaml 
 Ha un riferimento a MainWindow (vorrei capire a che serve!)
 ClientLogic ha due costruttori, uno che riceve TcpClient e uno no e lo istanzia al suo interno
-il primo viene chiamato dal button conneti della MainWindow
+il primo viene chiamato dal button connetti della MainWindow
 il secondo viene chiamato dalla RestoreFile
 in ClientLogic la connessione è gestita da TcpClient.Connect(address, port) in un metodo asincrono
 gestito da workertransaction = new BackgroundWorker() a cui si delega l'esecuzione di un task
@@ -47,10 +50,14 @@ che parsifica i byte letti da stream come string
 Se la risposta non è OK il controllo torna a MainControl e stream e socket vengono chiusi
 se la risposta è OK il controllo passa a MenuControl e l'icona e il bool connesso si aggiornano come connessi
 
+LoginControl invia al server le credenziali passando per ClientLogic.Login e verificando la risposta si procede
+passando il controllo a MenuControl oppure disconnettendo il client
+FIXME: le credenziali sia in registration sia in login sono mandate in chiaro!
+
 MenuControl ha una parte backup e una restore
 Entrambe hanno dei button con cui definire la cartella di backup o di restore (risp FolderButton e FolderButtonR)
 
-Backup
+BACKUP
 Una volta settata la cartella di backup e clickato su start se ClientLogic non sta monitornado la callback EffettuaBackup_Click
 invia al server FOLDER + user + path e il server può rispondere con RootFolder Inserita o Stessa RootFolder
 Si inizializza la ProgressBar e si prendono i path di ciascun file nella rootdir con 
@@ -64,9 +71,9 @@ si invoca la AttendiTermineUpdate che gestisce l'attesa di lavori in corso e il 
 In caso di eccezione un opportuno thread viene fatto eseguire
 La ClientLogic.InvioFile(string[] Filenames) prepara le callback del workertransaction per l'effettivo invio dei file
 il task in background è Workertransaction_InviaFile che per ogni file invoca la ClientLogic.InviaFile
-nella quale tramite  clientsocket.Client.Send() si invia al server un header che lo prepara per il file che seguirà
+nella quale tramite  clientsocket.Client.Send() si invia al server una string header che lo prepara per il file che seguirà
 l'header contiene: Content-length Filename Checksum. In base alla risposta del server all'header si può evitare l'invio
-poi eventualmente si inviano i byte del file effettivo che viene spezzettato in base alla sua grandezza rispetto a una bufferSize
+poi eventualmente si inviano i byte del file effettivo che viene aperto come stream e spezzettato in blocchi di byte (bufferSize)
 Dopo ogni InviaFile si controllano eventuali errori e si aggiorna la ProgressBar tramite la workertransaction.ReportProgress()
 finiti i file si invia un messaggio di ENDSYNC + username + folder per comunicare la fine dell'invio
 la workertranaction_InviaFileCompleted gestisce l'esito dell'invio dei file in base ai valori di e.Result ed e.Cancel
@@ -76,7 +83,7 @@ il watcher scatena degli eventi - ciascuno in un thread diverso - se qualche fil
 e più o meno i controlli in ciascuna callback sono gli stessi: 
 sincronizzo, verifico estensioni problematiche, verifico di stare effettivamente monitorando
 quindi invio le informazioni necessarie e/o i file al server
-se vengono create directory o creati (rinominati?) file vuoti il server non viene informato (vedi controlli nelle varie callback)
+se vengono create directory o creati/rinominati file vuoti il server non viene informato (vedi controlli nelle varie callback)
 il file viene inviato con MenuControl.InviaSingoloFile 
 che fa quasi le stesso operazioni della ClienLogic.InviaFile + una gestione ad hoc della ProgressBar 
 FIXME: Due classi diverse che fanno quasi la stessa cosa ?!
@@ -93,6 +100,7 @@ La ListBox viene popolata con ListBoxItem che è StackPanel con icona + folderPa
 i vari folderPath sono stati comunicati dal server come risposta al messaggio di GETFOLDERUSER
 Selezionata la cartella dalla lista si salva il path corrispondente e si abilita il Button di selezione
 Confermata la cartella il controllo passa a SelectActionUI che controlla tre Button: Download file, cartella e back
+RESTORE FILE
 download file porta il controllo a FileSelection che gestisce una ListBox navigabile e dinamica 
 viene popolata opportunamente con entry relative a cartelle o file e in base al tipo di entry si linka alla ListBoxItem la callback opportuna
 Si consente anche di cercare un file con un dato nome tramite una search bar ma è superfluo imho
@@ -104,13 +112,25 @@ nel secondo tipo di entry viene settata anche la callback per il doppioclick e s
 StartDownload ha una finestra che mostra una ProgressBar 
 Si occupa di farsi mandare dal server il file della versione selezionata
 StartDownload.RiceviFile delega a workertransaction i task necessari per la richiesta e ricezione del file
+il task in background è Workertransaction_RiceviFile che richiede al server la versione del file selezionato - comando GETFILEV
+il server risponde con un header comunicandogli la dimensione del file in arrivo
+quindi il client riceve pezzo per pezzo il file e lo salva in una cartella creata appositamente
+terminata la ricezione si manda OK e si chiude
+Alla fine del task viene eseguita la workertranaction_RiceviFileCompleted che apre l'explorer mostrando la cartella creata
+RESTORE CARTELLA
+Il controllo passa a DownloadFolder che da la possibilità di includere i file cancellati (CheckBox) e di iniziare il restore (Button)
+la RiceviRestore comunica al RESTORE al server specificando tra i parametri se voglio o meno i file cancellati
+FIXME: pur inviando i parametri al server questo non manda indietro i file cancellati
+il workertransaction gestisce il lavoro come al solito
+il task principale si occupa di loopare sulle risposte del server per ogni file che ha intenzione di mandare 
+viene prima ricevuto un header in base al quale il client decide se vuole inviato il relativo file (controllo checksum se il file esiste già)
+la ricezione del file avviene come in StartDownload 
+Il loop termina quando il server manda al posto dell'header un apposito messaggio
+finito il restore si apre l'explorer per mostrare quanto ripristinato
 
 
-
-
-
-LOGOUT
-Il logout è gestito una un apposito CustomDialog (Metro quindi inutilizzabile) che istanzia Disconnetti con un agestione dei controlli strana:
+LOGOUT - inutilizzabile
+Il logout è gestito una un apposito CustomDialog (Metro quindi inutilizzabile) che istanzia Disconnetti con una gestione dei controlli strana:
 le callback dei suoi button vengono assegnate in MenuControl invece di stare in Disconnetti.xaml.cs
 la disconnessione avviene tramite ClientLogic.DisconnettiServer 
 che con callback opportune di workertransaction comunica le intenzioni al server e rilascia le risorse di rete
@@ -124,18 +144,19 @@ Il progress ring si deve sostituire :(
 
 idee
 - Server stampa il suo IP
-- navigazione per fare la restore su un'unica finestra in cui è visibile accessibile tutto l'albero delle directory
-a partire dalla root. Se si conferma una cartella si vuole fare la restore della cartella (+file eliminati)
+- navigazione per fare la restore su un'unica finestra in cui è visibilee  accessibile tutto l'albero delle directory
+a partire dalla root. Se si conferma una cartella si vuole fare la restore della cartella (+file eliminati?)
 se si seleziona un file si deve poi confermare la versione. navigando sono visibili i file eliminati
 
 FIX
-se da LoginRegisterControl si torna indietro la finestra non cambia nome
-autenticazione su mac -> ma se è sul mac come abbiamo fatto a connetterci dal mixto?!
-autenticazione a sfida
+- se da LoginRegisterControl si torna indietro la finestra non cambia nome
+- autenticazione su mac -> ma se è sul mac come abbiamo fatto a connetterci dal mixto?!
+- autenticazione a sfida
+- migliore aderenza al pattern MVC
 
 Dubbi
 Come funziona lo stream? se nessuno legge e qualcuno scrive i dati restano lì? e viceversa?
 usare la dimensione del buffer di 512 e/o 1024 è una scelta o è sempre bene fare così
 Come funziona un socket? Socket.Send(byte[] buffer)? un solo socket per canale? sincrono?
 I controlli dei dialog vanno andrebbero gestiti nel loro .cs ? MenuControl assegna le callback dei Button di Disconnetti
-E' possibile mettere un UserControl dentro un altro così da evitare duplicazione di codice? (Es back/home button)
+E' possibile mettere un UserControl dentro una window (sicuramente sì) così da evitare duplicazione di codice? (Es back/home button)

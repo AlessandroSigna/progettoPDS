@@ -27,7 +27,7 @@ namespace Client
         private int errore;
         private MainWindow mw;
 
-        #region Costanti
+        #region Costanti comandi
         private const int BUFFERSIZE = 1024;
         public const string OK = "+OK+";
         public const string ERRORE = "+ERR+";
@@ -86,28 +86,6 @@ namespace Client
                 this._clientsocket = value;
             }
 
-        }
-
-
-        private string GetMacAddress()
-        {
-            const int MIN_MAC_ADDR_LENGTH = 12;
-            string macAddress = string.Empty;
-            long maxSpeed = -1;
-
-            foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                string tempMac = nic.GetPhysicalAddress().ToString();
-                if (nic.Speed > maxSpeed &&
-                    !string.IsNullOrEmpty(tempMac) &&
-                    tempMac.Length >= MIN_MAC_ADDR_LENGTH)
-                {
-                    maxSpeed = nic.Speed;
-                    macAddress = tempMac;
-                }
-            }
-
-            return macAddress;
         }
 
         #region Costruttori
@@ -185,6 +163,35 @@ namespace Client
             App.Current.MainWindow.Content = login;
         }
 
+        private string GetMacAddress()
+        {
+            const int MIN_MAC_ADDR_LENGTH = 12;
+            string macAddress = string.Empty;
+            long maxSpeed = -1;
+
+            foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
+            {
+                string tempMac = nic.GetPhysicalAddress().ToString();
+                if (nic.Speed > maxSpeed &&
+                    !string.IsNullOrEmpty(tempMac) &&
+                    tempMac.Length >= MIN_MAC_ADDR_LENGTH)
+                {
+                    maxSpeed = nic.Speed;
+                    macAddress = tempMac;
+                }
+            }
+
+            return macAddress;
+        }
+
+        public TcpState GetState(TcpClient tcpClient)
+        {
+            var foo = IPGlobalProperties.GetIPGlobalProperties()
+              .GetActiveTcpConnections()
+              .SingleOrDefault(x => x.LocalEndPoint.Equals(tcpClient.Client.LocalEndPoint));
+            return foo != null ? foo.State : TcpState.Unknown;
+        }
+
         #endregion
 
         #region Metodi di Login e Registrazione
@@ -203,6 +210,9 @@ namespace Client
 
         }
 
+        /*
+         * Analizzo la risposta del server ed eventualmente passo il controllo a MenuControl
+         */
         private void Workertransaction_LoginCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             try
@@ -306,7 +316,7 @@ namespace Client
         }
 
         /*callback usata sia in caso di registrazione sia in caso di login
-         il discriminante è cioò che è contenuto in action dopo che l'array dei parametri viene parsificato
+         il discriminante è ciò che è contenuto in action dopo che l'array dei parametri viene parsificato
         */
         private void Workertransaction_LoginRegistrazione(object sender, DoWorkEventArgs e)
         {
@@ -318,7 +328,7 @@ namespace Client
             string action = resultArray[2];
             try
             {
-                WriteStringOnStream(action + username + "+" + password + "+" + mac);    //invio al server le credenziali
+                WriteStringOnStream(action + username + "+" + password + "+" + mac);    //invio al server le credenziali - IN CHIARO
             }
             catch
             {
@@ -334,12 +344,6 @@ namespace Client
         }
 
         #endregion
-
-        private async void messaggioErrore(string mess)
-        {
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            await mw.ShowMessageAsync("Errore", mess);
-        }
 
         #region Metodi di Disconnesione
         internal void DisconnettiServer(Boolean esci)
@@ -397,8 +401,7 @@ namespace Client
         }
         #endregion
 
-
-
+        #region Accesso allo stream
         public int WriteStringOnStream(string message)
         {
             TcpState statoConn = GetState(clientsocket);    //FIXME: istruzione inutile?! controllare statoConn
@@ -423,15 +426,7 @@ namespace Client
             return responseData;
 
         }
-
-        public TcpState GetState(TcpClient tcpClient)
-        {
-            var foo = IPGlobalProperties.GetIPGlobalProperties()
-              .GetActiveTcpConnections()
-              .SingleOrDefault(x => x.LocalEndPoint.Equals(tcpClient.Client.LocalEndPoint));
-            return foo != null ? foo.State : TcpState.Unknown;
-        }
-
+        #endregion
 
         #region Metodi invio file
         /*
@@ -631,7 +626,7 @@ namespace Client
                 FileStream fs = new FileStream(Filename, FileMode.Open);    //apro il file da inviare come uno stream
                 int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));    //numero di buffer necessari per salvare il file
 
-                //preparo un headre da inviare al server per informarlo sul file che invierò tra poco
+                //preparo una string header da inviare al server per informarlo sul file che invierò tra poco
                 string headerStr = "Content-length:" + fs.Length.ToString() + "\r\nFilename:" + Filename + "\r\nChecksum:" + checksum + "\r\n";
                 header = new byte[bufferSize];
                 Array.Copy(Encoding.ASCII.GetBytes(headerStr), header, Encoding.ASCII.GetBytes(headerStr).Length);  //FIXME: e se il filename è troppo lungo?!
@@ -663,6 +658,8 @@ namespace Client
             }
         }
         #endregion
+
+        #region Utils
         /*
          * Calcola e ritorna l'hash md5 del file relativo a filename 
          */
@@ -705,6 +702,14 @@ namespace Client
 
             return null;
         }
+
+        private /*async*/ void messaggioErrore(string mess)
+        {
+            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+            //await mw.ShowMessageAsync("Errore", mess);
+            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        #endregion
 
     }
 }

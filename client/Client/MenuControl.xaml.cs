@@ -44,6 +44,10 @@ namespace Client
 
         //lista di estensioni problematiche per le quali non voglio sincronizzare il relativo file -  FIXME?
         private List<string> extensions = new List<string>() { "", ".pub", ".pps", ".pptm", ".ppt", ".pptx", ".xlm", ".xlt", ".xls", ".docx", ".doc", ".tmp", ".lnk", ".TMP", ".docm", ".dotx", ".dotcb", ".dotm", ".accdb", ".xlsx", ".jnt" };
+
+        /*
+         * costruttore
+         */
         public MenuControl()
         {
             InitializeComponent();
@@ -54,20 +58,6 @@ namespace Client
             mw = (MainWindow)App.Current.MainWindow;
             mw.clientLogic.event_1 = new AutoResetEvent(false);
             updating = false;
-        }
-
-        private /*async*/ void messaggioStop()
-        {
-            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            //await mw.ShowMessageAsync("Attendere", "Stiamo chiudendo i canali...  un attimo di pazienza");
-            MessageBoxResult result = System.Windows.MessageBox.Show("Stiamo chiudendo i canali...  un attimo di pazienza", "Errore", MessageBoxButton.OK, MessageBoxImage.Stop);
-        }
-
-        private /*async*/ void messaggioAttesa()
-        {
-            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            //await mw.ShowMessageAsync("Attenzione", "Blocca il monitoraggio per effettuare un restore");
-            MessageBoxResult result = System.Windows.MessageBox.Show("Blocca il monitoraggio per effettuare un restore", "Errore", MessageBoxButton.OK, MessageBoxImage.Stop);
         }
 
         #region Backup
@@ -740,8 +730,7 @@ namespace Client
         }
         #endregion
 
-
-        #region Gestione Errori
+        #region Gestione Errori e Messaggi
         /*
          * Il controllo torna a MainControl lanciando un messaggio di errore
          */
@@ -762,10 +751,26 @@ namespace Client
             mw.Content = main;
         }
 
-        private async void messaggioErrore(string mess)
+        private /*async*/ void messaggioErrore(string mess)
         {
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            await mw.ShowMessageAsync("Errore", mess);
+            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+            //await mw.ShowMessageAsync("Errore", mess);
+            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+
+        }
+
+        private /*async*/ void messaggioStop()
+        {
+            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+            //await mw.ShowMessageAsync("Attendere", "Stiamo chiudendo i canali...  un attimo di pazienza");
+            MessageBoxResult result = System.Windows.MessageBox.Show("Stiamo chiudendo i canali...  un attimo di pazienza", "Errore", MessageBoxButton.OK, MessageBoxImage.Stop);
+        }
+
+        private /*async*/ void messaggioAttesa()
+        {
+            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+            //await mw.ShowMessageAsync("Attenzione", "Blocca il monitoraggio per effettuare un restore");
+            MessageBoxResult result = System.Windows.MessageBox.Show("Blocca il monitoraggio per effettuare un restore", "Errore", MessageBoxButton.OK, MessageBoxImage.Stop);
         }
         #endregion
 

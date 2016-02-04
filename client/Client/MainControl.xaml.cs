@@ -47,7 +47,7 @@ namespace Client
         {
             //Window mw = (Window)App.Current.MainWindow;
             //await mw.ShowMessageAsync("Errore", "Impossibile raggiungere il server");
-            MessageBoxResult result = MessageBox.Show("Impossibile raggiungere il server", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBoxResult result = System.Windows.MessageBox.Show("Impossibile raggiungere il server", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
             
         }
 

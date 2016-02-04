@@ -32,6 +32,9 @@ namespace Client
         public volatile bool downloading;
         private MainWindow mw;
         private BackgroundWorker workertransaction;
+        /*
+         * Costruttore
+         */
         public DownloadFolder(ClientLogic clientlogic, string fold, MainWindow main)
         {
             InitializeComponent();
@@ -44,6 +47,44 @@ namespace Client
             string folderCreated = folderRoot.Substring(folderRoot.LastIndexOf((@"\")) + 1);
             pathRoot = clientlogic.folderR + @"\" + folderCreated;
             System.IO.Directory.CreateDirectory(pathRoot);
+        }
+
+
+
+        #region Start Button
+        /*
+         * Callback del click sul Button Start
+         * Verifica la CheckBox e invoca la RiceviRestore
+         */
+        private void Start_Click(object sender, RoutedEventArgs e)
+        {
+            if (!downloading)
+            {
+                downloading = true;
+                checkCanc.Visibility = Visibility.Hidden;
+                label.Content = "Downloading...";
+                Start.Content = "Stop";
+                BrushConverter bc = new BrushConverter();
+                Start.Background = (Brush)bc.ConvertFrom("#FA5858");
+
+                if (checkCanc.IsChecked == true)
+                {
+                    RiceviRestore(true);
+
+                }
+                else
+                {
+                    RiceviRestore(false);
+                }
+            }
+            else
+            {
+                downloading = false;
+                Start.IsEnabled = false;
+                Start.Visibility = Visibility.Hidden;
+                WaitFol.Visibility = Visibility.Visible;
+
+            }
         }
 
         private void File_MouseEnter(object sender, MouseEventArgs e)
@@ -73,11 +114,18 @@ namespace Client
                 Start.Background = (Brush)bc.ConvertFrom("#FA5858");
             }
         }
+        #endregion
 
+        #region Metodi di Restore
+        /*
+         * Comunica al server di iniziare il restore della cartella con eventualmente i file cancellati
+         * delega la gestione del restore a delle opportune callback assegnate a workertransaction
+         */
         private void RiceviRestore(bool p)
         {
             try
             {
+                //comunico al server RESTORE + parametri opportuni
                 if (p)
                 {
                     clientLogic.WriteStringOnStream(ClientLogic.RESTORE + clientLogic.username + "+" + folderRoot + "+" + pathRoot + "+" + "Y");
@@ -96,6 +144,7 @@ namespace Client
                 }
                 App.Current.MainWindow.Close();
             }
+            //assegno le callback a workertransaction
             workertransaction = new BackgroundWorker();
             workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_RiceviRestore);
             workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(workertranaction_RiceviRestoreCompleted);
@@ -104,6 +153,9 @@ namespace Client
 
         }
 
+        /*
+         * Al termine dei download si apre l'explorer per mostrate quanto ripristinato
+         */
         private void workertranaction_RiceviRestoreCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             downloading = false;
@@ -115,18 +167,20 @@ namespace Client
         {
             try
             {
+                //loop che itera per ogni contenuto della rootdir
                 while (true)
                 {
                     int bufferSize = 1024;
                     byte[] buffer = null;
                     int filesize = 0;
                     string headerStr = "";
-                    headerStr = clientLogic.ReadStringFromStream();
+                    headerStr = clientLogic.ReadStringFromStream(); //leggo la risposta del server
                     if (headerStr.Contains(ClientLogic.ERRORE) || headerStr.Equals(ClientLogic.OK + "Restore Avvenuto Correttamente") || headerStr.Equals(ClientLogic.INFO + "Restore interrotto dal client"))
                     {
-                        break;
+                        break;  //esco dal loop
                     }
 
+                    //la parsifico opportunamente per ottenere filesize, filename, checksum
                     string[] splitted = headerStr.Split(new string[] { "\r\n" }, StringSplitOptions.None);
                     String[] str = splitted[0].Split('=');
                     string dim = str[1];
@@ -145,6 +199,7 @@ namespace Client
                         DirectoryInfo di = Directory.CreateDirectory(localpath);
                     }
                     bool exist = false;
+                    //se il file esiste già ed ha la stessa checksum ricevuta dal server non devo riscriverlo
                     if (File.Exists(clientLogic.folderR + @"\" + fileName))
                     {
                         string check = clientLogic.GetMD5HashFromFile(clientLogic.folderR + @"\" + fileName);
@@ -158,17 +213,19 @@ namespace Client
                     }
                     if (exist)
                     {
+                        //comunico al server che il file non mi interessa e passo ad analizzare il file successivo
                         clientLogic.WriteStringOnStream(ClientLogic.INFO + "File gia' presente e non modificato");
                         continue;
                     }
                     if (downloading)
-                        clientLogic.WriteStringOnStream(ClientLogic.OK);
+                        clientLogic.WriteStringOnStream(ClientLogic.OK);    //comunico l'interesse per il file
                     else
                     {
                         clientLogic.WriteStringOnStream(ClientLogic.STOP);
                         continue;
                     }
 
+                    //ricevo il file proprio come viene fatto nella StartDownload
                     FileStream fs = new FileStream(clientLogic.folderR + @"\" + fileName, FileMode.OpenOrCreate);
                     int sizetot = 0;
                     int original = filesize;
@@ -211,7 +268,9 @@ namespace Client
                 t2.Start();
             }
         }
+        #endregion
 
+        #region ProgressBar e vari
         private void ExitStub(int obj)
         {
             if (App.Current.MainWindow is Restore)
@@ -253,36 +312,6 @@ namespace Client
             arg1.Visibility = Visibility.Visible;
             arg3.Content = arg4.Substring(1);
         }
-
-        private void Start_Click(object sender, RoutedEventArgs e)
-        {
-            if (!downloading)
-            {
-                downloading = true;
-                checkCanc.Visibility = Visibility.Hidden;
-                label.Content = "Downloading...";
-                Start.Content = "Stop";
-                BrushConverter bc = new BrushConverter();
-                Start.Background = (Brush)bc.ConvertFrom("#FA5858");
-
-                if (checkCanc.IsChecked == true)
-                {
-                    RiceviRestore(true);
-
-                }
-                else
-                {
-                    RiceviRestore(false);
-                }
-            }
-            else
-            {
-                downloading = false;
-                Start.IsEnabled = false;
-                Start.Visibility = Visibility.Hidden;
-                WaitFol.Visibility = Visibility.Visible;
-
-            }
-        }
+        #endregion
     }
 }

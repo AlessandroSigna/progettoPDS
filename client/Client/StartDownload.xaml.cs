@@ -56,6 +56,7 @@ namespace Client
             RiceviFile();
         }
 
+        #region Ricezione File
         public void RiceviFile()
         {
             workertransaction = new BackgroundWorker();
@@ -87,6 +88,7 @@ namespace Client
             try
             {
                 downloading = true;
+                //richiedo al server la versione del file fileName
                 clientLogic.WriteStringOnStream(ClientLogic.GETFILEV + clientLogic.username + "+" + root + "+" + fileName + "+" + versione + "+" + idFile);
                 int bufferSize = 1024;
                 byte[] buffer = null;
@@ -97,14 +99,15 @@ namespace Client
                 //completePath = @"C:\MyCloud\" + folderCreated;
                 completePath = clientLogic.folderR + "\\" + folderCreated;
                 //System.IO.Directory.CreateDirectory(@"C:\MyCloud");
-                System.IO.Directory.CreateDirectory(clientLogic.folderR + "\\" + folderCreated);
+                System.IO.Directory.CreateDirectory(clientLogic.folderR + "\\" + folderCreated);    //creo la cartella dove salverò il file ricevuto
                 fileName = fileName.Substring(fileName.LastIndexOf(@"\"));
                 string pathTmp = completePath + @"\" + fileName.Substring(fileName.LastIndexOf(@"\") + 1);
-                FileStream fs = new FileStream(pathTmp, FileMode.OpenOrCreate);
+                FileStream fs = new FileStream(pathTmp, FileMode.OpenOrCreate); //preparo a creare il file
 
-                headerStr = clientLogic.ReadStringFromStream();
+                headerStr = clientLogic.ReadStringFromStream(); //leggo dallo stream la risposta del server - un header
                 if (headerStr.Contains(ClientLogic.ERRORE))
                 {
+                    //in caso di erroe rilascio e ritorno
                     if (clientLogic.clientsocket.Client.Connected)
                     {
                         clientLogic.clientsocket.GetStream().Close();
@@ -114,11 +117,12 @@ namespace Client
                 }
                 string[] splitted = headerStr.Split(new string[] { "\r\n" }, StringSplitOptions.None);
                 String[] str = splitted[0].Split(':');
-                filesize = int.Parse(str[1]);
+                filesize = int.Parse(str[1]);   //parsifico la risposta e ottengo la dim del file che sto per ricevere
 
-                clientLogic.WriteStringOnStream(ClientLogic.OK);
+                clientLogic.WriteStringOnStream(ClientLogic.OK);    //mando ACK
                 int sizetot = 0;
                 int original = filesize;
+                //delego ad un thread la gestione della ProgressBar
                 Thread t1 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int>(SetProgressBar), pbStatus, original); }));
                 t1.Start();
                 int bufferCount = Convert.ToInt32(Math.Ceiling((double)original / (double)bufferSize));
@@ -131,6 +135,7 @@ namespace Client
                         clientLogic.clientsocket.Client.ReceiveTimeout = 30000;
                         if (clientLogic.GetState(clientLogic.clientsocket) != TcpState.Established)
                             throw new Exception();
+                        //man mano che mi arrivano pezzi di file li scrivo nel FileStream e diminuisco la filesize attesa
                         int size = clientLogic.clientsocket.Client.Receive(buffer, SocketFlags.Partial);
                         fs.Write(buffer, 0, size);
                         filesize -= size;
@@ -148,6 +153,7 @@ namespace Client
                         throw new Exception();
                     }
                 }
+                //ricevuto tutto. Chiudo e mando ACK
                 fs.Close();
                 clientLogic.WriteStringOnStream(ClientLogic.OK);
             }
@@ -157,7 +163,9 @@ namespace Client
                 t2.Start();
             }
         }
+        #endregion
 
+        #region ProgressBar e varie
         private void ExitStub(int obj)
         {
             if (App.Current.MainWindow is Restore)
@@ -185,5 +193,7 @@ namespace Client
         {
             arg1.Value = arg2;
         }
+        #endregion
+
     }
 }
