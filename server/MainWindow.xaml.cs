@@ -133,7 +133,7 @@ namespace BackupServer
             {
                 SQLiteCommand comandoP = new SQLiteCommand(m_dbConnection);
                 comandoP.CommandText = "DELETE FROM UTENTILOGGATI";
-                bool isbreaked = false;
+                bool isBroken = false;
                 do
                 {
                     try
@@ -141,7 +141,7 @@ namespace BackupServer
                         ServerLogic._readerWriterLock.EnterWriteLock();
                         if (ServerLogic._readerWriterLock.WaitingReadCount > 0)
                         {
-                            isbreaked = true;
+                            isBroken = true;
                         }
                         else
                         {
@@ -152,13 +152,13 @@ namespace BackupServer
                     {
                         ServerLogic._readerWriterLock.ExitWriteLock();
                     }
-                    if (isbreaked)
+                    if (isBroken)
                     {
                         Thread.Sleep(10);
                     }
                     else
-                        isbreaked = false;
-                } while (isbreaked);
+                        isBroken = false;
+                } while (isBroken);
             }
             catch
             {
@@ -229,7 +229,7 @@ namespace BackupServer
             try
             {
 
-                bool isbreaked = false;
+                bool isBroken = false;
                 do
                 {
                     try
@@ -237,7 +237,7 @@ namespace BackupServer
                         ServerLogic._readerWriterLock.EnterWriteLock();
                         if (ServerLogic._readerWriterLock.WaitingReadCount > 0)
                         {
-                            isbreaked = true;
+                            isBroken = true;
                         }
                         else
                         {
@@ -298,27 +298,27 @@ namespace BackupServer
                                 comand.ExecuteNonQuery();
                             }
 
-                            Console.WriteLine("no");
+                            Console.WriteLine("Fine creazione e controlli tabelle. ");
                         }
                     }
                     finally
                     {
                         ServerLogic._readerWriterLock.ExitWriteLock();
                     }
-                    if (isbreaked)
+                    if (isBroken)
                     {
                         Thread.Sleep(10);
                     }
                     else
-                        isbreaked = false;
-                } while (isbreaked);
+                        isBroken = false;
+                } while (isBroken);
 
 
                 try
                 {
                     SQLiteCommand comandoP = new SQLiteCommand("", m_dbConnection, transazioneINIT);
                     comandoP.CommandText = "DELETE FROM UTENTILOGGATI";
-                    bool isbreaked2 = false;
+                    bool isBroken2 = false;
                     do
                     {
                         try
@@ -326,7 +326,7 @@ namespace BackupServer
                             ServerLogic._readerWriterLock.EnterWriteLock();
                             if (ServerLogic._readerWriterLock.WaitingReadCount > 0)
                             {
-                                isbreaked2 = true;
+                                isBroken2 = true;
                             }
                             else
                             {
@@ -337,13 +337,13 @@ namespace BackupServer
                         {
                             ServerLogic._readerWriterLock.ExitWriteLock();
                         }
-                        if (isbreaked2)
+                        if (isBroken2)
                         {
                             Thread.Sleep(10);
                         }
                         else
-                            isbreaked2 = false;
-                    } while (isbreaked2);
+                            isBroken2 = false;
+                    } while (isBroken2);
                 }
                 catch
                 {
