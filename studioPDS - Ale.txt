@@ -144,19 +144,42 @@ Il progress ring si deve sostituire :(
 
 idee
 - Server stampa il suo IP
-- navigazione per fare la restore su un'unica finestra in cui è visibilee  accessibile tutto l'albero delle directory
+- navigazione per fare la restore su un'unica finestra in cui è visibile e accessibile tutto l'albero delle directory
 a partire dalla root. Se si conferma una cartella si vuole fare la restore della cartella (+file eliminati?)
 se si seleziona un file si deve poi confermare la versione. navigando sono visibili i file eliminati
+- selezionare cartella restore solo dopo aver deciso cosa ripristinare
+- nessuna differenza tra cartella e file nella restore (restore di sottocartelle)
+- i diversi backup sono mostrati con nomi e non con il path della rootdir(?)
+no perché l'utente altrimenti si deve ricordare una cosa in più quando inizia una sessione di backup
+- login e registrazione con logica diversa
+- togliere ricerca
+- versioni delle cartelle (?)
+- visualizzazione della navigazione del restore più simile a windows
+http://stackoverflow.com/questions/6415037/populate-treeview-from-list-of-file-paths-in-wpf
+http://www.codeproject.com/Articles/21248/A-Simple-WPF-Explorer-Tree
+- usare sempre socket come stream e non Socket.Send
+
+sicurezza
+(assumiamo il server sicuro e la rete insicura)
+- registrazione con invio credenziali protette da DH ?
+- autenticazione a sfida -> psw in chiaro sul server ma in rete viene mandato solo hash di psw + sfida
+oppure 
+- autenticazione psw ripetibili -> invio hash della psw e il server conserva hash e sale
 
 FIX
 - se da LoginRegisterControl si torna indietro la finestra non cambia nome
 - autenticazione su mac -> ma se è sul mac come abbiamo fatto a connetterci dal mixto?!
 - autenticazione a sfida
 - migliore aderenza al pattern MVC
+- il client si deve disconnettere quando il server si disconnette
+- pulsante back in ogni finestra 
+- messaggio errore utente già loggato (?)
 
 Dubbi
-Come funziona lo stream? se nessuno legge e qualcuno scrive i dati restano lì? e viceversa?
-usare la dimensione del buffer di 512 e/o 1024 è una scelta o è sempre bene fare così
-Come funziona un socket? Socket.Send(byte[] buffer)? un solo socket per canale? sincrono?
-I controlli dei dialog vanno andrebbero gestiti nel loro .cs ? MenuControl assegna le callback dei Button di Disconnetti
-E' possibile mettere un UserControl dentro una window (sicuramente sì) così da evitare duplicazione di codice? (Es back/home button)
+- Come funziona lo stream? se nessuno legge e qualcuno scrive i dati restano lì? e viceversa?
+- usare la dimensione del buffer di 512 e/o 1024 è una scelta o è sempre bene fare così
+- Come funziona un socket? Socket.Send(byte[] buffer)? un solo socket per canale? sincrono?
+https://msdn.microsoft.com/en-us/library/w89fhyex(v=vs.110).aspx
+http://www.codeproject.com/Articles/10649/An-Introduction-to-Socket-Programming-in-NET-using
+- I controlli dei dialog andrebbero gestiti nel loro .cs ? MenuControl assegna le callback dei Button di Disconnetti
+- E' possibile mettere un UserControl dentro una window (sicuramente sì) così da evitare duplicazione di codice? (Es back/home button)
