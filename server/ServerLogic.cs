@@ -2043,6 +2043,10 @@ namespace BackupServer
             return RiceviFile(client, user, listFile, transazioneFile, null);
         }
 
+        // Usa l'header per sapere la dimensione del file
+        // Unico punto in cui usa socket.Receive
+        // Controllo integrità prendendo il checksum (file in arrivo) dall'header
+        // Usa MD5 Hash per calcolare checksum file ricevuto che è diverso da checksum file in arrivo
         public string RiceviFile(TcpClient client, String user, LinkedList<string> listFile, SQLiteTransaction transazioneFile,String ext)
         {
             writeStringOnStream(client, OK);
@@ -2087,6 +2091,7 @@ namespace BackupServer
             filename = headers["Filename"];
             checksumFileInArrivo = headers["Checksum"];
             listFile.AddFirst(filename);
+            // Controllo integrità
             if (!(ext!=null && ext.Equals("CREATE")) &&  controlloCheck(checksumFileInArrivo, user, filename))
             {
                 return INFO + "File non modificato";
@@ -2111,7 +2116,7 @@ namespace BackupServer
             byte[] file = new byte[fs.Length];
             fs.Read(file, 0, System.Convert.ToInt32(fs.Length));
             fs.Close();
-            string checksumFileRicevuto = GetMD5HashFromFile(pathTmp);
+            string checksumFileRicevuto = GetMD5HashFromFile(pathTmp); // ???
             File.Delete(pathTmp);
 
             if (incasellaFile(user, null, filename, file, filesizeC, checksumFileRicevuto, transazioneFile,ext))
@@ -2483,6 +2488,7 @@ namespace BackupServer
             }
         }
 
+        // Dovrebbe chiamarsi read Command from stream
         private void readStringFromStream(TcpClient clientsocket)
         {
 
