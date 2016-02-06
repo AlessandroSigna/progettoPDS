@@ -144,6 +144,7 @@ Il progress ring si deve sostituire :(
 
 idee
 - Server stampa il suo IP
+- visualizzazione della navigazione del restore più simile a windows
 - navigazione per fare la restore su un'unica finestra in cui è visibile e accessibile tutto l'albero delle directory
 a partire dalla root. Se si conferma una cartella si vuole fare la restore della cartella (+file eliminati?)
 se si seleziona un file si deve poi confermare la versione. navigando sono visibili i file eliminati
@@ -153,7 +154,6 @@ se si seleziona un file si deve poi confermare la versione. navigando sono visib
 - login e registrazione con logica diversa
 - togliere ricerca
 - versioni delle cartelle (?)
-- visualizzazione della navigazione del restore più simile a windows
 http://stackoverflow.com/questions/6415037/populate-treeview-from-list-of-file-paths-in-wpf
 http://www.codeproject.com/Articles/21248/A-Simple-WPF-Explorer-Tree
 - usare sempre socket come stream e non Socket.Send
@@ -171,6 +171,7 @@ FIX
 - autenticazione a sfida
 - migliore aderenza al pattern MVC
 - il client si deve disconnettere quando il server si disconnette
+- Inserire un check sul tasto disconnetti (per vedere lo stato del server) (ridondante?)
 - pulsante back in ogni finestra 
 - messaggio errore utente già loggato (?)
 
