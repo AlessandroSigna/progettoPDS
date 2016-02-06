@@ -1,0 +1,18 @@
+MainControl (Connetti)
+LoginRegisterControl
+LoginControl - RegistratiControl (Logga)
+MenuControl (Pulsante start sync/monitor, pulsante cartella, label path della cartella monitorata, Pulsante restore)
+
+Pulsante cartella:
+Esplora risorse
+MenuControl
+
+Pulsante restore:
+RestoreUC, SelectActionUI, FileSelection, DownloadFile (da cambiare: Esplora server, con root directory un folder con tutte le folder di backup navigabili, label per informare l'utente che sta navigando il server per scegliere la cartella da ripristinare, pulsante restore - conferma cosa hai selezionato)
+StartDowload
+MenuControl
+
+Pulsante Back e Disconnetti in tutte le cartelle
+Back disabilitato nella LoginRegisterControl
+Back dopo il login fa sloggare e porta a LoginControl 
+Disconnetti porta sempre a MainControl (e slogga oltre a disconnettere)
