@@ -149,8 +149,7 @@ a partire dalla root. Se si conferma una cartella si vuole fare la restore della
 se si seleziona un file si deve poi confermare la versione. navigando sono visibili i file eliminati
 - selezionare cartella restore solo dopo aver deciso cosa ripristinare
 - nessuna differenza tra cartella e file nella restore (restore di sottocartelle)
-- i diversi backup sono mostrati con nomi e non con il path della rootdir(?)
-no perché l'utente altrimenti si deve ricordare una cosa in più quando inizia una sessione di backup
+- i diversi backup sono mostrati con il nome della rootdir e non con il suo fullpath
 - login e registrazione con logica diversa
 - togliere ricerca
 - versioni delle cartelle (?)
