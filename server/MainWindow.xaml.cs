@@ -53,6 +53,7 @@ namespace BackupServer
             }
         }
 
+        #region UI e controlli su input dell'utente
         //Metodo Che controlla se  sono inseriti solo numeri non lettere o punteggiatura.
         private void NumericText_Validate(object sender, TextCompositionEventArgs e)
         {
@@ -101,6 +102,7 @@ namespace BackupServer
         {
             this.Close();
         }
+        #endregion
 
         private void stopServer()
         {
@@ -131,7 +133,7 @@ namespace BackupServer
             {
                 SQLiteCommand comandoP = new SQLiteCommand(m_dbConnection);
                 comandoP.CommandText = "DELETE FROM UTENTILOGGATI";
-                bool isbreaked = false;
+                bool isBroken = false;
                 do
                 {
                     try
@@ -139,7 +141,7 @@ namespace BackupServer
                         ServerLogic._readerWriterLock.EnterWriteLock();
                         if (ServerLogic._readerWriterLock.WaitingReadCount > 0)
                         {
-                            isbreaked = true;
+                            isBroken = true;
                         }
                         else
                         {
@@ -150,13 +152,13 @@ namespace BackupServer
                     {
                         ServerLogic._readerWriterLock.ExitWriteLock();
                     }
-                    if (isbreaked)
+                    if (isBroken)
                     {
                         Thread.Sleep(10);
                     }
                     else
-                        isbreaked = false;
-                } while (isbreaked);
+                        isBroken = false;
+                } while (isBroken);
             }
             catch
             {
@@ -216,6 +218,7 @@ namespace BackupServer
             TPorta.BorderBrush = Brushes.Transparent;
             tb.Text += DateTime.Now + " - ***DB selezionato: " + pathDB + "***\n";
 
+            #region Controlli e creazione Database
             if (!File.Exists(pathDB))
                 SQLiteConnection.CreateFile(pathDB);
 
@@ -226,7 +229,7 @@ namespace BackupServer
             try
             {
 
-                bool isbreaked = false;
+                bool isBroken = false;
                 do
                 {
                     try
@@ -234,7 +237,7 @@ namespace BackupServer
                         ServerLogic._readerWriterLock.EnterWriteLock();
                         if (ServerLogic._readerWriterLock.WaitingReadCount > 0)
                         {
-                            isbreaked = true;
+                            isBroken = true;
                         }
                         else
                         {
@@ -295,27 +298,27 @@ namespace BackupServer
                                 comand.ExecuteNonQuery();
                             }
 
-                            Console.WriteLine("no");
+                            Console.WriteLine("Fine creazione e controlli tabelle. ");
                         }
                     }
                     finally
                     {
                         ServerLogic._readerWriterLock.ExitWriteLock();
                     }
-                    if (isbreaked)
+                    if (isBroken)
                     {
                         Thread.Sleep(10);
                     }
                     else
-                        isbreaked = false;
-                } while (isbreaked);
+                        isBroken = false;
+                } while (isBroken);
 
 
                 try
                 {
                     SQLiteCommand comandoP = new SQLiteCommand("", m_dbConnection, transazioneINIT);
                     comandoP.CommandText = "DELETE FROM UTENTILOGGATI";
-                    bool isbreaked2 = false;
+                    bool isBroken2 = false;
                     do
                     {
                         try
@@ -323,7 +326,7 @@ namespace BackupServer
                             ServerLogic._readerWriterLock.EnterWriteLock();
                             if (ServerLogic._readerWriterLock.WaitingReadCount > 0)
                             {
-                                isbreaked2 = true;
+                                isBroken2 = true;
                             }
                             else
                             {
@@ -334,13 +337,13 @@ namespace BackupServer
                         {
                             ServerLogic._readerWriterLock.ExitWriteLock();
                         }
-                        if (isbreaked2)
+                        if (isBroken2)
                         {
                             Thread.Sleep(10);
                         }
                         else
-                            isbreaked2 = false;
-                    } while (isbreaked2);
+                            isBroken2 = false;
+                    } while (isBroken2);
                 }
                 catch
                 {
@@ -365,12 +368,16 @@ namespace BackupServer
             statusImage.EndInit();
 
             tb.Text += DateTime.Now + " - DB Inizializzato correttamente\n";
+            #endregion
 
+
+            #region Inizializzazione connessione tcp
             serverSocket = new TcpListener(IPAddress.Any, porta);
             serverSocket.Start();
 
             server = new ServerLogic(ref serverSocket, porta, this);
             ServerLogic.serverKO = false;
+            #endregion
 
             tb.Text += DateTime.Now + " - Server avviato su porta " + porta + "\n";
             MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/connessoicon.ico");
@@ -379,11 +386,7 @@ namespace BackupServer
             TPorta.Background = Brushes.LightGray;
             MFStartStop.Header = "Arresta Server";
             MFSetting.IsEnabled = false;
-
-
         }
-
-
 
         internal void UpdateText(string message)
         {
@@ -406,10 +409,9 @@ namespace BackupServer
 
         }
 
+        #region Chiusura UI
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-
-
             if (avviato)
             {
                 e.Cancel = true;
@@ -431,7 +433,9 @@ namespace BackupServer
             _customDialog.Content = _exitwindow;
             await this.ShowMetroDialogAsync(_customDialog);
         }
+        #endregion
 
+        #region UI di MainWindow
         private void ButtonOkOnClick(object sender, RoutedEventArgs e)
         {
 
@@ -515,6 +519,7 @@ namespace BackupServer
         {
             tb.ScrollToEnd();
         }
+        #endregion
     }
 
 }

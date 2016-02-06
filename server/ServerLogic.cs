@@ -17,7 +17,7 @@ namespace BackupServer
 {
     public class ServerLogic
     {
-        BackgroundWorker workertranaction;
+        BackgroundWorker workertransaction;
         private TcpListener serverSocket;
         private int port;
         private MainWindow mainWindow;
@@ -53,6 +53,7 @@ namespace BackupServer
 
         public static bool serverKO = true;
 
+        // Lock per accesso ACID al database
         public static ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim();
 
         public ServerLogic(ref TcpListener serverSocketPassed, int portPassed, MainWindow mw)
@@ -60,20 +61,24 @@ namespace BackupServer
             mainWindow = mw;
             port = portPassed;
             //serverSocket = serverSocketPassed;
-            serverSocket = mw.serverSocket;
-            workertranaction = new BackgroundWorker();
-            workertranaction.DoWork += new DoWorkEventHandler(workertranaction_DoWork);
-            workertranaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(workertranaction_RunWorkerCompleted);
-            workertranaction.RunWorkerAsync();
+            serverSocket = mw.serverSocket; //serverSocket come argomento del costruttore, preso comunque direttamente da MainWindow
+            
+            // Operazioni eseguite in thread separati per socket
+            workertransaction = new BackgroundWorker();
+            workertransaction.DoWork += new DoWorkEventHandler(workertransaction_DoWork);
+            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(workertransaction_RunWorkerCompleted);
+            workertransaction.RunWorkerAsync();
         }
 
-        void workertranaction_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        #region Metodi di connessione
+        void workertransaction_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             //Call method to hide wait screen
+            Console.WriteLine("Run worker completed. ");
 
         }
-        #region Metodi di connessione
-        void workertranaction_DoWork(object sender, DoWorkEventArgs e)
+        
+        void workertransaction_DoWork(object sender, DoWorkEventArgs e)
         {
             TcpClient clientsocket;
 
@@ -81,6 +86,7 @@ namespace BackupServer
             {
                 try
                 {
+                    // Apre il socket e si mette in ascolto
                     clientsocket = (mainWindow.serverSocket).AcceptTcpClient();
                 }
                 catch
@@ -94,6 +100,7 @@ namespace BackupServer
                 mainWindow.tb.Dispatcher.Invoke(new BackupServer.MainWindow.UpdateTextCallback(mainWindow.UpdateText), new object[] { DateTime.Now + " - Cliente connesso n: " + counterClient + "\n" });
                 Console.WriteLine("Cliente connesso n: " + counterClient + "\n");
 
+                // Operazioni eseguite in thread separati per client
                 BackgroundWorker nuovoClientConnesso = new BackgroundWorker();
                 object paramAct = clientsocket;
                 object[] parameters = new object[] { paramAct };
@@ -113,15 +120,183 @@ namespace BackupServer
         {
             object[] parameters = e.Argument as object[];
             TcpClient clientsocket = (TcpClient)parameters[0];
+            // Legge i comandi
             readStringFromStream(clientsocket);
 
         }
         #endregion
 
+        // Chiamati da readStringFromStream
         #region Metodi handler comandi
 
-        #region Comandi Login/Logout
+        private string comandoRegistazione(string responseData)
+        {
+            // Tutti i comandi relativi alla gestione della transazione sono commentati e per questo anche il rollback è scritto
+            // ma commentato.
+            //SQLiteTransaction transazioneReg = mainWindow.m_dbConnection.BeginTransaction();
 
+            try
+            {
+
+                String[] parametri = responseData.Split('+');
+                int numParametri = parametri.Length;
+                if (numParametri > 5 || numParametri < 5)
+                {
+                    //transazioneReg.Rollback();
+                    //transazioneReg.Dispose();
+                    return ERRORE + "Numero di paramentri passati per la registrazione errato";
+                }
+
+                String comando = parametri[1];
+                String user = parametri[2].ToUpper();
+                String pass = parametri[3];
+                // Che significato logico ha il MAC?
+                String MAC = parametri[4];
+
+                if (comando == null || !comando.Equals(REGISTRAZIONE.Replace('+', ' ').Trim()))
+                {
+                    //transazioneReg.Rollback();
+                    //transazioneReg.Dispose();
+                    return ERRORE + "Comando errato";
+                }
+
+                if (user == null || user.Equals(""))
+                {
+                    //transazioneReg.Rollback();
+                    //transazioneReg.Dispose();
+                    return ERRORE + "User non valido";
+                }
+
+                if (pass == null || pass.Equals(""))
+                {
+                    //transazioneReg.Rollback();
+                    //transazioneReg.Dispose();
+                    return ERRORE + "Password non valida";
+                }
+                if (MAC == null || MAC.Equals(""))
+                {
+                    //transazioneReg.Rollback();
+                    //transazioneReg.Dispose();
+                    return ERRORE + "MAC non valido";
+                }
+
+                SQLiteCommand comandoP = new SQLiteCommand(mainWindow.m_dbConnection);
+                // Perché queste SELECT non sono protette dal lock?
+                comandoP.CommandText = "SELECT * FROM UTENTI WHERE username=@username";
+                comandoP.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
+                //comandoP.Transaction = transazioneReg;
+
+                try
+                {
+                    // L'ACID della transazione è garantita da questo lock. Ma forse i metodi transaction gestiscono tutto automaticamente?
+                    _readerWriterLock.EnterReadLock();
+
+                    if (comandoP.ExecuteScalar() != null)
+                    {
+                        //transazioneReg.Rollback();
+                        //transazioneReg.Dispose();
+                        return ERRORE + "Utente gia' registrato";
+                    }
+                }
+                finally
+                {
+                    _readerWriterLock.ExitReadLock();
+                }
+
+                SQLiteCommand comandoP2 = new SQLiteCommand(mainWindow.m_dbConnection);
+                comandoP2.CommandText = "INSERT INTO UTENTI (username,password) VALUES(@username,@password)";
+                comandoP2.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
+                comandoP2.Parameters.Add("@password", System.Data.DbType.String, pass.Length).Value = pass;
+                //comandoP2.Transaction = transazioneReg;
+
+                bool isBroken = false;
+                do
+                {
+                    try
+                    {
+                        _readerWriterLock.EnterWriteLock();
+                        if (_readerWriterLock.WaitingReadCount > 0)
+                        {
+                            isBroken = true;
+                        }
+                        else
+                        {
+                            if (comandoP2.ExecuteNonQuery().Equals(0))
+                            {
+                                //transazioneReg.Rollback();
+                                //transazioneReg.Dispose();
+                                return ERRORE + "Errore durante la registrazione";
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        _readerWriterLock.ExitWriteLock();
+                    }
+                    if (isBroken)
+                    {
+                        Thread.Sleep(10);
+                    }
+                    else
+                        isBroken = false;
+                } while (isBroken);
+
+                SQLiteCommand comandoP4 = new SQLiteCommand(mainWindow.m_dbConnection);
+                comandoP4.CommandText = "INSERT INTO UTENTILOGGATI (username,indirizzoMAC,lastUpdate) VALUES (@username,@indirizzoMAC,@lastUpdate)";
+                comandoP4.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
+                comandoP4.Parameters.Add("@lastUpdate", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
+                comandoP4.Parameters.Add("@indirizzoMAC", System.Data.DbType.String, MAC.Length).Value = MAC;
+
+                //comandoP4.Transaction = transazioneReg;
+                bool isBroken2 = false;
+                do
+                {
+                    try
+                    {
+                        _readerWriterLock.EnterWriteLock();
+                        if (_readerWriterLock.WaitingReadCount > 0)
+                        {
+                            isBroken2 = true;
+                        }
+                        else
+                        {
+                            if (comandoP4.ExecuteNonQuery() != 1)
+                            {
+                                //transazioneReg.Rollback();
+                                //transazioneReg.Dispose();
+                                return ERRORE + "Errore durante la registrazione";
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        _readerWriterLock.ExitWriteLock();
+                    }
+                    if (isBroken2)
+                    {
+                        Thread.Sleep(10);
+                    }
+                    else
+                        isBroken2 = false;
+                } while (isBroken2);
+
+
+                //transazioneReg.Commit();
+                //transazioneReg.Dispose();
+
+                return OK + "Registrazione avvenuta correttamente!";
+            }
+            catch
+            {
+                //transazioneReg.Rollback();
+                //transazioneReg.Dispose();
+
+                return ERRORE + "Errore durante la registrazione";
+            }
+        }
+
+        #region Comandi Login/Logout
+        // Chiamato anche da comando disconnetti.
         private string comandoLogout(string responseData)
         {
             //SQLiteTransaction transazioneLogout = mainWindow.m_dbConnection.BeginTransaction();
@@ -145,7 +320,7 @@ namespace BackupServer
                 comandoP.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                 comandoP.Parameters.Add("@indirizzoMAC", System.Data.DbType.String, MAC.Length).Value = MAC;
                 //comandoP.Transaction = transazioneLogout;
-                bool isbreaked = false;
+                bool isBroken = false;
                 do
                 {
                     try
@@ -153,7 +328,7 @@ namespace BackupServer
                         _readerWriterLock.EnterWriteLock();
                         if (_readerWriterLock.WaitingReadCount > 0)
                         {
-                            isbreaked = true;
+                            isBroken = true;
                         }
                         else
                         {
@@ -169,13 +344,13 @@ namespace BackupServer
                     {
                         _readerWriterLock.ExitWriteLock();
                     }
-                    if (isbreaked)
+                    if (isBroken)
                     {
                         Thread.Sleep(10);
                     }
                     else
-                        isbreaked = false;
-                } while (isbreaked);
+                        isBroken = false;
+                } while (isBroken);
 
                 //transazioneLogout.Commit();
                 //transazioneLogout.Dispose();
@@ -192,7 +367,9 @@ namespace BackupServer
 
         private string comandoLogin(string responseData)
         {
+
             //SQLiteTransaction transazioneLogin = mainWindow.m_dbConnection.BeginTransaction();
+
             try
             {
                 String[] parametri = responseData.Split('+');
@@ -289,7 +466,7 @@ namespace BackupServer
                 comandoP4.Parameters.Add("@indirizzoMAC", System.Data.DbType.String, MAC.Length).Value = MAC;
                 comandoP4.Parameters.Add("@lastUpdate", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
                 //comandoP4.Transaction = transazioneLogin;
-                bool isbreaked = false;
+                bool isBroken = false;
                 do
                 {
                     try
@@ -297,7 +474,7 @@ namespace BackupServer
                         _readerWriterLock.EnterWriteLock();
                         if (_readerWriterLock.WaitingReadCount > 0)
                         {
-                            isbreaked = true;
+                            isBroken = true;
                         }
                         else
                         {
@@ -313,13 +490,13 @@ namespace BackupServer
                     {
                         _readerWriterLock.ExitWriteLock();
                     }
-                    if (isbreaked)
+                    if (isBroken)
                     {
                         Thread.Sleep(10);
                     }
                     else
-                        isbreaked = false;
-                } while (isbreaked);
+                        isBroken = false;
+                } while (isBroken);
 
                 //transazioneLogin.Commit();
                 //transazioneLogin.Dispose();
@@ -336,6 +513,7 @@ namespace BackupServer
         }
         #endregion
 
+        // Ridondante?
         private Boolean comandoDisconnetti(string responseData)
         {
             try
@@ -361,166 +539,10 @@ namespace BackupServer
             }
         }
 
-        private string comandoRegistazione(string responseData)
-        {
-            //SQLiteTransaction transazioneReg = mainWindow.m_dbConnection.BeginTransaction();
-            try
-            {
-
-                String[] parametri = responseData.Split('+');
-                int numParametri = parametri.Length;
-                if (numParametri > 5 || numParametri < 5)
-                {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
-                    return ERRORE + "Numero di paramentri passati per la registrazione errato";
-                }
-
-                String comando = parametri[1];
-                String user = parametri[2].ToUpper();
-                String pass = parametri[3];
-                String MAC = parametri[4];
-
-                if (comando == null || !comando.Equals(REGISTRAZIONE.Replace('+', ' ').Trim()))
-                {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
-                    return ERRORE + "Comando errato";
-                }
-
-                if (user == null || user.Equals(""))
-                {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
-                    return ERRORE + "User non valido";
-                }
-
-                if (pass == null || pass.Equals(""))
-                {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
-                    return ERRORE + "Password non valida";
-                }
-                if (MAC == null || MAC.Equals(""))
-                {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
-                    return ERRORE + "MAC non valido";
-                }
-
-                SQLiteCommand comandoP = new SQLiteCommand(mainWindow.m_dbConnection);
-                comandoP.CommandText = "SELECT * FROM UTENTI WHERE username=@username";
-                comandoP.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                //comandoP.Transaction = transazioneReg;
-
-                try
-                {
-                    _readerWriterLock.EnterReadLock();
-
-                    if (comandoP.ExecuteScalar() != null)
-                    {
-                        //transazioneReg.Rollback();
-                        //transazioneReg.Dispose();
-                        return ERRORE + "Utente gia' registrato";
-                    }
-                }
-                finally
-                {
-                    _readerWriterLock.ExitReadLock();
-                }
-
-                SQLiteCommand comandoP2 = new SQLiteCommand(mainWindow.m_dbConnection);
-                comandoP2.CommandText = "INSERT INTO UTENTI (username,password) VALUES(@username,@password)";
-                comandoP2.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                comandoP2.Parameters.Add("@password", System.Data.DbType.String, pass.Length).Value = pass;
-                //comandoP2.Transaction = transazioneReg;
-
-                bool isbreaked = false;
-                do
-                {
-                    try
-                    {
-                        _readerWriterLock.EnterWriteLock();
-                        if (_readerWriterLock.WaitingReadCount > 0)
-                        {
-                            isbreaked = true;
-                        }
-                        else
-                        {
-                            if (comandoP2.ExecuteNonQuery().Equals(0))
-                            {
-                                //transazioneReg.Rollback();
-                                //transazioneReg.Dispose();
-                                return ERRORE + "Errore durante la registrazione";
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        _readerWriterLock.ExitWriteLock();
-                    }
-                    if (isbreaked)
-                    {
-                        Thread.Sleep(10);
-                    }
-                    else
-                        isbreaked = false;
-                } while (isbreaked);
-
-                SQLiteCommand comandoP4 = new SQLiteCommand(mainWindow.m_dbConnection);
-                comandoP4.CommandText = "INSERT INTO UTENTILOGGATI (username,indirizzoMAC,lastUpdate) VALUES (@username,@indirizzoMAC,@lastUpdate)";
-                comandoP4.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                comandoP4.Parameters.Add("@lastUpdate", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
-                comandoP4.Parameters.Add("@indirizzoMAC", System.Data.DbType.String, MAC.Length).Value = MAC;
-
-                //comandoP4.Transaction = transazioneReg;
-                bool isbreaked2 = false;
-                do
-                {
-                    try
-                    {
-                        _readerWriterLock.EnterWriteLock();
-                        if (_readerWriterLock.WaitingReadCount > 0)
-                        {
-                            isbreaked2 = true;
-                        }
-                        else
-                        {
-                            if (comandoP4.ExecuteNonQuery() != 1)
-                            {
-                                //transazioneReg.Rollback();
-                                //transazioneReg.Dispose();
-                                return ERRORE + "Errore durante la registrazione";
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        _readerWriterLock.ExitWriteLock();
-                    }
-                    if (isbreaked2)
-                    {
-                        Thread.Sleep(10);
-                    }
-                    else
-                        isbreaked2 = false;
-                } while (isbreaked2);
-
-
-                //transazioneReg.Commit();
-                //transazioneReg.Dispose();
-
-                return OK + "Registrazione avvenuta correttamente!";
-            }
-            catch
-            {
-                //transazioneReg.Rollback();
-                //transazioneReg.Dispose();
-
-                return ERRORE + "Errore durante la registrazione";
-            }
-        }
-
+        // SELECT * FROM LASTFOLDERUTENTE WHERE username=@username
+        // INSERT INTO LASTFOLDERUTENTE (username,folderBackup,lastUpdate) VALUES(@username,@folderBackup,@lastUpdate)
+        // SELECT * FROM LASTFOLDERUTENTE WHERE username=@username AND folderBackup=@folderBackup
+        // UPDATE LASTFOLDERUTENTE SET folderBackup=@folderBackup WHERE username=@username
         private string comandoFolder(string responseData)
         {
             //SQLiteTransaction transazioneFold = mainWindow.m_dbConnection.BeginTransaction();
@@ -555,7 +577,7 @@ namespace BackupServer
                 {
                     //transazioneFold.Rollback();
                     //transazioneFold.Dispose();
-                    return ERRORE + "Path RootFOlder non valida";
+                    return ERRORE + "Path RootFolder non valida";
                 }
                 SQLiteCommand comandoP1 = new SQLiteCommand(mainWindow.m_dbConnection);
                 comandoP1.CommandText = "SELECT * FROM LASTFOLDERUTENTE WHERE username=@username";
@@ -583,7 +605,7 @@ namespace BackupServer
                     comandoP2.Parameters.Add("@lastUpdate", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
                     //comandoP2.Transaction = transazioneFold;
 
-                    bool isbreaked = false;
+                    bool isBroken = false;
                     do
                     {
                         try
@@ -591,7 +613,7 @@ namespace BackupServer
                             _readerWriterLock.EnterWriteLock();
                             if (_readerWriterLock.WaitingReadCount > 0)
                             {
-                                isbreaked = true;
+                                isBroken = true;
                             }
                             else
                             {
@@ -605,13 +627,13 @@ namespace BackupServer
                         {
                             _readerWriterLock.ExitWriteLock();
                         }
-                        if (isbreaked)
+                        if (isBroken)
                         {
                             Thread.Sleep(10);
                         }
                         else
-                            isbreaked = false;
-                    } while (isbreaked);
+                            isBroken = false;
+                    } while (isBroken);
 
                     //transazioneFold.Rollback();
                     //transazioneFold.Dispose();
@@ -632,6 +654,7 @@ namespace BackupServer
                     {
                         _readerWriterLock.EnterReadLock();
 
+                        // Forse qui dovrebbe essere q2?
                         q1 = comandoP2.ExecuteScalar();
 
                     }
@@ -648,7 +671,7 @@ namespace BackupServer
                         comandoP3.Parameters.Add("@folderBackup", System.Data.DbType.String, folder.Length).Value = folder;
                         //comandoP3.Transaction = transazioneFold;
 
-                        bool isbreaked = false;
+                        bool isBroken = false;
                         do
                         {
                             try
@@ -656,7 +679,7 @@ namespace BackupServer
                                 _readerWriterLock.EnterWriteLock();
                                 if (_readerWriterLock.WaitingReadCount > 0)
                                 {
-                                    isbreaked = true;
+                                    isBroken = true;
                                 }
                                 else
                                 {
@@ -669,13 +692,13 @@ namespace BackupServer
                             {
                                 _readerWriterLock.ExitWriteLock();
                             }
-                            if (isbreaked)
+                            if (isBroken)
                             {
                                 Thread.Sleep(10);
                             }
                             else
-                                isbreaked = false;
-                        } while (isbreaked);
+                                isBroken = false;
+                        } while (isBroken);
 
                         //transazioneFold.Rollback();
                         //transazioneFold.Dispose();
@@ -700,6 +723,8 @@ namespace BackupServer
         }
 
         #region Comandi per gestione file e liste file
+
+        // Chiama riceviFile
         private string comandoFile(string responseData, TcpClient clientsocket, LinkedList<string> fileList)
         {
             //SQLiteTransaction transazioneFile = mainWindow.m_dbConnection.BeginTransaction();
@@ -752,6 +777,8 @@ namespace BackupServer
             }
         }
 
+        // SELECT percorsoFile,versione,dimFile,timestamp,idfile FROM BACKUPHISTORY
+        // Scrive lista
         private string comandoGetListaFile(TcpClient clientsocket, string responseData)
         {
             //SQLiteTransaction transazioneLista = mainWindow.m_dbConnection.BeginTransaction();
@@ -821,7 +848,7 @@ namespace BackupServer
                     while (rdr.Read())
                     {
                         string path = Convert.ToString(rdr["percorsoFile"]);
-                        string nomeFile = path.Substring(path.LastIndexOf('\\') + 1);
+                        string nomeFile = path.Substring(path.LastIndexOf('\\') + 1); //nomeFile dovrebbe usarlo in listaFiles
                         listaFiles += Convert.ToString(rdr["percorsoFile"]) + "?" + Convert.ToString(rdr["versione"]) + "?" + Convert.ToString(rdr["dimFile"]) + "?" + Convert.ToString(rdr["timestamp"]) + "?" + Convert.ToString(rdr["idfile"]) + ";";
                     }
                 }
@@ -863,6 +890,8 @@ namespace BackupServer
             }
         }
 
+        // SELECT percorsoFile,versione,dimFile,timestamp FROM BACKUPHISTORY
+        // Scrive versioni
         private string comandoGetVersioniFile(TcpClient clientsocket, string responseData)
         {
             //SQLiteTransaction transaioneVersione = mainWindow.m_dbConnection.BeginTransaction();
@@ -1000,9 +1029,11 @@ namespace BackupServer
             }
         }
 
+        // SELECT file,dimFile,checksum FROM BACKUPHISTORY
+        // Scrive anche il checksum (file modificato) sullo stream
         private string comandoGetFileVersione(TcpClient clientsocket, string responseData)
         {
-            string token = RandomString(30);
+            string token = RandomString(30); //??
             //SQLiteTransaction transazioneGetFile = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
@@ -1175,6 +1206,9 @@ namespace BackupServer
             }
         }
 
+        // SELECT idfile,percorsoFile from BACKUPHISTORY bh1
+        // INSERT INTO RENAMEFILEMATCH (username, folderBackup, idfile, percorsoFileOLD, percorsoFileNEW, lastVersionOLD, lastUpdate)" +
+        // "VALUES (@username,@folderBackup,@idfile,@fileNameOLD,@fileNameNEW,@lastVersionOLD,@lastUpdate)";
         private string comandoRenameFile(string responseData)
         {
             SQLiteTransaction transaioneRename = mainWindow.m_dbConnection.BeginTransaction();
@@ -1233,7 +1267,7 @@ namespace BackupServer
                 if (dir != null && dir.Equals("DIR"))
                 {
                     SQLiteCommand comandoPD = new SQLiteCommand(mainWindow.m_dbConnection);
-                    comandoPD.CommandText = "select idfile,percorsoFile from BACKUPHISTORY bh1 where username=@username and folderBackup=@folderBackup and percorsoFile like @percorsoFile and timestamp = (select max(bh2.timestamp) from backuphistory bh2 where bh1.username=bh2.username and bh1.folderBackup=bh2.folderBackup and bh1.percorsoFile=bh2.percorsoFile and bh1.versione=bh2.versione)";
+                    comandoPD.CommandText = "SELECT idfile,percorsoFile from BACKUPHISTORY bh1 where username=@username and folderBackup=@folderBackup and percorsoFile like @percorsoFile and timestamp = (select max(bh2.timestamp) from backuphistory bh2 where bh1.username=bh2.username and bh1.folderBackup=bh2.folderBackup and bh1.percorsoFile=bh2.percorsoFile and bh1.versione=bh2.versione)";
                     comandoPD.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                     comandoPD.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comandoPD.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileNameOLD.Length).Value = fileNameOLD + "\\%";
@@ -1269,7 +1303,7 @@ namespace BackupServer
                             comandoPD1.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = Int32.Parse(idfileD);
                             //comandoP.Transaction = transaioneRename;
 
-                            bool isbreakedD = false;
+                            bool isBrokenD = false;
                             do
                             {
                                 try
@@ -1277,7 +1311,7 @@ namespace BackupServer
                                     _readerWriterLock.EnterWriteLock();
                                     if (_readerWriterLock.WaitingReadCount > 0)
                                     {
-                                        isbreakedD = true;
+                                        isBrokenD = true;
                                     }
                                     else
                                     {
@@ -1292,13 +1326,13 @@ namespace BackupServer
                                     _readerWriterLock.ExitWriteLock();
 
                                 }
-                                if (isbreakedD)
+                                if (isBrokenD)
                                 {
                                     Thread.Sleep(10);
                                 }
                                 else
-                                    isbreakedD = false;
-                            } while (isbreakedD);
+                                    isBrokenD = false;
+                            } while (isBrokenD);
 
                             SQLiteCommand comandoD2 = new SQLiteCommand(mainWindow.m_dbConnection);
                             comandoD2.CommandText = "SELECT idfile,file,dimFile,checksum FROM BACKUPHISTORY WHERE username=@username AND folderBackup=@folderBackup AND percorsoFile=@percorsoFile AND versione=@versione";
@@ -1390,7 +1424,7 @@ namespace BackupServer
                     comandoP.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = Int32.Parse(idfile);
                     //comandoP.Transaction = transaioneRename;
 
-                    bool isbreaked = false;
+                    bool isBroken = false;
                     do
                     {
                         try
@@ -1398,7 +1432,7 @@ namespace BackupServer
                             _readerWriterLock.EnterWriteLock();
                             if (_readerWriterLock.WaitingReadCount > 0)
                             {
-                                isbreaked = true;
+                                isBroken = true;
                             }
                             else
                             {
@@ -1413,13 +1447,13 @@ namespace BackupServer
                             _readerWriterLock.ExitWriteLock();
 
                         }
-                        if (isbreaked)
+                        if (isBroken)
                         {
                             Thread.Sleep(10);
                         }
                         else
-                            isbreaked = false;
-                    } while (isbreaked);
+                            isBroken = false;
+                    } while (isBroken);
 
                     SQLiteCommand comando2 = new SQLiteCommand(mainWindow.m_dbConnection);
                     comando2.CommandText = "SELECT idfile,file,dimFile,checksum FROM BACKUPHISTORY WHERE username=@username AND folderBackup=@folderBackup AND percorsoFile=@percorsoFile AND versione=@versione";
@@ -1470,6 +1504,8 @@ namespace BackupServer
             }
         }
 
+        // SELECT idfile from BACKUPHISTORY
+        // Chiama inserisci file e azzera dimensioni del file con quell'ID
         private string comandoFileCancellato(string responseData)
         {
             //SQLiteTransaction transazioneDelete = mainWindow.m_dbConnection.BeginTransaction();
@@ -1516,7 +1552,7 @@ namespace BackupServer
                 }
 
                 SQLiteCommand comandoP0 = new SQLiteCommand(mainWindow.m_dbConnection);
-                comandoP0.CommandText = "select idfile from BACKUPHISTORY bh1 where username=@username and folderBackup=@folderBackup and percorsoFile=@percorsoFile and not exists (select 1 from BACKUPHISTORY bh2 where bh1.username=bh2.username and bh1.folderBackup=bh2.folderBackup and bh1.idfile=bh2.idfile and bh1.percorsoFile=bh2.percorsoFile and dimFile=0 and isDelete='S') and bh1.timestamp = (select max(bh3.timestamp) from BACKUPHISTORY bh3 where bh1.username=bh3.username and bh1.folderBackup=bh3.folderBackup and bh1.idfile=bh3.idfile and bh1.percorsoFile=bh3.percorsoFile)";
+                comandoP0.CommandText = "SELECT idfile from BACKUPHISTORY bh1 where username=@username and folderBackup=@folderBackup and percorsoFile=@percorsoFile and not exists (select 1 from BACKUPHISTORY bh2 where bh1.username=bh2.username and bh1.folderBackup=bh2.folderBackup and bh1.idfile=bh2.idfile and bh1.percorsoFile=bh2.percorsoFile and dimFile=0 and isDelete='S') and bh1.timestamp = (select max(bh3.timestamp) from BACKUPHISTORY bh3 where bh1.username=bh3.username and bh1.folderBackup=bh3.folderBackup and bh1.idfile=bh3.idfile and bh1.percorsoFile=bh3.percorsoFile)";
                 comandoP0.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                 comandoP0.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                 comandoP0.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName;
@@ -1541,7 +1577,7 @@ namespace BackupServer
                 {
 
                     SQLiteCommand comandoP0D = new SQLiteCommand(mainWindow.m_dbConnection);
-                    comandoP0D.CommandText = "select idfile,percorsoFile from BACKUPHISTORY bh1 where username=@username and folderBackup=@folderBackup and percorsoFile like @percorsoFile and not exists (select 1 from BACKUPHISTORY bh2 where bh1.username=bh2.username and bh1.folderBackup=bh2.folderBackup and bh1.idfile=bh2.idfile and bh1.percorsoFile=bh2.percorsoFile and dimFile=0 and isDelete='S') and bh1.timestamp = (select max(bh3.timestamp) from BACKUPHISTORY bh3 where bh1.username=bh3.username and bh1.folderBackup=bh3.folderBackup and bh1.idfile=bh3.idfile and bh1.percorsoFile=bh3.percorsoFile)";
+                    comandoP0D.CommandText = "SELECT idfile,percorsoFile from BACKUPHISTORY bh1 where username=@username and folderBackup=@folderBackup and percorsoFile like @percorsoFile and not exists (select 1 from BACKUPHISTORY bh2 where bh1.username=bh2.username and bh1.folderBackup=bh2.folderBackup and bh1.idfile=bh2.idfile and bh1.percorsoFile=bh2.percorsoFile and dimFile=0 and isDelete='S') and bh1.timestamp = (select max(bh3.timestamp) from BACKUPHISTORY bh3 where bh1.username=bh3.username and bh1.folderBackup=bh3.folderBackup and bh1.idfile=bh3.idfile and bh1.percorsoFile=bh3.percorsoFile)";
                     comandoP0D.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                     comandoP0D.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comandoP0D.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName + "\\%";
@@ -1611,6 +1647,8 @@ namespace BackupServer
 
         }
 
+        // SELECT DISTINCT(folderBackup) FROM BACKUPHISTORY WHERE username=@username
+        // folders += reader["folderBackup"].ToString();
         private string comandoGetFoldersUser(string responseData)
         {
             try
@@ -1667,6 +1705,9 @@ namespace BackupServer
         }
         #endregion
 
+        // Riceve una lista di file. Interroga il DB per una lista di file cancellati.
+        // Toglie dalla lista di file cancellati i file nella list passata.
+        // Per ogni file rimasto nella lista cancella l'ultima versione (con il meccanismo di inserimento file nullo)
         private string comandoEndSync(string responseData, LinkedList<string> fileList)
         {
             LinkedList<string> listFileCancellati = new LinkedList<string>();
@@ -1778,6 +1819,7 @@ namespace BackupServer
 
         }
 
+        //Debuggare
         private string comandoRestore(TcpClient clientsocket, string responseData)
         {
             //SQLiteTransaction transazioneRestore = mainWindow.m_dbConnection.BeginTransaction();
@@ -1865,6 +1907,9 @@ namespace BackupServer
                             continue;
                         else if (isDelete.Equals("S") && fileCanc.Equals("Y"))
                         {
+                            // Questo è il caso in cui è flaggata l'opzione di avere file cancellati
+                            // è implementato ma non sembra funzionare.
+
                             SQLiteCommand comando3 = new SQLiteCommand(mainWindow.m_dbConnection);
                             comando3.CommandText = "SELECT file,dimFile,checksum,idfile FROM BACKUPHISTORY bh1 WHERE username=@username AND folderBackup=@folderBackup AND percorsoFile=@percorsoFile AND dimFile>0 and isDelete='N' and versione=(select max(bh2.versione) from backuphistory bh2 where bh1.username=bh2.username and bh1.folderBackup=bh2.folderBackup and bh1.percorsoFile=bh2.percorsoFile and bh1.idfile=bh2.idfile and bh2.dimFile>0) and idfile=@idfile";
                             comando3.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
@@ -1889,7 +1934,7 @@ namespace BackupServer
                             }
                             
                         }
-                        idfile = idfile + RandomString(30);
+                        idfile = idfile + RandomString(30); //??
 
                         Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\tmp");
                         FileStream fs = new FileStream(Directory.GetCurrentDirectory() + "\\tmp\\" + idfile, FileMode.Create);
@@ -1915,7 +1960,7 @@ namespace BackupServer
 
                         string headerStr = "Content-length=" + fs.Length.ToString() + "\r\nFilename=" + fileName + "\r\nChecksum=" + checksum + "\r\n";
 
-                        writeStringOnStream(clientsocket, headerStr);
+                        writeStringOnStream(clientsocket, headerStr); //Breakpoint
 
                         string streamReady = ReadStringFromStream(clientsocket);
 
@@ -2009,7 +2054,7 @@ namespace BackupServer
             string checksumFileInArrivo = "";
             int filesize = 0;
             String token = RandomString(10);
-            string pathTmp = Directory.GetCurrentDirectory() + "\\" + token;
+            string pathTmp = Directory.GetCurrentDirectory() + "\\" + token; // Il token serve solo per non avere path temporanei coincidenti?
 
             header = new byte[bufferSize];
             try
@@ -2299,7 +2344,7 @@ namespace BackupServer
             comand2.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = seq;
 
 
-            bool isbreaked = false;
+            bool isBroken = false;
             do
             {
                 try
@@ -2307,7 +2352,7 @@ namespace BackupServer
                     _readerWriterLock.EnterWriteLock();
                     if (_readerWriterLock.WaitingReadCount > 0)
                     {
-                        isbreaked = true;
+                        isBroken = true;
                     }
                     else
                     {
@@ -2319,13 +2364,13 @@ namespace BackupServer
                 {
                     _readerWriterLock.ExitWriteLock();
                 }
-                if (isbreaked)
+                if (isBroken)
                 {
                     Thread.Sleep(10);
                 }
                 else
-                    isbreaked = false;
-            } while (isbreaked);
+                    isBroken = false;
+            } while (isBroken);
 
             return seq;
         }
@@ -2359,7 +2404,7 @@ namespace BackupServer
             if (transazioneFile != null)
                 comandoP.Transaction = transazioneFile;
 
-            bool isbreaked = false;
+            bool isBroken = false;
             do
             {
                 try
@@ -2367,7 +2412,7 @@ namespace BackupServer
                     _readerWriterLock.EnterWriteLock();
                     if (_readerWriterLock.WaitingReadCount > 0)
                     {
-                        isbreaked = true;
+                        isBroken = true;
                     }
                     else
                     {
@@ -2379,13 +2424,13 @@ namespace BackupServer
                 {
                     _readerWriterLock.ExitWriteLock();
                 }
-                if (isbreaked)
+                if (isBroken)
                 {
                     Thread.Sleep(10);
                 }
                 else
-                    isbreaked = false;
-            } while (isbreaked);
+                    isBroken = false;
+            } while (isBroken);
 
             return true;
         }
