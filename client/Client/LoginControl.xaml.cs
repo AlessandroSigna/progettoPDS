@@ -56,8 +56,8 @@ namespace Client
         #region Back Button
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            //LoginRegisterControl main = new LoginRegisterControl();
-            //App.Current.MainWindow.Content = main;
+            LoginRegisterControl main = new LoginRegisterControl();
+            App.Current.MainWindow.Content = main;
         }
 
         //private void Back_MouseEnter(object sender, MouseEventArgs e)

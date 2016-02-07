@@ -30,24 +30,16 @@ namespace Client
             InitializeComponent();
             App.Current.MainWindow.Title = "Registrazione";
             //((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true;
-<<<<<<< HEAD
-            mess = message;
-            if (mess != null)
-            {
-                messaggioErrore(mess);
-            }
-            mess = null;
-            //deve essere la finestra a customizzare l'evento per il click sul back button
-            //perché è la finestra stessa a sapere quale è la finestra precedente
-            BackButtonControl.BackButton.Click += Back_Click;
-=======
+
             //mess = message;
             //if (mess != null)
             //{
             //    messaggioErrore(mess);
             //}
             //mess = null;
->>>>>>> 41cb59a330add21db6a4e552eb1db2d6f902141e
+            //deve essere la finestra a customizzare l'evento per il click sul back button
+            //perché è la finestra stessa a sapere quale è la finestra precedente
+            BackButtonControl.BackButton.Click += Back_Click;
         }
 
         //private async void messaggioErrore(string mess)
@@ -95,39 +87,9 @@ namespace Client
         #region Button Back
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            //LoginRegisterControl main = new LoginRegisterControl();
-            //App.Current.MainWindow.Content = main;
+            LoginRegisterControl main = new LoginRegisterControl();
+            App.Current.MainWindow.Content = main;
         }
-
-<<<<<<< HEAD
-        //private void Back_MouseEnter(object sender, MouseEventArgs e)
-        //{
-        //    backImage.BeginInit();
-        //    backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
-        //    backImage.EndInit();
-        //}
-
-        //private void Back_MouseLeave(object sender, MouseEventArgs e)
-        //{
-        //    backImage.BeginInit();
-        //    backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
-        //    backImage.EndInit();
-        //}
-=======
-        private void Back_MouseEnter(object sender, MouseEventArgs e)
-        {
-            //backImage.BeginInit();
-            //backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
-            //backImage.EndInit();
-        }
-
-        private void Back_MouseLeave(object sender, MouseEventArgs e)
-        {
-            //backImage.BeginInit();
-            //backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
-            //backImage.EndInit();
-        }
->>>>>>> 41cb59a330add21db6a4e552eb1db2d6f902141e
         #endregion
 
     }
