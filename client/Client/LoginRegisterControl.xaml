@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-            mc:Ignorable="d" Height="400" Width="400">
+             mc:Ignorable="d" Height="400" Width="400"
+             xmlns:Client="clr-namespace:Client">
     <Grid OpacityMask="#FF654848" Margin="0,0,0,30" >
         <Grid.Background>
             <ImageBrush>
@@ -12,7 +13,7 @@
                 </ImageBrush.ImageSource>
             </ImageBrush>
         </Grid.Background>
-
+        <Client:DisconnettiButtonUC></Client:DisconnettiButtonUC>
         <Button x:Name="Login" Content="Login" HorizontalAlignment="Left" Margin="92,159,0,0" VerticalAlignment="Top" Width="211" Height="34" FontFamily="Yu Gothic UI Semibold" FontSize="17" Opacity="0.9" Click="Login_Click" Background="#FF44E572" MouseEnter="Login_MouseEnter" MouseLeave="Login_MouseLeave">
             <Button.Resources>
                 <Style TargetType="{x:Type Border}">
@@ -110,7 +111,7 @@
             </Button.Style>
         </Button>
 
-        <Button x:Name ="BackButton" VerticalAlignment="Top" HorizontalAlignment="Left" Height="78" Width="81" Click="Back_Click" MouseEnter="Back_MouseEnter" MouseLeave="Back_MouseLeave">
+        <Button x:Name ="BackButton" VerticalAlignment="Top" HorizontalAlignment="Left" Height="78" Width="81" Click="Back_Click" MouseEnter="Back_MouseEnter" MouseLeave="Back_MouseLeave" Visibility="Hidden">
             <StackPanel Orientation="Horizontal" Margin="10">
                 <Image x:Name="backImage"  Source="Images/back.png" Height="78" Width="49" />
             </StackPanel>

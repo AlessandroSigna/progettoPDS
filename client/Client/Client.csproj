@@ -66,9 +66,15 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="BackButtonUC.xaml.cs">
+      <DependentUpon>BackButtonUC.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ClientLogic.cs" />
     <Compile Include="Disconnetti.xaml.cs">
       <DependentUpon>Disconnetti.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="DisconnettiButtonUC.xaml.cs">
+      <DependentUpon>DisconnettiButtonUC.xaml</DependentUpon>
     </Compile>
     <Compile Include="DownloadFile.xaml.cs">
       <DependentUpon>DownloadFile.xaml</DependentUpon>
@@ -109,7 +115,15 @@
     <Compile Include="StartDownload.xaml.cs">
       <DependentUpon>StartDownload.xaml</DependentUpon>
     </Compile>
+    <Page Include="BackButtonUC.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Disconnetti.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="DisconnettiButtonUC.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

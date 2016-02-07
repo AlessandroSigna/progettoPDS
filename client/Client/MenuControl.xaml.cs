@@ -58,6 +58,7 @@ namespace Client
             mw = (MainWindow)App.Current.MainWindow;
             mw.clientLogic.event_1 = new AutoResetEvent(false);
             updating = false;
+            BackButtonControl.BackButton.Click += Back_Click;
         }
 
         #region Backup
@@ -541,18 +542,18 @@ namespace Client
          */
         private void Select_FolderR(object sender, RoutedEventArgs e)
         {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-            DialogResult result = fbd.ShowDialog();
-            if (fbd.SelectedPath != "")
-            {
-                RestoreDir.Text = fbd.SelectedPath;
-                pathR = fbd.SelectedPath;
-                mw.clientLogic.folderR = pathR;
-                BrushConverter bc = new BrushConverter();
-                RestoreFile.IsEnabled = true;
-                RestoreFile.Background = (Brush)bc.ConvertFrom("#33CCFF");
+            //FolderBrowserDialog fbd = new FolderBrowserDialog();
+            //DialogResult result = fbd.ShowDialog();
+            //if (fbd.SelectedPath != "")
+            //{
+            //    RestoreDir.Text = fbd.SelectedPath;
+            //    pathR = fbd.SelectedPath;
+            //    mw.clientLogic.folderR = pathR;
+            //    BrushConverter bc = new BrushConverter();
+            //    RestoreFile.IsEnabled = true;
+            //    RestoreFile.Background = (Brush)bc.ConvertFrom("#33CCFF");
 
-            }
+            //}
 
         }
 
@@ -637,71 +638,71 @@ namespace Client
         #endregion
 
         #region Logout
-        /*
-         * Button Logout
-         */
-        private void Logout_Click(object sender, RoutedEventArgs e)
-        {
-            DialogDisconnetti();
-        }
+        ///*
+        // * Button Logout
+        // */
+        //private void Logout_Click(object sender, RoutedEventArgs e)
+        //{
+        //    DialogDisconnetti();
+        //}
         
-        /*
-         * Metodo che gestisce un CustomDialog con dipendenza da Metro
-         */
-        public async void DialogDisconnetti()
-        {
-            customDialog = new CustomDialog();
-            disconnettiWindow = new Disconnetti();
-            //setto le callback per la pressione dei Button
-            //forse è bene metterle direttamente in Disconnetti.xaml.cs e gestire la logica opportunamente
-            disconnettiWindow.BServer.Click += ButtonServerOnClick;
-            disconnettiWindow.BCancel.Click += ButtonCancelOnClick;
-            customDialog.Content = disconnettiWindow;
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            await mw.ShowMetroDialogAsync(customDialog);
-        }
-        private void Logout_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            logoutImage.BeginInit();
-            logoutImage.Source = new BitmapImage(new Uri(@"Images/logoutLight.png", UriKind.RelativeOrAbsolute));
-            logoutImage.EndInit();
-        }
+        ///*
+        // * Metodo che gestisce un CustomDialog con dipendenza da Metro
+        // */
+        //public async void DialogDisconnetti()
+        //{
+        //    customDialog = new CustomDialog();
+        //    disconnettiWindow = new Disconnetti();
+        //    //setto le callback per la pressione dei Button
+        //    //forse è bene metterle direttamente in Disconnetti.xaml.cs e gestire la logica opportunamente
+        //    disconnettiWindow.BServer.Click += ButtonServerOnClick;
+        //    disconnettiWindow.BCancel.Click += ButtonCancelOnClick;
+        //    customDialog.Content = disconnettiWindow;
+        //    MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+        //    await mw.ShowMetroDialogAsync(customDialog);
+        //}
+        //private void Logout_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        //{
+        //    logoutImage.BeginInit();
+        //    logoutImage.Source = new BitmapImage(new Uri(@"Images/logoutLight.png", UriKind.RelativeOrAbsolute));
+        //    logoutImage.EndInit();
+        //}
 
-        private void Logout_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            logoutImage.BeginInit();
-            logoutImage.Source = new BitmapImage(new Uri(@"Images/logout.png", UriKind.RelativeOrAbsolute));
-            logoutImage.EndInit();
-        }
+        //private void Logout_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        //{
+        //    logoutImage.BeginInit();
+        //    logoutImage.Source = new BitmapImage(new Uri(@"Images/logout.png", UriKind.RelativeOrAbsolute));
+        //    logoutImage.EndInit();
+        //}
 
 
-        /*
-         * Callback assegnata nella DialogDisconnetti per la pressione del Button disconnetti server 
-         * presente in Disconnetti.xaml
-         */
-        private void ButtonServerOnClick(object sender, RoutedEventArgs e)
-        {
-            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            //mw.HideMetroDialogAsync(customDialog);
-            //MainWindow mainw = (MainWindow)mw;
+        ///*
+        // * Callback assegnata nella DialogDisconnetti per la pressione del Button disconnetti server 
+        // * presente in Disconnetti.xaml
+        // */
+        //private void ButtonServerOnClick(object sender, RoutedEventArgs e)
+        //{
+        //    //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+        //    //mw.HideMetroDialogAsync(customDialog);
+        //    //MainWindow mainw = (MainWindow)mw;
 
-            Window mw = (Window)App.Current.MainWindow;
-            //mw.HideMetroDialogAsync(customDialog);
-            MainWindow mainw = (MainWindow)mw;
+        //    Window mw = (Window)App.Current.MainWindow;
+        //    //mw.HideMetroDialogAsync(customDialog);
+        //    MainWindow mainw = (MainWindow)mw;
 
-            exit = true;
-            if (mainw.clientLogic.lavorandoInvio || updating)
-                EffettuaBackup.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
-            else
-                mainw.clientLogic.DisconnettiServer(false);
+        //    exit = true;
+        //    if (mainw.clientLogic.lavorandoInvio || updating)
+        //        EffettuaBackup.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+        //    else
+        //        mainw.clientLogic.DisconnettiServer(false);
 
-        }
+        //}
 
-        private void ButtonCancelOnClick(object sender, RoutedEventArgs e)
-        {
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            mw.HideMetroDialogAsync(customDialog);
-        }
+        //private void ButtonCancelOnClick(object sender, RoutedEventArgs e)
+        //{
+        //    MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+        //    mw.HideMetroDialogAsync(customDialog);
+        //}
         #endregion
 
         #region Gestione GUI
@@ -774,5 +775,10 @@ namespace Client
         }
         #endregion
 
+        private void Back_Click(object sender, RoutedEventArgs e)
+        {
+            LoginControl main = new LoginControl(null);
+            App.Current.MainWindow.Content = main;
+        }
     }
 }

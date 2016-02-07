@@ -36,6 +36,9 @@ namespace Client
                 messaggioErrore(mess);
             }
             mess = null;
+            //deve essere la finestra a customizzare l'evento per il click sul back button
+            //perché è la finestra stessa a sapere quale è la finestra precedente
+            BackButtonControl.BackButton.Click += Back_Click;
         }
 
         private async void messaggioErrore(string mess)
@@ -74,19 +77,19 @@ namespace Client
             App.Current.MainWindow.Content = main;
         }
 
-        private void Back_MouseEnter(object sender, MouseEventArgs e)
-        {
-            backImage.BeginInit();
-            backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
-            backImage.EndInit();
-        }
+        //private void Back_MouseEnter(object sender, MouseEventArgs e)
+        //{
+        //    backImage.BeginInit();
+        //    backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
+        //    backImage.EndInit();
+        //}
 
-        private void Back_MouseLeave(object sender, MouseEventArgs e)
-        {
-            backImage.BeginInit();
-            backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
-            backImage.EndInit();
-        }
+        //private void Back_MouseLeave(object sender, MouseEventArgs e)
+        //{
+        //    backImage.BeginInit();
+        //    backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
+        //    backImage.EndInit();
+        //}
         #endregion
 
     }

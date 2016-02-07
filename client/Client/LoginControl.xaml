@@ -4,7 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="370" d:DesignWidth="400">
+             d:DesignHeight="370" d:DesignWidth="400"
+             xmlns:Client="clr-namespace:Client">
     <Grid Margin="0">
         <Rectangle Margin="0,0,0,0">
             <Rectangle.Fill>
@@ -14,54 +15,6 @@
                 </LinearGradientBrush>
             </Rectangle.Fill>
         </Rectangle>
-        <Button x:Name ="BackButton" VerticalAlignment="Top" HorizontalAlignment="Left" Height="78" Width="81" Click="Back_Click" MouseEnter="Back_MouseEnter" MouseLeave="Back_MouseLeave">
-            <StackPanel Orientation="Horizontal" Margin="10">
-                <Image x:Name="backImage"  Source="Images/back.png" Height="78" Width="49" RenderTransformOrigin="0.5,0.536" />
-            </StackPanel>
-            <Button.Resources>
-                <Style TargetType="{x:Type Border}">
-                    <Setter Property="CornerRadius" Value="10"/>
-                </Style>
-            </Button.Resources>
-            <Button.Style>
-
-                <Style TargetType="Button">
-                    <Setter Property="Template">
-
-                        <Setter.Value>
-                            <ControlTemplate TargetType="Button">
-                                <Border TextBlock.Foreground="{TemplateBinding Foreground}"
-										x:Name="Border"
-										Background="Transparent">
-                                    <VisualStateManager.VisualStateGroups>
-                                        <VisualStateGroup x:Name="CommonStates">
-                                            <VisualStateGroup.Transitions>
-                                                <VisualTransition GeneratedDuration="0:0:0.5" />
-                                                <VisualTransition GeneratedDuration="0"
-																  To="Pressed" />
-                                            </VisualStateGroup.Transitions>
-                                            <VisualState x:Name="Normal" />
-                                            <VisualState x:Name="MouseOver">
-                                            </VisualState>
-                                            <VisualState x:Name="Pressed">
-                                            </VisualState>
-                                            <VisualState x:Name="Disabled">
-                                            </VisualState>
-                                        </VisualStateGroup>
-                                    </VisualStateManager.VisualStateGroups>
-                                    <ContentPresenter Margin="2"
-													  HorizontalAlignment="Center"
-													  VerticalAlignment="Center"
-													  RecognizesAccessKey="True" />
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </Button.Style>
-        </Button>
         <Image HorizontalAlignment="Center" Height="100" Margin="162,46,138,0"  VerticalAlignment="Top" Width="100" Source="Images/user.png"/>
         <Label x:Name="LabelPass" Content="Password" HorizontalAlignment="Left" Margin="34,239,0,0" VerticalAlignment="Top" Height="31" Width="84" BorderThickness="0" FontSize="15" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold"/>
         <Label x:Name="LabelUser" Content="Username" HorizontalAlignment="Left" Margin="34,186,0,0" VerticalAlignment="Top" Height="29" Width="84" BorderThickness="0" FontSize="15" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold" RenderTransformOrigin="0.621,0.524"/>
@@ -123,5 +76,7 @@
             </Button.Style>
         </Button>
 
+        <Client:BackButtonUC x:Name="BackButtonControl"></Client:BackButtonUC>
+        <Client:DisconnettiButtonUC></Client:DisconnettiButtonUC>
     </Grid>
 </UserControl>

@@ -78,22 +78,22 @@ namespace Client
         #region Button Back
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            mw.clientLogic.DisconnettiServer(false);
+        //    MainWindow mw = (MainWindow)App.Current.MainWindow;
+        //    mw.clientLogic.DisconnettiServer(false);
         }
 
         private void Back_MouseEnter(object sender, MouseEventArgs e)
         {
-            backImage.BeginInit();
-            backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
-            backImage.EndInit();
+        //    backImage.BeginInit();
+        //    backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
+        //    backImage.EndInit();
         }
 
         private void Back_MouseLeave(object sender, MouseEventArgs e)
         {
-            backImage.BeginInit();
-            backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
-            backImage.EndInit();
+        //    backImage.BeginInit();
+        //    backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
+        //    backImage.EndInit();
         }
         #endregion
 
