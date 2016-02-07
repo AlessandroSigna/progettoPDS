@@ -26,7 +26,7 @@ namespace Client
         {
             InitializeComponent();
             App.Current.MainWindow.Title = "MyCloud - Autenticazione";
-            //((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true; 
+            //((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true; ?
         }
 
 
@@ -39,15 +39,15 @@ namespace Client
 
         private void Login_MouseEnter(object sender, MouseEventArgs e)
         {
-            BrushConverter bc = new BrushConverter();
-            Login.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+            //BrushConverter bc = new BrushConverter();
+            //Login.Background = (Brush)bc.ConvertFrom("#F5FFFA");
 
         }
 
         private void Login_MouseLeave(object sender, MouseEventArgs e)
         {
-            BrushConverter bc = new BrushConverter();
-            Login.Background = (Brush)bc.ConvertFrom("#FF44E572");
+            //BrushConverter bc = new BrushConverter();
+            //Login.Background = (Brush)bc.ConvertFrom("#FF44E572");
 
         }
         #endregion
@@ -61,15 +61,15 @@ namespace Client
 
         private void Registrati_MouseEnter(object sender, MouseEventArgs e)
         {
-            BrushConverter bc = new BrushConverter();
-            Registrati.Background = (Brush)bc.ConvertFrom("#FFFACD");
+            //BrushConverter bc = new BrushConverter();
+            //Registrati.Background = (Brush)bc.ConvertFrom("#FFFACD");
 
         }
 
         private void Registrati_MouseLeave(object sender, MouseEventArgs e)
         {
-            BrushConverter bc = new BrushConverter();
-            Registrati.Background = (Brush)bc.ConvertFrom("#FFF5F804");
+            //BrushConverter bc = new BrushConverter();
+            //Registrati.Background = (Brush)bc.ConvertFrom("#FFF5F804");
         }
 
 
@@ -78,22 +78,22 @@ namespace Client
         #region Button Back
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            mw.clientLogic.DisconnettiServer(false);
+            //MainWindow mw = (MainWindow)App.Current.MainWindow;
+            //mw.clientLogic.DisconnettiServer(false);
         }
 
         private void Back_MouseEnter(object sender, MouseEventArgs e)
         {
-            backImage.BeginInit();
-            backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
-            backImage.EndInit();
+            //backImage.BeginInit();
+            //backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
+            //backImage.EndInit();
         }
 
         private void Back_MouseLeave(object sender, MouseEventArgs e)
         {
-            backImage.BeginInit();
-            backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
-            backImage.EndInit();
+            //backImage.BeginInit();
+            //backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
+            //backImage.EndInit();
         }
         #endregion
 

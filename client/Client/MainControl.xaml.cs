@@ -33,23 +33,23 @@ namespace Client
             InitializeComponent();
             App.Current.MainWindow.Width = 400;
             App.Current.MainWindow.Height = 400;
-            errore = errorePassed;
-            if (errore == 1)    //FIXME: magic number + errore può essere solo == 1, farlo bool quindi?!
-            {
-                ClientLogic.UpdateNotifyIconDisconnesso();
-                messaggioErrore();
-            }
+            //errore = errorePassed;
+            //if (errore == 1)    //FIXME: magic number + errore può essere solo == 1, farlo bool quindi?!
+            //{
+            //    ClientLogic.UpdateNotifyIconDisconnesso();
+            //    messaggioErrore();
+            //}
 
         }
 
         #region Altri Metodi
-        private void messaggioErrore()
-        {
-            //Window mw = (Window)App.Current.MainWindow;
-            //await mw.ShowMessageAsync("Errore", "Impossibile raggiungere il server");
-            MessageBoxResult result = System.Windows.MessageBox.Show("Impossibile raggiungere il server", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+        //private void messaggioErrore()
+        //{
+        //    //Window mw = (Window)App.Current.MainWindow;
+        //    //await mw.ShowMessageAsync("Errore", "Impossibile raggiungere il server");
+        //    MessageBoxResult result = System.Windows.MessageBox.Show("Impossibile raggiungere il server", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
             
-        }
+        //}
 
         private void showWaitBar()
         {
@@ -67,36 +67,46 @@ namespace Client
         #region Button Connetti
         private void connect_button_Click(object sender, RoutedEventArgs e)
         {
-            string ip = IpAddressBox.Text;
-            string port = PortBox.Text;
-            Boolean IpValid = IsValidIPAddress(ip);
-            Boolean PortValid = IsValidPort(port);
+            //string ip = IpAddressBox.Text;
+            //string port = PortBox.Text;
+            //Boolean IpValid = IsValidIPAddress(ip);
+            //Boolean PortValid = IsValidPort(port);
 
-            if (IpValid && PortValid)
-            {
+            //if (IpValid && PortValid)
+            //{
                 showWaitBar();
-                clientsocket = new TcpClient();
-                MainWindow mw = (MainWindow)Application.Current.MainWindow;
-                client = new ClientLogic(clientsocket, IPAddress.Parse(ip), int.Parse(port), mw);
-                mw.clientLogic = client;
-            }
-            else
-            {
-                Console.Out.WriteLine("No addr");
-            }
+                //clientsocket = new TcpClient();
+                //MainWindow mw = (MainWindow)Application.Current.MainWindow;
+                //client = new ClientLogic(clientsocket, IPAddress.Parse(ip), int.Parse(port), mw);
+                //mw.clientLogic = client;
+            //}
+            //else
+            //{
+            //    Console.Out.WriteLine("No addr");
+            //}
+
+            // Il passaggio a LoginRegisterControl non avviene qui, ma in ClientLogic,
+            // dopo che viene stabilita la connessione.
+            // Vorrei provare a mettere tutti i passaggi tra le finestre, nella logica delle finestre stesse.
+            // (come è già nella maggior parte dei casi)
+            // In questo caso a connessione stabilita il ClientLogic deve comunicarlo a MainControl che poi instanzia
+            // LoginRegisterControl:
+
+            LoginRegisterControl login = new LoginRegisterControl();
+            App.Current.MainWindow.Content = login;
         }
 
         private void Connect_MouseEnter(object sender, MouseEventArgs e)
         {
-            BrushConverter bc = new BrushConverter();
-            Connect.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+        //    BrushConverter bc = new BrushConverter();
+        //    Connect.Background = (Brush)bc.ConvertFrom("#F5FFFA");
 
         }
 
         private void Connect_MouseLeave(object sender, MouseEventArgs e)
         {
-            BrushConverter bc = new BrushConverter();
-            Connect.Background = (Brush)bc.ConvertFrom("#FF44E572");
+        //    BrushConverter bc = new BrushConverter();
+        //    Connect.Background = (Brush)bc.ConvertFrom("#FF44E572");
 
         }
         #endregion
@@ -105,66 +115,66 @@ namespace Client
 
         private void PortBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            IsValidPort(PortBox.Text);
+        //    IsValidPort(PortBox.Text);
         }
 
         private void IpAddressBox_LostFocus(object sender, RoutedEventArgs e)
         {
-            IsValidIPAddress(IpAddressBox.Text);
-        }
+        //    IsValidIPAddress(IpAddressBox.Text);
+        //}
         //Controllo IP valido
-        public bool IsValidIPAddress(string addr)
-        {
-            try
-            {
-                IPAddress address;
-                if (IPAddress.TryParse(addr, out address))
-                {
-                    IpAddressBox.BorderBrush = Brushes.Green;
-                    IpAddressBox.BorderThickness = new Thickness(1);
-                    return true;
-                }
-                else
-                {
-                    IpAddressBox.BorderBrush = Brushes.Red;
-                    IpAddressBox.BorderThickness = new Thickness(2);
-                    return false;
-                }
-            }
-            catch
-            {
-                IpAddressBox.BorderBrush = Brushes.Red;
-                IpAddressBox.BorderThickness = new Thickness(2);
-                return false;
-            }
-        }
+        //public bool IsValidIPAddress(string addr)
+        //{
+        //    try
+        //    {
+        //        IPAddress address;
+        //        if (IPAddress.TryParse(addr, out address))
+        //        {
+        //            IpAddressBox.BorderBrush = Brushes.Green;
+        //            IpAddressBox.BorderThickness = new Thickness(1);
+        //            return true;
+        //        }
+        //        else
+        //        {
+        //            IpAddressBox.BorderBrush = Brushes.Red;
+        //            IpAddressBox.BorderThickness = new Thickness(2);
+        //            return false;
+        //        }
+        //    }
+        //    catch
+        //    {
+        //        IpAddressBox.BorderBrush = Brushes.Red;
+        //        IpAddressBox.BorderThickness = new Thickness(2);
+        //        return false;
+        //    }
+        //}
 
-        //Controllo Porta valida
-        public bool IsValidPort(string addr)
-        {
+        ////Controllo Porta valida
+        //public bool IsValidPort(string addr)
+        //{
 
-            try
-            {
-                int port = int.Parse(addr);
-                if (port > 0 && port < 65536)
-                {
-                    PortBox.BorderBrush = Brushes.Green;
-                    PortBox.BorderThickness = new Thickness(1);
-                    return true;
-                }
-                else
-                {
-                    PortBox.BorderBrush = Brushes.Red;
-                    PortBox.BorderThickness = new Thickness(2);
-                    return false;
-                }
-            }
-            catch
-            {
-                PortBox.BorderBrush = Brushes.Red;
-                PortBox.BorderThickness = new Thickness(2);
-                return false;
-            }
+        //    try
+        //    {
+        //        int port = int.Parse(addr);
+        //        if (port > 0 && port < 65536)
+        //        {
+        //            PortBox.BorderBrush = Brushes.Green;
+        //            PortBox.BorderThickness = new Thickness(1);
+        //            return true;
+        //        }
+        //        else
+        //        {
+        //            PortBox.BorderBrush = Brushes.Red;
+        //            PortBox.BorderThickness = new Thickness(2);
+        //            return false;
+        //        }
+        //    }
+        //    catch
+        //    {
+        //        PortBox.BorderBrush = Brushes.Red;
+        //        PortBox.BorderThickness = new Thickness(2);
+        //        return false;
+        //    }
 
         }
         #endregion

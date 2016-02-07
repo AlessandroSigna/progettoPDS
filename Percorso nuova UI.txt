@@ -1,5 +1,5 @@
-MainControl (Connetti)
-LoginRegisterControl
+X MainControl (Connetti)
+X LoginRegisterControl
 LoginControl - RegistratiControl (Logga)
 MenuControl (Pulsante start sync/monitor, pulsante cartella, label path della cartella monitorata, Pulsante restore)
 
