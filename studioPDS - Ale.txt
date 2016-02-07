@@ -175,6 +175,7 @@ FIX
 - pulsante back in ogni finestra 
 - messaggio errore utente già loggato (?)
 - StartDownload viene chiamata solo in DownloadFile e non in DownloadFolder
+- Utente già registrato "impossibile raggiungere il server" e si disconnette
 
 Dubbi
 - Come funziona lo stream? se nessuno legge e qualcuno scrive i dati restano lì? e viceversa?
