@@ -174,6 +174,7 @@ FIX
 - Inserire un check sul tasto disconnetti (per vedere lo stato del server) (ridondante?)
 - pulsante back in ogni finestra 
 - messaggio errore utente già loggato (?)
+- StartDownload viene chiamata solo in DownloadFile e non in DownloadFolder
 
 Dubbi
 - Come funziona lo stream? se nessuno legge e qualcuno scrive i dati restano lì? e viceversa?
@@ -183,3 +184,4 @@ https://msdn.microsoft.com/en-us/library/w89fhyex(v=vs.110).aspx
 http://www.codeproject.com/Articles/10649/An-Introduction-to-Socket-Programming-in-NET-using
 - I controlli dei dialog andrebbero gestiti nel loro .cs ? MenuControl assegna le callback dei Button di Disconnetti
 - E' possibile mettere un UserControl dentro una window (sicuramente sì) così da evitare duplicazione di codice? (Es back/home button)
+- Come gestiamo il caso includi file cancellati nel downlad della cartella?
