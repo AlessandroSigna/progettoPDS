@@ -27,17 +27,17 @@
                         <Setter.Value>
                             <ControlTemplate TargetType="Button">
                                 <Border TextBlock.Foreground="{TemplateBinding Foreground}"
-										x:Name="Border"
-										CornerRadius="10"
-										BorderBrush="DarkBlue"
-										Background="{TemplateBinding Background}"
-										BorderThickness="2" Margin="0,0,4.2,6.4">
+                                        x:Name="Border"
+                                        CornerRadius="10"
+                                        BorderBrush="DarkBlue"
+                                        Background="{TemplateBinding Background}"
+                                        BorderThickness="2" Margin="0,0,4.2,6.4">
                                     <VisualStateManager.VisualStateGroups>
                                         <VisualStateGroup x:Name="CommonStates">
                                             <VisualStateGroup.Transitions>
                                                 <VisualTransition GeneratedDuration="0:0:0.5" />
                                                 <VisualTransition GeneratedDuration="0"
-																  To="Pressed" />
+                                                                  To="Pressed" />
                                             </VisualStateGroup.Transitions>
                                             <VisualState x:Name="Normal" />
                                             <VisualState x:Name="MouseOver">
@@ -49,9 +49,9 @@
                                         </VisualStateGroup>
                                     </VisualStateManager.VisualStateGroups>
                                     <ContentPresenter Margin="2"
-													  HorizontalAlignment="Center"
-													  VerticalAlignment="Center"
-													  RecognizesAccessKey="True" />
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      RecognizesAccessKey="True" />
                                 </Border>
                                 <ControlTemplate.Triggers>
                                 </ControlTemplate.Triggers>
@@ -75,17 +75,17 @@
                         <Setter.Value>
                             <ControlTemplate TargetType="Button">
                                 <Border TextBlock.Foreground="{TemplateBinding Foreground}"
-										x:Name="Border"
-										CornerRadius="10"
-										BorderBrush="DarkBlue"
-										Background="{TemplateBinding Background}"
-										BorderThickness="2" Margin="0,0,4.2,6.4">
+                                        x:Name="Border"
+                                        CornerRadius="10"
+                                        BorderBrush="DarkBlue"
+                                        Background="{TemplateBinding Background}"
+                                        BorderThickness="2" Margin="0,0,4.2,6.4">
                                     <VisualStateManager.VisualStateGroups>
                                         <VisualStateGroup x:Name="CommonStates">
                                             <VisualStateGroup.Transitions>
                                                 <VisualTransition GeneratedDuration="0:0:0.5" />
                                                 <VisualTransition GeneratedDuration="0"
-																  To="Pressed" />
+                                                                  To="Pressed" />
                                             </VisualStateGroup.Transitions>
                                             <VisualState x:Name="Normal" />
                                             <VisualState x:Name="MouseOver">
@@ -97,9 +97,9 @@
                                         </VisualStateGroup>
                                     </VisualStateManager.VisualStateGroups>
                                     <ContentPresenter Margin="2"
-													  HorizontalAlignment="Center"
-													  VerticalAlignment="Center"
-													  RecognizesAccessKey="True" />
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      RecognizesAccessKey="True" />
                                 </Border>
                                 <ControlTemplate.Triggers>
                                 </ControlTemplate.Triggers>
@@ -123,17 +123,17 @@
                         <Setter.Value>
                             <ControlTemplate TargetType="Button">
                                 <Border TextBlock.Foreground="{TemplateBinding Foreground}"
-										x:Name="Border"
-										CornerRadius="10"
-										BorderBrush="DarkBlue"
-										Background="{TemplateBinding Background}"
-										BorderThickness="2" Margin="0,0,4.2,6.4">
+                                        x:Name="Border"
+                                        CornerRadius="10"
+                                        BorderBrush="DarkBlue"
+                                        Background="{TemplateBinding Background}"
+                                        BorderThickness="2" Margin="0,0,4.2,6.4">
                                     <VisualStateManager.VisualStateGroups>
                                         <VisualStateGroup x:Name="CommonStates">
                                             <VisualStateGroup.Transitions>
                                                 <VisualTransition GeneratedDuration="0:0:0.5" />
                                                 <VisualTransition GeneratedDuration="0"
-																  To="Pressed" />
+                                                                  To="Pressed" />
                                             </VisualStateGroup.Transitions>
                                             <VisualState x:Name="Normal" />
                                             <VisualState x:Name="MouseOver">
@@ -145,9 +145,9 @@
                                         </VisualStateGroup>
                                     </VisualStateManager.VisualStateGroups>
                                     <ContentPresenter Margin="2"
-													  HorizontalAlignment="Center"
-													  VerticalAlignment="Center"
-													  RecognizesAccessKey="True" />
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      RecognizesAccessKey="True" />
                                 </Border>
                                 <ControlTemplate.Triggers>
                                 </ControlTemplate.Triggers>
@@ -181,17 +181,17 @@
                         <Setter.Value>
                             <ControlTemplate TargetType="Button">
                                 <Border TextBlock.Foreground="{TemplateBinding Foreground}"
-										x:Name="Border"
-										CornerRadius="10"
-										BorderBrush="DarkBlue"
-										Background="{TemplateBinding Background}"
-										BorderThickness="2" Margin="0,0,4.2,6.4">
+                                        x:Name="Border"
+                                        CornerRadius="10"
+                                        BorderBrush="DarkBlue"
+                                        Background="{TemplateBinding Background}"
+                                        BorderThickness="2" Margin="0,0,4.2,6.4">
                                     <VisualStateManager.VisualStateGroups>
                                         <VisualStateGroup x:Name="CommonStates">
                                             <VisualStateGroup.Transitions>
                                                 <VisualTransition GeneratedDuration="0:0:0.5" />
                                                 <VisualTransition GeneratedDuration="0"
-																  To="Pressed" />
+                                                                  To="Pressed" />
                                             </VisualStateGroup.Transitions>
                                             <VisualState x:Name="Normal" />
                                             <VisualState x:Name="MouseOver">
@@ -203,9 +203,9 @@
                                         </VisualStateGroup>
                                     </VisualStateManager.VisualStateGroups>
                                     <ContentPresenter Margin="2"
-													  HorizontalAlignment="Center"
-													  VerticalAlignment="Center"
-													  RecognizesAccessKey="True" />
+                                                      HorizontalAlignment="Center"
+                                                      VerticalAlignment="Center"
+                                                      RecognizesAccessKey="True" />
                                 </Border>
                                 <ControlTemplate.Triggers>
                                 </ControlTemplate.Triggers>
