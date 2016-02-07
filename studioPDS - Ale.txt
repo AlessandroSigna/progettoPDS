@@ -161,9 +161,11 @@ http://www.codeproject.com/Articles/21248/A-Simple-WPF-Explorer-Tree
 sicurezza
 (assumiamo il server sicuro e la rete insicura)
 - registrazione con invio credenziali protette da DH ?
+https://msdn.microsoft.com/en-us/library/system.security.cryptography.ecdiffiehellmancng(v=vs.110).aspx
 - autenticazione a sfida -> psw in chiaro sul server ma in rete viene mandato solo hash di psw + sfida
 oppure 
 - autenticazione psw ripetibili -> invio hash della psw e il server conserva hash e sale
+Per autenticazione a sfida vedere progetto remote control client Connection.connectServerWorker_DoWork
 
 FIX
 - se da LoginRegisterControl si torna indietro la finestra non cambia nome

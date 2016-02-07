@@ -68,6 +68,11 @@ namespace Client
             }
         }
 
+        #region Chiusura finestra e richiesta conferma
+        /*
+         * handler della chiusura della window
+         * deve gestire eventuali disconnessioni e logout
+         */
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Console.Out.WriteLine("MainWindow: Closing");
@@ -161,6 +166,7 @@ namespace Client
             //mw.HideMetroDialogAsync(customDialog);
             mw.Hide();
         }
-
+        
+        #endregion
     }
 }
