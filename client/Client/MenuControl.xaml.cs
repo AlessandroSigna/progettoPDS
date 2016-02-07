@@ -56,7 +56,7 @@ namespace Client
             lastCheck = String.Empty;
             App.Current.MainWindow.Title = "Mycloud";
             mw = (MainWindow)App.Current.MainWindow;
-            mw.clientLogic.event_1 = new AutoResetEvent(false);
+            //mw.clientLogic.event_1 = new AutoResetEvent(false); ??
             updating = false;
         }
 
@@ -74,7 +74,7 @@ namespace Client
                 //se il path non è vuoto lo inserisco nella TextBox e cambio colore al Button EffettuaBackup
                 BackupDir.Text = fbd.SelectedPath;
                 path = fbd.SelectedPath;
-                mw.clientLogic.folder = path;
+                //mw.clientLogic.folder = path;
                 BrushConverter bc = new BrushConverter();
                 EffettuaBackup.IsEnabled = true;
                 EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
@@ -90,84 +90,84 @@ namespace Client
             try
             {
                 MainWindow mw = (MainWindow)App.Current.MainWindow;
-                if (!mw.clientLogic.monitorando)
-                {
+                //if (!mw.clientLogic.monitorando)
+                //{
                     //inizio a monitorare e a inviare al server lo stato attuale della cartella
                     BrushConverter bc = new BrushConverter();
                     EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");   //cambio il colore del bottone
                     EffettuaBackup.Content = "Stop";    //e la scritta
                     FolderButton.IsEnabled = false;     //disabilito il bottone folder
-                    mw.clientLogic.WriteStringOnStream(ClientLogic.FOLDER + mw.clientLogic.username + "+" + path);  //invio al server la rootfolder
-                    string retFolder = mw.clientLogic.ReadStringFromStream();
-                    if (retFolder == ClientLogic.OK + "RootFolder Inserita")
-                        FileUploading.Text = "Cartella aggiunta: " + System.IO.Path.GetDirectoryName(path);
-                    else if (retFolder == ClientLogic.OK + "Stessa RootFolder")
-                        FileUploading.Text = "Cartella : " + System.IO.Path.GetDirectoryName(path);
+                    //mw.clientLogic.WriteStringOnStream(ClientLogic.FOLDER + mw.clientLogic.username + "+" + path);  //invio al server la rootfolder
+                    //string retFolder = mw.clientLogic.ReadStringFromStream();
+                    //if (retFolder == ClientLogic.OK + "RootFolder Inserita")
+                    //    FileUploading.Text = "Cartella aggiunta: " + System.IO.Path.GetDirectoryName(path);
+                    //else if (retFolder == ClientLogic.OK + "Stessa RootFolder")
+                    //    FileUploading.Text = "Cartella : " + System.IO.Path.GetDirectoryName(path);
 
 
                     pbStatus.Value = 0; //La ProgressBar in questione è Hidden in partenza
                     pbStatus.Maximum = 100;
-                    files = Directory.GetFiles(path, "*.*", System.IO.SearchOption.AllDirectories); //si ricavano i nomi dei files nella rootdir
+                    //files = Directory.GetFiles(path, "*.*", System.IO.SearchOption.AllDirectories); //si ricavano i nomi dei files nella rootdir
                     if (files.Length != 0)
                     {
                         pbStatus.Visibility = Visibility.Visible;
-                        mw.clientLogic.InvioFile(files);    //invio al server i nomi dei files nella cartella e nelle sottocartelle
+                        //mw.clientLogic.InvioFile(files);    //invio al server i nomi dei files nella cartella e nelle sottocartelle
                     }
-                    watcher = new System.IO.FileSystemWatcher();    //FileWatcher a cui si registrano le callback in caso di modifiche sui file
-                    watcher.Path = BackupDir.Text;
-                    watcher.Filter = "*.*";
-                    watcher.NotifyFilter = NotifyFilters.Size | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-                    watcher.IncludeSubdirectories = true;
-                    watcher.Changed += new FileSystemEventHandler(OnChanged);
-                    watcher.Created += new FileSystemEventHandler(OnCreated);
-                    watcher.Deleted += new FileSystemEventHandler(OnDeleted);
-                    watcher.Renamed += new RenamedEventHandler(OnRenamed);
-                    watcher.EnableRaisingEvents = true;
-                }
-                else
-                {
+                    //watcher = new System.IO.FileSystemWatcher();    //FileWatcher a cui si registrano le callback in caso di modifiche sui file
+                    //watcher.Path = BackupDir.Text;
+                    //watcher.Filter = "*.*";
+                    //watcher.NotifyFilter = NotifyFilters.Size | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+                    //watcher.IncludeSubdirectories = true;
+                    //watcher.Changed += new FileSystemEventHandler(OnChanged);
+                    //watcher.Created += new FileSystemEventHandler(OnCreated);
+                    //watcher.Deleted += new FileSystemEventHandler(OnDeleted);
+                    //watcher.Renamed += new RenamedEventHandler(OnRenamed);
+                    //watcher.EnableRaisingEvents = true;
+                //}
+                //else
+                //{
                     //termino di monitorare attendendo eventuali lavori in corso
-                    AttendiTermineUpdate();
-                }
-                mw.clientLogic.monitorando = !mw.clientLogic.monitorando;
+                    //AttendiTermineUpdate();
+                //}
+                //mw.clientLogic.monitorando = !mw.clientLogic.monitorando;
             }
             catch
             {
                 //viene catturata l'eventuale eccezione lanciando un apposito thread
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-                t.Start();
+                //Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+                //t.Start();
             }
         }
 
         private void EffettuaBackup_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            if (path != null && !mw.clientLogic.monitorando)
-            {
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F5FFFA");
-            }
-            else if (path != null && mw.clientLogic.monitorando)
-            {
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F6CECE");
-            }
+            //MainWindow mw = (MainWindow)App.Current.MainWindow;
+            //if (path != null && !mw.clientLogic.monitorando)
+            //{
+            //    BrushConverter bc = new BrushConverter();
+            //    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+            //}
+            //else if (path != null && mw.clientLogic.monitorando)
+            //{
+            //    BrushConverter bc = new BrushConverter();
+            //    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F6CECE");
+            //}
 
         }
 
         private void EffettuaBackup_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            if (path != null && !mw.clientLogic.monitorando)
-            {
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
-            }
-            else if (path != null && mw.clientLogic.monitorando)
-            {
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");
-            }
+            //MainWindow mw = (MainWindow)App.Current.MainWindow;
+            //if (path != null && !mw.clientLogic.monitorando)
+            //{
+            //    BrushConverter bc = new BrushConverter();
+            //    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
+            //}
+            //else if (path != null && mw.clientLogic.monitorando)
+            //{
+            //    BrushConverter bc = new BrushConverter();
+            //    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");
+            //}
 
         }
         #endregion
@@ -178,40 +178,40 @@ namespace Client
          */
         private void OnDeleted(object sender, FileSystemEventArgs e)
         {
-            try
-            {
-                Console.WriteLine(" ONdel");
-                if (!mw.clientLogic.monitorando)    //se non sto monitorando no devo gestire l'evento
-                    return;
-                if (files.Length != 0)
-                {
-                    mw.clientLogic.event_1.WaitOne();   //aspetto che event_1 venga segnalato - sincronizzazione
-                }
-                string extension = System.IO.Path.GetExtension(e.FullPath);
-                //se il file contiene un'estensione problematica ritorno
-                if (extensions.Contains(extension))
-                {
-                    mw.clientLogic.event_1.Set();   //segnalo l'evento e ritorno
-                    return;
-                }
-                WatcherChangeTypes wct = e.ChangeType;
-                if (e.ChangeType == WatcherChangeTypes.Deleted) //bisogna effettivamente controllare il ChangeType? 
-                {
-                    updating = true;
-                    //segnalo la cancellazione al server
-                    mw.clientLogic.WriteStringOnStream(ClientLogic.CANC + mw.clientLogic.username + "+" + e.FullPath);
-                    mw.clientLogic.ReadStringFromStream();  //consumo la risposta senza analizzarla?
-                    updating = false;
-                    mw.clientLogic.event_1.Set();   //segnalo l'evento
-                }
-            }
-            catch
-            {
+            //try
+            //{
+            //    Console.WriteLine(" ONdel");
+            //    if (!mw.clientLogic.monitorando)    //se non sto monitorando no devo gestire l'evento
+            //        return;
+            //    if (files.Length != 0)
+            //    {
+            //        mw.clientLogic.event_1.WaitOne();   //aspetto che event_1 venga segnalato - sincronizzazione
+            //    }
+            //    string extension = System.IO.Path.GetExtension(e.FullPath);
+            //    //se il file contiene un'estensione problematica ritorno
+            //    if (extensions.Contains(extension))
+            //    {
+            //        mw.clientLogic.event_1.Set();   //segnalo l'evento e ritorno
+            //        return;
+            //    }
+            //    WatcherChangeTypes wct = e.ChangeType;
+            //    if (e.ChangeType == WatcherChangeTypes.Deleted) //bisogna effettivamente controllare il ChangeType? 
+            //    {
+            //        updating = true;
+            //        //segnalo la cancellazione al server
+            //        mw.clientLogic.WriteStringOnStream(ClientLogic.CANC + mw.clientLogic.username + "+" + e.FullPath);
+            //        mw.clientLogic.ReadStringFromStream();  //consumo la risposta senza analizzarla?
+            //        updating = false;
+            //        mw.clientLogic.event_1.Set();   //segnalo l'evento
+            //    }
+            //}
+            //catch
+            //{
 
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-                t.Start();
+            //    Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+            //    t.Start();
 
-            }
+            //}
         }
 
         /*
@@ -219,41 +219,41 @@ namespace Client
          */
         private void OnChanged(object sender, FileSystemEventArgs e)
         {
-            try
-            {
-                Console.WriteLine("Oncha");
-                if (files.Length != 0)
-                {
-                    mw.clientLogic.event_1.WaitOne();   //sincronizzazione
-                }
-                string extension = System.IO.Path.GetExtension(e.FullPath);
-                if (extensions.Contains(extension))     //controllo estensioni problematiche
-                {
-                    mw.clientLogic.event_1.Set();
-                    return;
-                }
+        //    try
+        //    {
+        //        Console.WriteLine("Oncha");
+        //        if (files.Length != 0)
+        //        {
+        //            mw.clientLogic.event_1.WaitOne();   //sincronizzazione
+        //        }
+        //        string extension = System.IO.Path.GetExtension(e.FullPath);
+        //        if (extensions.Contains(extension))     //controllo estensioni problematiche
+        //        {
+        //            mw.clientLogic.event_1.Set();
+        //            return;
+        //        }
 
-                Console.WriteLine(e.FullPath);
-                if (!mw.clientLogic.monitorando)        //contorllo se sto effettivamente monitorando
-                {
-                    mw.clientLogic.event_1.Set();
-                    return;
-                }
-                if (Directory.Exists(e.FullPath))       //controllo se il file in questione è una directory?
-                {
-                    mw.clientLogic.event_1.Set();
-                    return;
-                }
-                updating = true;
-                InviaSingoloFile(e.FullPath);   //invio il file al server
-                updating = false;
-                mw.clientLogic.event_1.Set();
-            }
-            catch
-            {
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-                t.Start();
-            }
+        //        Console.WriteLine(e.FullPath);
+        //        if (!mw.clientLogic.monitorando)        //contorllo se sto effettivamente monitorando
+        //        {
+        //            mw.clientLogic.event_1.Set();
+        //            return;
+        //        }
+        //        if (Directory.Exists(e.FullPath))       //controllo se il file in questione è una directory?
+        //        {
+        //            mw.clientLogic.event_1.Set();
+        //            return;
+        //        }
+        //        updating = true;
+        //        InviaSingoloFile(e.FullPath);   //invio il file al server
+        //        updating = false;
+        //        mw.clientLogic.event_1.Set();
+        //    }
+        //    catch
+        //    {
+        //        Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+        //        t.Start();
+        //    }
 
 
         }
@@ -264,40 +264,40 @@ namespace Client
         private void OnCreated(object sender, FileSystemEventArgs e)
         {
 
-            try
-            {
-                Console.WriteLine("Oncre");
-                if (files.Length != 0)
-                {
-                    mw.clientLogic.event_1.WaitOne();   //sincronizzazione
-                }
-                string extension = System.IO.Path.GetExtension(e.FullPath);
-                if (extensions.Contains(extension)) //controllo estensioni problematiche
-                {
-                    mw.clientLogic.event_1.Set();
-                    return;
-                }
-                Console.WriteLine(e.FullPath);
-                if (Directory.Exists(e.FullPath))   //controllo se è una directory ?
-                {
-                    mw.clientLogic.event_1.Set();
-                    return;
-                }
-                if (!mw.clientLogic.monitorando)
-                {
-                    mw.clientLogic.event_1.Set();
-                    return;
-                }
-                updating = true;
-                InviaSingoloFile(e.FullPath, "CREATE"); //invio il file al server
-                updating = false;
-                mw.clientLogic.event_1.Set();
-            }
-            catch
-            {
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-                t.Start();
-            }
+            //try
+            //{
+            //    Console.WriteLine("Oncre");
+            //    if (files.Length != 0)
+            //    {
+            //        mw.clientLogic.event_1.WaitOne();   //sincronizzazione
+            //    }
+            //    string extension = System.IO.Path.GetExtension(e.FullPath);
+            //    if (extensions.Contains(extension)) //controllo estensioni problematiche
+            //    {
+            //        mw.clientLogic.event_1.Set();
+            //        return;
+            //    }
+            //    Console.WriteLine(e.FullPath);
+            //    if (Directory.Exists(e.FullPath))   //controllo se è una directory ?
+            //    {
+            //        mw.clientLogic.event_1.Set();
+            //        return;
+            //    }
+            //    if (!mw.clientLogic.monitorando)
+            //    {
+            //        mw.clientLogic.event_1.Set();
+            //        return;
+            //    }
+            //    updating = true;
+            //    InviaSingoloFile(e.FullPath, "CREATE"); //invio il file al server
+            //    updating = false;
+            //    mw.clientLogic.event_1.Set();
+            //}
+            //catch
+            //{
+            //    Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+            //    t.Start();
+            //}
         }
 
         /*
@@ -305,52 +305,52 @@ namespace Client
          */
         private void OnRenamed(object sender, RenamedEventArgs e)
         {
-            try
-            {
-                //i controlli iniziali sono gli stessi
-                Console.WriteLine("Onren");
-                Console.WriteLine(e.FullPath);
-                if (!mw.clientLogic.monitorando)
-                    return;
+            //try
+            //{
+            //    //i controlli iniziali sono gli stessi
+            //    Console.WriteLine("Onren");
+            //    Console.WriteLine(e.FullPath);
+            //    if (!mw.clientLogic.monitorando)
+            //        return;
 
-                if (files.Length != 0)
-                {
-                    mw.clientLogic.event_1.WaitOne();
-                }
-                string extension = System.IO.Path.GetExtension(e.FullPath);
-                if (extensions.Contains(extension))
-                {
-                    mw.clientLogic.event_1.Set();
-                    return;
-                }
-                //invio al server il nuovo nome sia che sia un file o una directory differenziando i due casi
-                if (Directory.Exists(e.FullPath))
-                {
-                    updating = true;
-                    mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + "+" + e.OldFullPath + "+" + e.FullPath + "+" + "DIR");
-                    mw.clientLogic.ReadStringFromStream();
-                    updating = false;
-                    mw.clientLogic.event_1.Set();
+            //    if (files.Length != 0)
+            //    {
+            //        mw.clientLogic.event_1.WaitOne();
+            //    }
+            //    string extension = System.IO.Path.GetExtension(e.FullPath);
+            //    if (extensions.Contains(extension))
+            //    {
+            //        mw.clientLogic.event_1.Set();
+            //        return;
+            //    }
+            //    //invio al server il nuovo nome sia che sia un file o una directory differenziando i due casi
+            //    if (Directory.Exists(e.FullPath))
+            //    {
+            //        updating = true;
+            //        mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + "+" + e.OldFullPath + "+" + e.FullPath + "+" + "DIR");
+            //        mw.clientLogic.ReadStringFromStream();
+            //        updating = false;
+            //        mw.clientLogic.event_1.Set();
 
-                }
-                else
-                {
-                    WatcherChangeTypes wct = e.ChangeType;
-                    if (e.ChangeType == WatcherChangeTypes.Renamed)
-                    {
-                        updating = true;
-                        mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + "+" + e.OldFullPath + "+" + e.FullPath);
-                        mw.clientLogic.ReadStringFromStream();
-                        updating = false;
-                        mw.clientLogic.event_1.Set();
-                    }
-                }
-            }
-            catch
-            {
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-                t.Start();
-            }
+            //    }
+            //    else
+            //    {
+            //        WatcherChangeTypes wct = e.ChangeType;
+            //        if (e.ChangeType == WatcherChangeTypes.Renamed)
+            //        {
+            //            updating = true;
+            //            mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + "+" + e.OldFullPath + "+" + e.FullPath);
+            //            mw.clientLogic.ReadStringFromStream();
+            //            updating = false;
+            //            mw.clientLogic.event_1.Set();
+            //        }
+            //    }
+            //}
+            //catch
+            //{
+            //    Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+            //    t.Start();
+            //}
         }
         #endregion
 
@@ -358,7 +358,7 @@ namespace Client
         private void InviaSingoloFile(string fileName)
         {
 
-            InviaSingoloFile(fileName, ""); //sfrutto la stessa funzione con un flag diverso
+            //InviaSingoloFile(fileName, ""); //sfrutto la stessa funzione con un flag diverso
         }
 
         /*
@@ -367,75 +367,75 @@ namespace Client
         private void InviaSingoloFile(string fileName, string onCreate)
         {
 
-            try
-            {
-                //informo il sevrer di quello che sto per fare
-                if (onCreate.Equals("CREATE"))
-                    mw.clientLogic.WriteStringOnStream(ClientLogic.FILE + mw.clientLogic.username + "+" + onCreate);
-                else
-                    mw.clientLogic.WriteStringOnStream(ClientLogic.FILE + mw.clientLogic.username);
-                int bufferSize = 1024;
-                byte[] buffer = null;
-                byte[] header = null;
-                string checksum = "";
+        //    try
+        //    {
+        //        //informo il sevrer di quello che sto per fare
+        //        if (onCreate.Equals("CREATE"))
+        //            mw.clientLogic.WriteStringOnStream(ClientLogic.FILE + mw.clientLogic.username + "+" + onCreate);
+        //        else
+        //            mw.clientLogic.WriteStringOnStream(ClientLogic.FILE + mw.clientLogic.username);
+        //        int bufferSize = 1024;
+        //        byte[] buffer = null;
+        //        byte[] header = null;
+        //        string checksum = "";
 
-                mw.clientLogic.ReadStringFromStream();  //consumo lo stream (eventuale risposta del server)
-                Thread.Sleep(100);
+        //        mw.clientLogic.ReadStringFromStream();  //consumo lo stream (eventuale risposta del server)
+        //        Thread.Sleep(100);
 
-                //le operazioni sono molto simili a quanto fatto nella ClientLogic.InviaFile
-                checksum = mw.clientLogic.GetMD5HashFromFile(fileName);
-                FileStream fs = new FileStream(fileName, FileMode.Open);
-                int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));
+        //        //le operazioni sono molto simili a quanto fatto nella ClientLogic.InviaFile
+        //        checksum = mw.clientLogic.GetMD5HashFromFile(fileName);
+        //        FileStream fs = new FileStream(fileName, FileMode.Open);
+        //        int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));
 
-                string headerStr = "Content-length:" + fs.Length.ToString() + "\r\nFilename:" + fileName + "\r\nChecksum:" + checksum + "\r\n";
-                header = new byte[bufferSize];
-                Array.Copy(Encoding.ASCII.GetBytes(headerStr), header, Encoding.ASCII.GetBytes(headerStr).Length);
-                mw.clientLogic.clientsocket.Client.Send(header);
-                string streamReady = mw.clientLogic.ReadStringFromStream();
-                if (streamReady.Equals(ClientLogic.OK + "File ricevuto correttamente") || streamReady.Equals(ClientLogic.INFO + "File non modificato") || streamReady.Equals(ClientLogic.INFO + "file dim 0"))
-                {
-                    fs.Close();
-                    return;
-                }
+        //        string headerStr = "Content-length:" + fs.Length.ToString() + "\r\nFilename:" + fileName + "\r\nChecksum:" + checksum + "\r\n";
+        //        header = new byte[bufferSize];
+        //        Array.Copy(Encoding.ASCII.GetBytes(headerStr), header, Encoding.ASCII.GetBytes(headerStr).Length);
+        //        mw.clientLogic.clientsocket.Client.Send(header);
+        //        string streamReady = mw.clientLogic.ReadStringFromStream();
+        //        if (streamReady.Equals(ClientLogic.OK + "File ricevuto correttamente") || streamReady.Equals(ClientLogic.INFO + "File non modificato") || streamReady.Equals(ClientLogic.INFO + "file dim 0"))
+        //        {
+        //            fs.Close();
+        //            return;
+        //        }
 
-                //delego ad un thread il setup della ProgressBar e della TextBox
-                Thread t1 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int, string, System.Windows.Controls.TextBox>(SetProgressBar), pbStatus, bufferCount, System.IO.Path.GetFileName(fileName), FileUploading); }));
-                t1.Start();
+        //        //delego ad un thread il setup della ProgressBar e della TextBox
+        //        Thread t1 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int, string, System.Windows.Controls.TextBox>(SetProgressBar), pbStatus, bufferCount, System.IO.Path.GetFileName(fileName), FileUploading); }));
+        //        t1.Start();
 
-                for (int i = 0; i < bufferCount; i++)
-                {
-                    if ((i == (bufferCount / 4)) || (i == (bufferCount / 2)) || (i == ((bufferCount * 3) / 4)) || (i == (bufferCount - 1)))
-                    {
-                        //delego a un altro thread la gestione del progresso della ProgressBar
-                        Thread t2 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int>(UpdateProgressBar), pbStatus, i); }));
-                        t2.Start();
-                    }
-                    buffer = new byte[bufferSize];
-                    int size = fs.Read(buffer, 0, bufferSize);
-                    mw.clientLogic.clientsocket.Client.SendTimeout = 30000;
-                    mw.clientLogic.clientsocket.Client.Send(buffer, size, SocketFlags.Partial);
-                }
+        //        for (int i = 0; i < bufferCount; i++)
+        //        {
+        //            if ((i == (bufferCount / 4)) || (i == (bufferCount / 2)) || (i == ((bufferCount * 3) / 4)) || (i == (bufferCount - 1)))
+        //            {
+        //                //delego a un altro thread la gestione del progresso della ProgressBar
+        //                Thread t2 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int>(UpdateProgressBar), pbStatus, i); }));
+        //                t2.Start();
+        //            }
+        //            buffer = new byte[bufferSize];
+        //            int size = fs.Read(buffer, 0, bufferSize);
+        //            mw.clientLogic.clientsocket.Client.SendTimeout = 30000;
+        //            mw.clientLogic.clientsocket.Client.Send(buffer, size, SocketFlags.Partial);
+        //        }
 
-                //thread per chiudere la ProgressBar
-                Thread t3 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar>(HideProgress), pbStatus); }));
-                t3.Start();
-                fs.Close();
-                //thread per settare il messaggio di ultima sincornizzazione nella TextBox - si poteva fare direttamente nel thread precedente?
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.TextBox>(SetValue), FileUploading); }));
-                t.Start();
-                string message = mw.clientLogic.ReadStringFromStream();
-                if (message == (ClientLogic.ERRORE + "Invio file non riuscito"))
-                {
-                    ClientLogic.UpdateNotifyIconDisconnesso();
-                }
+        //        //thread per chiudere la ProgressBar
+        //        Thread t3 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar>(HideProgress), pbStatus); }));
+        //        t3.Start();
+        //        fs.Close();
+        //        //thread per settare il messaggio di ultima sincornizzazione nella TextBox - si poteva fare direttamente nel thread precedente?
+        //        Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.TextBox>(SetValue), FileUploading); }));
+        //        t.Start();
+        //        string message = mw.clientLogic.ReadStringFromStream();
+        //        if (message == (ClientLogic.ERRORE + "Invio file non riuscito"))
+        //        {
+        //            ClientLogic.UpdateNotifyIconDisconnesso();
+        //        }
 
-                return;
-            }
-            catch (Exception)
-            {
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-                t.Start();
-            }
+        //        return;
+        //    }
+        //    catch (Exception)
+        //    {
+        //        Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+        //        t.Start();
+        //    }
         }
         #endregion
 
@@ -448,54 +448,57 @@ namespace Client
         {
 
             MainWindow mw = (MainWindow)App.Current.MainWindow;
-            if (mw.clientLogic.lavorandoInvio)
-            {
+            //if (mw.clientLogic.lavorandoInvio)
+            //{
                 //al posto del bottone EffettuaBackup compare una Label Wait
+                // Ma quando succede?
                 EffettuaBackup.Visibility = Visibility.Hidden;
                 EffettuaBackup.IsEnabled = false;
                 Wait.Visibility = Visibility.Visible;
                 messaggioStop();
-                if (watcher != null)
-                {
-                    watcher.EnableRaisingEvents = false;
-                    watcher.Dispose();
-                }
-            }
-            else
-            {
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F5FFFA");
-                EffettuaBackup.Content = "Start";
-                FolderButton.IsEnabled = true;
-                if (updating)
-                {
-                    //non ho capito che cosa controlla updating 
-                    EffettuaBackup.Visibility = Visibility.Hidden;
-                    EffettuaBackup.IsEnabled = false;
-                    Wait.Visibility = Visibility.Visible;
-                    messaggioStop();
-                    BackgroundWorker worker = new BackgroundWorker();
-                    worker.DoWork += new DoWorkEventHandler(Workertransaction_Waited);
-                    worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_WaitedCompleted);
-                    worker.RunWorkerAsync();
-                }
-                else
-                {
-                    if (watcher != null)
-                    {
-                        watcher.EnableRaisingEvents = false;
-                        watcher.Dispose();
-                    }
-                }
+                //if (watcher != null)
+                //{
+                //    watcher.EnableRaisingEvents = false;
+                //    watcher.Dispose();
+                //}
+            //}
+            //else
+            //{
+            //    BrushConverter bc = new BrushConverter();
+            //    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+            //    EffettuaBackup.Content = "Start";
+            //    FolderButton.IsEnabled = true;
+            //    if (updating)
+            //    {
+            //        //non ho capito che cosa controlla updating 
+            //        EffettuaBackup.Visibility = Visibility.Hidden;
+            //        EffettuaBackup.IsEnabled = false;
+            //        Wait.Visibility = Visibility.Visible;
+            //        //messaggioStop();
+            //        //BackgroundWorker worker = new BackgroundWorker();
+            //        //worker.DoWork += new DoWorkEventHandler(Workertransaction_Waited);
+            //        //worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_WaitedCompleted);
+            //        //worker.RunWorkerAsync();
+            //    }
+            //    else
+            //    {
+            //        //if (watcher != null)
+            //        //{
+            //        //    watcher.EnableRaisingEvents = false;
+            //        //    watcher.Dispose();
+            //        //}
+            //    }
 
-            }
+            //}
         }
 
+        // Questa funzione non dovrebbe essere qui (?)
         private void Workertransaction_Waited(object sender, DoWorkEventArgs e)
         {
-            mw.clientLogic.event_1.WaitOne();
+            //mw.clientLogic.event_1.WaitOne();
         }
 
+        // Questa funzione non dovrebbe essere qui (?)
         private void Workertransaction_WaitedCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             try
@@ -507,30 +510,30 @@ namespace Client
                 FolderButton.IsEnabled = true;
                 EffettuaBackup.Visibility = Visibility.Visible;
                 FileUploading.Text = "Ultima sincronizzazione : " + DateTime.Now;
-                watcher.EnableRaisingEvents = false;
-                watcher.Dispose();
-                updating = false;
+                //watcher.EnableRaisingEvents = false;
+                //watcher.Dispose();
+                //updating = false;
                 if (exit)   //se nel rattempo mi sono disconnesso pulisco e rilascio tutto
                 {
                     MainWindow mainw = (MainWindow)App.Current.MainWindow;
-                    mainw.clientLogic.monitorando = false;
-                    mainw.clientLogic.lavorandoInvio = false;
-                    mainw.clientLogic.WriteStringOnStream(ClientLogic.DISCONETTIUTENTE + mainw.clientLogic.username + "+" + mainw.clientLogic.mac);
-                    mainw.clientLogic.connesso = false;
-                    ClientLogic.UpdateNotifyIconDisconnesso();
-                    if (mainw.clientLogic.clientsocket.Client.Connected)
-                    {
-                        mainw.clientLogic.clientsocket.GetStream().Close();
-                        mainw.clientLogic.clientsocket.Close();
-                    }
+                    //mainw.clientLogic.monitorando = false;
+                    //mainw.clientLogic.lavorandoInvio = false;
+                    //mainw.clientLogic.WriteStringOnStream(ClientLogic.DISCONETTIUTENTE + mainw.clientLogic.username + "+" + mainw.clientLogic.mac);
+                    //mainw.clientLogic.connesso = false;
+                    //ClientLogic.UpdateNotifyIconDisconnesso();
+                    //if (mainw.clientLogic.clientsocket.Client.Connected)
+                    //{
+                    //    mainw.clientLogic.clientsocket.GetStream().Close();
+                    //    mainw.clientLogic.clientsocket.Close();
+                    //}
                     MainControl main = new MainControl(0);
                     App.Current.MainWindow.Content = main;
                 }
             }
             catch
             {
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-                t.Start();
+                //Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+                //t.Start();
             }
         }
         #endregion
@@ -539,20 +542,21 @@ namespace Client
         /*
          * Button per selezionare la cartella di restore
          */
+        // Questa andrebbe rimossa
         private void Select_FolderR(object sender, RoutedEventArgs e)
         {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-            DialogResult result = fbd.ShowDialog();
-            if (fbd.SelectedPath != "")
-            {
-                RestoreDir.Text = fbd.SelectedPath;
-                pathR = fbd.SelectedPath;
-                mw.clientLogic.folderR = pathR;
-                BrushConverter bc = new BrushConverter();
-                RestoreFile.IsEnabled = true;
-                RestoreFile.Background = (Brush)bc.ConvertFrom("#33CCFF");
+        //    FolderBrowserDialog fbd = new FolderBrowserDialog();
+        //    DialogResult result = fbd.ShowDialog();
+        //    if (fbd.SelectedPath != "")
+        //    {
+        //        RestoreDir.Text = fbd.SelectedPath;
+        //        pathR = fbd.SelectedPath;
+        //        mw.clientLogic.folderR = pathR;
+        //        BrushConverter bc = new BrushConverter();
+        //        RestoreFile.IsEnabled = true;
+        //        RestoreFile.Background = (Brush)bc.ConvertFrom("#33CCFF");
 
-            }
+        //    }
 
         }
 
@@ -561,77 +565,77 @@ namespace Client
          */
         private void RestoreFile_Click(object sender, RoutedEventArgs e)
         {
-            //verifico connessione
-            if (mw.clientLogic.clientsocket.Client.Poll(1000, SelectMode.SelectRead))
-            {
-                MainControl main = new MainControl(1);
-                App.Current.MainWindow.Content = main;
-                messaggioErrore("Connessione Persa");
-                return;
+            ////verifico connessione
+            //if (mw.clientLogic.clientsocket.Client.Poll(1000, SelectMode.SelectRead))
+            //{
+            //    MainControl main = new MainControl(1);
+            //    App.Current.MainWindow.Content = main;
+            //    messaggioErrore("Connessione Persa");
+            //    return;
 
-            }
+            //}
 
-            //istanzio un nuovo ClientSocket in cui aprirò un socket - perché non usare quello che già c'è? riservato al backup?
-            ClientLogic clRestore = new ClientLogic(mw.clientLogic.ip, mw.clientLogic.porta, mw.clientLogic.folder, mw.clientLogic.username, mw.clientLogic.folderR);
-            Window w = null;
-            try
-            {
-                //istanzio Restore e la mostro come finestra di dialogo - NO Metro!
-                w = new Restore(clRestore, mw);
-                w.ShowDialog();
-            }
-            catch (Exception)
-            {
-                //rilascio risorse il caso di eccezione
-                if (clRestore.clientsocket.Client.Connected)
-                {
-                    clRestore.clientsocket.GetStream().Close();
-                    clRestore.clientsocket.Client.Close();
-                }
+            ////istanzio un nuovo ClientSocket in cui aprirò un socket - perché non usare quello che già c'è? riservato al backup?
+            //ClientLogic clRestore = new ClientLogic(mw.clientLogic.ip, mw.clientLogic.porta, mw.clientLogic.folder, mw.clientLogic.username, mw.clientLogic.folderR);
+            //Window w = null;
+            //try
+            //{
+            //    //istanzio Restore e la mostro come finestra di dialogo - NO Metro!
+            //    w = new Restore(clRestore, mw);
+            //    w.ShowDialog();
+            //}
+            //catch (Exception)
+            //{
+            //    //rilascio risorse il caso di eccezione
+            //    if (clRestore.clientsocket.Client.Connected)
+            //    {
+            //        clRestore.clientsocket.GetStream().Close();
+            //        clRestore.clientsocket.Client.Close();
+            //    }
 
-                if (mw.clientLogic.clientsocket.Client.Connected)
-                {
-                    mw.clientLogic.clientsocket.GetStream().Close();
-                    mw.clientLogic.clientsocket.Close();
-                }
+            //    if (mw.clientLogic.clientsocket.Client.Connected)
+            //    {
+            //        mw.clientLogic.clientsocket.GetStream().Close();
+            //        mw.clientLogic.clientsocket.Close();
+            //    }
 
-                if (App.Current.MainWindow is Restore)
-                    App.Current.MainWindow.Close();
-                MainControl main = new MainControl(1);
-                App.Current.MainWindow.Content = main;
-                messaggioErrore("Connessione Persa");
-                return;
-            }
+            //    if (App.Current.MainWindow is Restore)
+            //        App.Current.MainWindow.Close();
+            //    MainControl main = new MainControl(1);
+            //    App.Current.MainWindow.Content = main;
+            //    messaggioErrore("Connessione Persa");
+            //    return;
+            //}
 
-            App.Current.MainWindow = mw;
-            App.Current.MainWindow.Width = 400;
-            App.Current.MainWindow.Height = 400;
+            //App.Current.MainWindow = mw;
+            //App.Current.MainWindow.Width = 400;
+            //App.Current.MainWindow.Height = 400;
         }
 
         private void RestoreFile_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (RestoreFile.IsEnabled)
-            {
-                BrushConverter bc = new BrushConverter();
-                RestoreFile.Background = (Brush)bc.ConvertFrom("#99FFFF");
-            }
-            else
-            {
-                RestoreFile.Background = Brushes.LightGray;
-            }
+            //if (RestoreFile.IsEnabled)
+            //{
+            //    BrushConverter bc = new BrushConverter();
+            //    RestoreFile.Background = (Brush)bc.ConvertFrom("#99FFFF");
+            //}
+            //else
+            //{
+            //    RestoreFile.Background = Brushes.LightGray;
+            //}
         }
 
         private void RestoreFile_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            if (RestoreFile.IsEnabled)
-            {
-                BrushConverter bc = new BrushConverter();
-                RestoreFile.Background = (Brush)bc.ConvertFrom("#33CCFF");
-            }
-            else
-            {
-                RestoreFile.Background = Brushes.LightGray;
-            }
+            //if (RestoreFile.IsEnabled)
+            //{
+            //    BrushConverter bc = new BrushConverter();
+            //    RestoreFile.Background = (Brush)bc.ConvertFrom("#33CCFF");
+            //}
+            //else
+            //{
+            //    RestoreFile.Background = Brushes.LightGray;
+            //}
 
         }
         #endregion
@@ -642,36 +646,36 @@ namespace Client
          */
         private void Logout_Click(object sender, RoutedEventArgs e)
         {
-            DialogDisconnetti();
+            //DialogDisconnetti();
         }
         
         /*
          * Metodo che gestisce un CustomDialog con dipendenza da Metro
          */
-        public async void DialogDisconnetti()
-        {
-            customDialog = new CustomDialog();
-            disconnettiWindow = new Disconnetti();
-            //setto le callback per la pressione dei Button
-            //forse è bene metterle direttamente in Disconnetti.xaml.cs e gestire la logica opportunamente
-            disconnettiWindow.BServer.Click += ButtonServerOnClick;
-            disconnettiWindow.BCancel.Click += ButtonCancelOnClick;
-            customDialog.Content = disconnettiWindow;
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            await mw.ShowMetroDialogAsync(customDialog);
-        }
+        //public async void DialogDisconnetti()
+        //{
+        //    customDialog = new CustomDialog();
+        //    disconnettiWindow = new Disconnetti();
+        //    //setto le callback per la pressione dei Button
+        //    //forse è bene metterle direttamente in Disconnetti.xaml.cs e gestire la logica opportunamente
+        //    disconnettiWindow.BServer.Click += ButtonServerOnClick;
+        //    disconnettiWindow.BCancel.Click += ButtonCancelOnClick;
+        //    customDialog.Content = disconnettiWindow;
+        //    MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+        //    await mw.ShowMetroDialogAsync(customDialog);
+        //}
         private void Logout_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            logoutImage.BeginInit();
-            logoutImage.Source = new BitmapImage(new Uri(@"Images/logoutLight.png", UriKind.RelativeOrAbsolute));
-            logoutImage.EndInit();
+            //logoutImage.BeginInit();
+            //logoutImage.Source = new BitmapImage(new Uri(@"Images/logoutLight.png", UriKind.RelativeOrAbsolute));
+            //logoutImage.EndInit();
         }
 
         private void Logout_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            logoutImage.BeginInit();
-            logoutImage.Source = new BitmapImage(new Uri(@"Images/logout.png", UriKind.RelativeOrAbsolute));
-            logoutImage.EndInit();
+            //logoutImage.BeginInit();
+            //logoutImage.Source = new BitmapImage(new Uri(@"Images/logout.png", UriKind.RelativeOrAbsolute));
+            //logoutImage.EndInit();
         }
 
 
@@ -685,22 +689,22 @@ namespace Client
             //mw.HideMetroDialogAsync(customDialog);
             //MainWindow mainw = (MainWindow)mw;
 
-            Window mw = (Window)App.Current.MainWindow;
-            //mw.HideMetroDialogAsync(customDialog);
-            MainWindow mainw = (MainWindow)mw;
+            //Window mw = (Window)App.Current.MainWindow;
+            ////mw.HideMetroDialogAsync(customDialog);
+            //MainWindow mainw = (MainWindow)mw;
 
-            exit = true;
-            if (mainw.clientLogic.lavorandoInvio || updating)
-                EffettuaBackup.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
-            else
-                mainw.clientLogic.DisconnettiServer(false);
+            //exit = true;
+            //if (mainw.clientLogic.lavorandoInvio || updating)
+            //    EffettuaBackup.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            //else
+            //    mainw.clientLogic.DisconnettiServer(false);
 
         }
 
         private void ButtonCancelOnClick(object sender, RoutedEventArgs e)
         {
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            mw.HideMetroDialogAsync(customDialog);
+            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+            //mw.HideMetroDialogAsync(customDialog);
         }
         #endregion
 
@@ -738,12 +742,12 @@ namespace Client
         {
             if (App.Current.MainWindow is Restore)
                 App.Current.MainWindow.Close();
-            if (obj.clientLogic.clientsocket.Connected)
-            {
-                Console.WriteLine("socket CHIUSO");
-                obj.clientLogic.clientsocket.GetStream().Close();
-                obj.clientLogic.clientsocket.Close();
-            }
+            //if (obj.clientLogic.clientsocket.Connected)
+            //{
+            //    Console.WriteLine("socket CHIUSO");
+            //    obj.clientLogic.clientsocket.GetStream().Close();
+            //    obj.clientLogic.clientsocket.Close();
+            //}
 
             App.Current.MainWindow = obj;
             updating = false;
@@ -755,7 +759,7 @@ namespace Client
         {
             //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
             //await mw.ShowMessageAsync("Errore", mess);
-            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+            //MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
 
         }
 
@@ -763,7 +767,7 @@ namespace Client
         {
             //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
             //await mw.ShowMessageAsync("Attendere", "Stiamo chiudendo i canali...  un attimo di pazienza");
-            MessageBoxResult result = System.Windows.MessageBox.Show("Stiamo chiudendo i canali...  un attimo di pazienza", "Errore", MessageBoxButton.OK, MessageBoxImage.Stop);
+            //MessageBoxResult result = System.Windows.MessageBox.Show("Stiamo chiudendo i canali...  un attimo di pazienza", "Errore", MessageBoxButton.OK, MessageBoxImage.Stop);
         }
 
         private /*async*/ void messaggioAttesa()

@@ -33,44 +33,44 @@ namespace Client
             InitializeComponent();
             //((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true;
             App.Current.MainWindow.Title = "Login";
-            mess = message;
-            if (mess != null)
-            {
-                messaggioErrore(mess);
-            }
-            mess = null;
+            //mess = message;
+            //if (mess != null)
+            //{
+            //    messaggioErrore(mess);
+            //}
+            //mess = null;
         }
 
-        private /*async*/ void messaggioErrore(string mess)
-        {
-            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            //await mw.ShowMessageAsync("Errore", mess);
-            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+        //private /*async*/ void messaggioErrore(string mess)
+        //{
+        //    //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+        //    //await mw.ShowMessageAsync("Errore", mess);
+        //    MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
 
-        }
+        //}
         #endregion
 
         #region Back Button
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            LoginRegisterControl main = new LoginRegisterControl();
-            App.Current.MainWindow.Content = main;
+            //LoginRegisterControl main = new LoginRegisterControl();
+            //App.Current.MainWindow.Content = main;
         }
 
         private void Back_MouseEnter(object sender, MouseEventArgs e)
         {
 
-            backImage.BeginInit();
-            backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
-            backImage.EndInit();
+            //backImage.BeginInit();
+            //backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
+            //backImage.EndInit();
         }
 
         private void Back_MouseLeave(object sender, MouseEventArgs e)
         {
 
-            backImage.BeginInit();
-            backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
-            backImage.EndInit();
+            //backImage.BeginInit();
+            //backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
+            //backImage.EndInit();
         }
         #endregion
 
@@ -79,22 +79,38 @@ namespace Client
         {
             //if (string.IsNullOrEmpty(Username.Text) || !sUserNameAllowedRegEx.IsMatch(Username.Text))  
             // controllo da fare alla fine
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            mw.clientLogic.Login(Username.Text, Password.Password);
+
+            // Queste informazioni vanno comunque passate a clientLogic, magari non così
+            //MainWindow mw = (MainWindow)App.Current.MainWindow;
+            //mw.clientLogic.Login(Username.Text, Password.Password);
+
+
+            // Serve un if else per gestire la risposta del server, analizzata da clientLogic,
+            // ma passata e usata qui con un valore di return per decidere quale sarà la prossima finestra
+            //if (message.Contains(OK))
+            //{
+                MenuControl main = new MenuControl();
+                App.Current.MainWindow.Content = main;
+            //}
+            //else
+            //{
+            //    LoginControl main = new LoginControl(messaggioErrore);
+            //    App.Current.MainWindow.Content = main;
+            //}
 
         }
 
         private void Login_MouseEnter(object sender, MouseEventArgs e)
         {
-            BrushConverter bc = new BrushConverter();
-            Login.Background = (Brush)bc.ConvertFrom("#99FFFF");
+            //BrushConverter bc = new BrushConverter();
+            //Login.Background = (Brush)bc.ConvertFrom("#99FFFF");
 
         }
 
         private void Login_MouseLeave(object sender, MouseEventArgs e)
         {
-            BrushConverter bc = new BrushConverter();
-            Login.Background = (Brush)bc.ConvertFrom("#33CCFF");
+            //BrushConverter bc = new BrushConverter();
+            //Login.Background = (Brush)bc.ConvertFrom("#33CCFF");
 
         }
         #endregion

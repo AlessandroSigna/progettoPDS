@@ -1,11 +1,14 @@
 X MainControl (Connetti)
 X LoginRegisterControl
-LoginControl - RegistratiControl (Logga)
-MenuControl (Pulsante start sync/monitor, pulsante cartella, label path della cartella monitorata, Pulsante restore)
+X LoginControl - X RegistratiControl (Logga) (se la registrazione non va a buon fine torna a Login o Register Control con messaggio di errore)
+(Disabled) MenuControl (Pulsante start sync/monitor, pulsante cartella, label path della cartella monitorata, Pulsante restore)
 
-Pulsante cartella:
-Esplora risorse
-MenuControl
+Pulsante cartella per backup:
+X Esplora risorse
+X MenuControl
+
+Pulsante sync/monitor (backup):
+X Cambia solo la scritta del pulsante
 
 Pulsante restore:
 Restore, RestoreUC, SelectActionUI, FileSelection, DownloadFile, DownloadFolder (da cambiare: Esplora server, con root directory un folder con tutte le folder di backup navigabili, label per informare l'utente che sta navigando il server per scegliere la cartella da ripristinare, pulsante restore - conferma cosa hai selezionato)

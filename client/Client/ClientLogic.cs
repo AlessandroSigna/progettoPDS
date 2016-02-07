@@ -543,6 +543,7 @@ namespace Client
                 if (e.Cancelled)
                 {
                     //Se l'invio file è stato annullato  si ritorna ad uno stato stabile (senza rollback?) e lo si comunica all'utente nella TextBox FileUploading
+                    // Questi comandi non dovrebbero essere qui
                     mc.EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
                     mc.EffettuaBackup.Content = "Start";
                     mc.FolderButton.IsEnabled = true;

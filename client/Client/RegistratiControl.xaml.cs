@@ -30,39 +30,52 @@ namespace Client
             InitializeComponent();
             App.Current.MainWindow.Title = "Registrazione";
             //((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true;
-            mess = message;
-            if (mess != null)
-            {
-                messaggioErrore(mess);
-            }
-            mess = null;
+            //mess = message;
+            //if (mess != null)
+            //{
+            //    messaggioErrore(mess);
+            //}
+            //mess = null;
         }
 
-        private async void messaggioErrore(string mess)
-        {
-            MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            await mw.ShowMessageAsync("Errore", mess);
-        }
+        //private async void messaggioErrore(string mess)
+        //{
+        //    MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+        //    await mw.ShowMessageAsync("Errore", mess);
+        //}
 
         #region Button Registrati
         private void Registrati_Click(object sender, RoutedEventArgs e)
         {
 
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            mw.clientLogic.Registrati(Username.Text, Password.Password);
+            //MainWindow mw = (MainWindow)App.Current.MainWindow;
+            //mw.clientLogic.Registrati(Username.Text, Password.Password);
+
+            // Serve un if else per gestire la risposta del server, analizzata da clientLogic,
+            // ma passata e usata qui con un valore di return per decidere quale sarà la prossima finestra
+            //if (message.Contains(OK))
+            //{
+            MenuControl main = new MenuControl();
+            App.Current.MainWindow.Content = main;
+            //}
+            //else
+            //{
+            //    RegisterControl main = new RegisterControl(messaggioErrore);
+            //    App.Current.MainWindow.Content = main;
+            //}
 
         }
 
         private void Registrati_MouseEnter(object sender, MouseEventArgs e)
         {
-            BrushConverter bc = new BrushConverter();
-            Registrati.Background = (Brush)bc.ConvertFrom("#99FFFF");
+            //BrushConverter bc = new BrushConverter();
+            //Registrati.Background = (Brush)bc.ConvertFrom("#99FFFF");
         }
 
         private void Registrati_MouseLeave(object sender, MouseEventArgs e)
         {
-            BrushConverter bc = new BrushConverter();
-            Registrati.Background = (Brush)bc.ConvertFrom("#33CCFF");
+            //BrushConverter bc = new BrushConverter();
+            //Registrati.Background = (Brush)bc.ConvertFrom("#33CCFF");
 
         }
         #endregion
@@ -70,22 +83,22 @@ namespace Client
         #region Button Back
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            LoginRegisterControl main = new LoginRegisterControl();
-            App.Current.MainWindow.Content = main;
+            //LoginRegisterControl main = new LoginRegisterControl();
+            //App.Current.MainWindow.Content = main;
         }
 
         private void Back_MouseEnter(object sender, MouseEventArgs e)
         {
-            backImage.BeginInit();
-            backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
-            backImage.EndInit();
+            //backImage.BeginInit();
+            //backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
+            //backImage.EndInit();
         }
 
         private void Back_MouseLeave(object sender, MouseEventArgs e)
         {
-            backImage.BeginInit();
-            backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
-            backImage.EndInit();
+            //backImage.BeginInit();
+            //backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
+            //backImage.EndInit();
         }
         #endregion
 
