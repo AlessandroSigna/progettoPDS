@@ -527,7 +527,7 @@ namespace Client
                     //    mainw.clientLogic.clientsocket.GetStream().Close();
                     //    mainw.clientLogic.clientsocket.Close();
                     //}
-                    MainControl main = new MainControl(0);
+                    MainControl main = new MainControl();
                     App.Current.MainWindow.Content = main;
                 }
             }
@@ -753,8 +753,9 @@ namespace Client
 
             App.Current.MainWindow = obj;
             updating = false;
-            MainControl main = new MainControl(1);
+            MainControl main = new MainControl();
             mw.Content = main;
+            main.messaggioErrore();
         }
 
         private /*async*/ void messaggioErrore(string mess)
@@ -782,7 +783,7 @@ namespace Client
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            LoginControl main = new LoginControl(null);
+            LoginControl main = new LoginControl();
             App.Current.MainWindow.Content = main;
         }
     }

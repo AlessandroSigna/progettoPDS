@@ -52,22 +52,26 @@ namespace Client
         private void Registrati_Click(object sender, RoutedEventArgs e)
         {
 
-            //MainWindow mw = (MainWindow)App.Current.MainWindow;
-            //mw.clientLogic.Registrati(Username.Text, Password.Password);
+            MainWindow mw = (MainWindow)App.Current.MainWindow;
+            mw.clientLogic.Registrati(this, Username.Text, Password.Password);
 
-            // Serve un if else per gestire la risposta del server, analizzata da clientLogic,
-            // ma passata e usata qui con un valore di return per decidere quale sarà la prossima finestra
-            //if (message.Contains(OK))
-            //{
-            MenuControl main = new MenuControl();
-            App.Current.MainWindow.Content = main;
-            //}
-            //else
-            //{
-            //    RegisterControl main = new RegisterControl(messaggioErrore);
-            //    App.Current.MainWindow.Content = main;
-            //}
+            //MenuControl main = new MenuControl();
+            //App.Current.MainWindow.Content = main;
 
+        }
+
+        public void Registrati_Esito(bool esito)
+        {
+            // If else per gestire la risposta del server, analizzata da clientLogic,
+            // usata qui per decidere quale sarà la prossima finestra
+
+            if (esito) {
+                MenuControl main = new MenuControl();
+                App.Current.MainWindow.Content = main;
+            } else {
+                // Stampa un messaggio da qualche parte con registrazione non andata a buon fine
+                // ma rimane in qusta stessa finestra
+            }
         }
 
         private void Registrati_MouseEnter(object sender, MouseEventArgs e)

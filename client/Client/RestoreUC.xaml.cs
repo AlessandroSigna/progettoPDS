@@ -74,8 +74,9 @@ namespace Client
                         clientLogic.clientsocket.Close();
                     }
                     App.Current.MainWindow = mainw;
-                    MainControl main = new MainControl(1);
+                    MainControl main = new MainControl();
                     App.Current.MainWindow.Content = main;
+                    main.messaggioErrore();
                     return;
                 }
             }
@@ -90,8 +91,9 @@ namespace Client
                     clientLogic.clientsocket.Close();
                 }
                 App.Current.MainWindow = mainw;
-                MainControl main = new MainControl(1);
+                MainControl main = new MainControl();
                 App.Current.MainWindow.Content = main;
+                main.messaggioErrore();
                 return;
             }
 

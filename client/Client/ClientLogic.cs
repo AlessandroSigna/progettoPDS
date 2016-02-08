@@ -89,7 +89,7 @@ namespace Client
         }
 
         #region Costruttori
-        public ClientLogic(TcpClient clientSocketPassed, IPAddress ipPassed, int portPassed, MainWindow mainwindow)
+        public ClientLogic(TcpClient clientSocketPassed, IPAddress ipPassed, int portPassed, MainWindow mainwindow, MainControl maincontrol)
         {
             mw = mainwindow;
             errore = 0;
@@ -101,7 +101,7 @@ namespace Client
             workertransaction = new BackgroundWorker();
             workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Connect); //setto il metodo che deve essere eseguito all'occorrenza di workertransaction.RunWorkerAsync()
             workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_ConnectionCompleted);  //setto la callback da eseguire quando la backgroud operation termina
-            workertransaction.RunWorkerAsync();
+            workertransaction.RunWorkerAsync(maincontrol);
         }
 
         public ClientLogic(IPAddress iPAddress, int port, string fold, string user, string folderR)
@@ -123,8 +123,9 @@ namespace Client
                     clientsocket.GetStream().Close();
                     clientsocket.Close();
                 }
-                MainControl main = new MainControl(1);  //FIXME: magicnumber!
-                App.Current.MainWindow.Content = main;
+                //MainControl main = new MainControl(1);  //FIXME: magicnumber!
+                //App.Current.MainWindow.Content = main;
+                mw.restart(true);
             }
         }
         #endregion
@@ -141,26 +142,36 @@ namespace Client
             {
                 errore = 1;
             }
+
+            e.Result = e.Argument;
         }
 
 
         void Workertransaction_ConnectionCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            MainControl mc = (MainControl)e.Result;
+
             if (errore == 1)
             {
-                MainControl main = new MainControl(errore);
-                App.Current.MainWindow.Content = main;
-                return;
+                //MainControl main = new MainControl(errore);
+                //App.Current.MainWindow.Content = main;
+                //return;
+                // Perché creare una nuova MainControl solo per passare l'errore?
+                // Qui sono ancora nel MainControl
+                mc.Esito_Connect(false);
             }
             mac = GetMacAddress();  //FIXME: al prof non è piaciuta sta cosa del mac
             if (mac.Equals(String.Empty))
             {
-                MainControl main = new MainControl(1);  //FIXME: magicnumber!
-                App.Current.MainWindow.Content = main;
-                return;
+                //MainControl main = new MainControl(1);  //FIXME: magicnumber!
+                //App.Current.MainWindow.Content = main;
+                //return;
+                // Perché creare una nuova MainControl solo per passare l'errore?
+                // Qui sono ancora nel MainControl
+                mc.Esito_Connect(false);
             }
-            LoginRegisterControl login = new LoginRegisterControl();
-            App.Current.MainWindow.Content = login;
+
+            mc.Esito_Connect(true);
         }
 
         private string GetMacAddress()
@@ -195,130 +206,23 @@ namespace Client
         #endregion
 
         #region Metodi di Login e Registrazione
-        internal void Login(string username, string pass)
+        internal void Login(string username, string pass, LoginControl lc)
         {
             workertransaction = new BackgroundWorker();
             object paramAct = LOGIN;
             object paramObj = username;
             this.username = username;
             object paramObj2 = pass;
-            object[] parameters = new object[] { paramObj, paramObj2, paramAct };   //incapsulo username, password e azione per poterli passare come parametro (array)
+            object paramWindow = lc;
+            object[] parameters = new object[] { paramObj, paramObj2, paramAct, paramWindow };   //incapsulo username, password e azione per poterli passare come parametro (array)
 
-            workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_LoginRegistrazione);
+            workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Login);
             workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_LoginCompleted);
             workertransaction.RunWorkerAsync(parameters);
 
         }
 
-        /*
-         * Analizzo la risposta del server ed eventualmente passo il controllo a MenuControl
-         */
-        private void Workertransaction_LoginCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            try
-            {
-                string message = ReadStringFromStream();
-                if (message.Contains(OK))
-                {
-                    MenuControl main = new MenuControl();
-                    App.Current.MainWindow.Content = main;
-                    UpdateNotifyIconConnesso();
-                    connesso = true;
-                }
-                else
-                {
-                    String tmp = message.Substring(1, message.Length - 1);
-                    String messaggioErrore = message.Substring(tmp.IndexOf('+') + 2, tmp.Length - tmp.IndexOf('+') - 1);
-                    if (messaggioErrore == CONNESSIONE_CHIUSA_SERVER)
-                    {
-                        clientsocket.GetStream().Close();
-                        clientsocket.Close();
-                        MainControl main = new MainControl(1);
-                        App.Current.MainWindow.Content = main;
-                    }
-                    else
-                    {
-                        LoginControl main = new LoginControl(messaggioErrore);
-                        App.Current.MainWindow.Content = main;
-                    }
-                }
-            }
-            catch
-            {
-                if (clientsocket.Connected)
-                {
-                    clientsocket.GetStream().Close();
-                    clientsocket.Close();
-                }
-                MainControl main = new MainControl(1);
-                App.Current.MainWindow.Content = main;
-            }
-        }
-
-        internal void Registrati(string username, string pass)
-        {
-            workertransaction = new BackgroundWorker();
-
-            object paramAct = REGISTRAZIONE;
-            object paramObj = username;
-            object paramObj2 = pass;
-            object[] parameters = new object[] { paramObj, paramObj2, paramAct };
-
-            workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_LoginRegistrazione);
-            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_RegistrazioneCompleted);
-            workertransaction.RunWorkerAsync(parameters);
-
-        }
-
-        /*
-         * Callback lanciata quando termina l'invio delle credenziali per la registrazione. 
-         * Attende risposta da server leggendo dallo stream
-         */
-        private void Workertransaction_RegistrazioneCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            try
-            {
-                string message = ReadStringFromStream();
-                if (message.Contains(OK))
-                {
-
-                    MenuControl main = new MenuControl();   //il controllo passa a MenuControl
-                    App.Current.MainWindow.Content = main;
-                    UpdateNotifyIconConnesso();
-                    connesso = true;
-
-                }
-                else
-                {
-                    //se l'autenticazione non va a buon fine torno alla finestra principale e chiude lo stream
-                    String tmp = message.Substring(1, message.Length - 1);
-                    MainControl main = new MainControl(1);  //FIXME: magicnumber
-                    App.Current.MainWindow.Content = main;
-                    if (mw.clientLogic.clientsocket.Client.Connected)   //FIXME: ma mw.clientLogic non punta a questo stesso oggetto?!
-                    {
-                        mw.clientLogic.clientsocket.GetStream().Close();
-                        mw.clientLogic.clientsocket.Close();
-                    }
-                    return;
-                }
-            }
-            catch
-            {
-                if (mw.clientLogic.clientsocket.Connected)
-                {
-                    mw.clientLogic.clientsocket.GetStream().Close();
-                    mw.clientLogic.clientsocket.Close();
-                }
-                MainControl main = new MainControl(1);
-                App.Current.MainWindow.Content = main;
-                return;
-            }
-        }
-
-        /*callback usata sia in caso di registrazione sia in caso di login
-         il discriminante è ciò che è contenuto in action dopo che l'array dei parametri viene parsificato
-        */
-        private void Workertransaction_LoginRegistrazione(object sender, DoWorkEventArgs e)
+        private void Workertransaction_Login(object sender, DoWorkEventArgs e)
         {
             object[] parameters = e.Argument as object[];
             string[] resultArray = Array.ConvertAll(parameters, x => x.ToString());
@@ -337,11 +241,193 @@ namespace Client
                     clientsocket.GetStream().Close();
                     clientsocket.Close();
                 }
-                MainControl main = new MainControl(1);  //FIXME: magicnumber
-                App.Current.MainWindow.Content = main;
+                //MainControl main = new MainControl(1);  //FIXME: magicnumber
+                //App.Current.MainWindow.Content = main;
+                mw.restart(true);
             }
 
+            e.Result = parameters;
+
         }
+
+        /*
+         * Analizzo la risposta del server ed eventualmente passo il controllo a MenuControl
+         */
+        private void Workertransaction_LoginCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            object[] parameters = e.Result as object[];
+            LoginControl lc = (LoginControl)parameters[3];
+
+
+            try
+            {
+                string message = ReadStringFromStream();
+                if (message.Contains(OK))
+                {
+                    //MenuControl main = new MenuControl();
+                    //App.Current.MainWindow.Content = main;
+                    lc.Esito_Login(true);
+                    UpdateNotifyIconConnesso();
+                    connesso = true;
+                }
+                else
+                {
+                    String tmp = message.Substring(1, message.Length - 1);
+                    String messaggioErrore = message.Substring(tmp.IndexOf('+') + 2, tmp.Length - tmp.IndexOf('+') - 1);
+                    if (messaggioErrore == CONNESSIONE_CHIUSA_SERVER)
+                    {
+                        clientsocket.GetStream().Close();
+                        clientsocket.Close();
+                        //MainControl main = new MainControl(1);
+                        //App.Current.MainWindow.Content = main;
+                        mw.restart(true);
+                    }
+                    else
+                    {
+                        lc.Esito_Login(false, messaggioErrore);
+                    }
+                }
+            }
+            catch
+            {
+                if (clientsocket.Connected)
+                {
+                    clientsocket.GetStream().Close();
+                    clientsocket.Close();
+                }
+                //MainControl main = new MainControl(1);
+                //App.Current.MainWindow.Content = main;
+                mw.restart(true);
+            }
+        }
+
+        internal void Registrati(RegistratiControl rc, string username, string pass)
+        {
+            workertransaction = new BackgroundWorker();
+
+            object paramAct = REGISTRAZIONE;
+            object paramObj = username;
+            object paramObj2 = pass;
+            object paramWindow = rc;
+            object[] parameters = new object[] { paramObj, paramObj2, paramAct, paramWindow };
+
+            workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Registrazione);
+            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_RegistrazioneCompleted);
+            workertransaction.RunWorkerAsync(parameters);
+
+        }
+
+        private void Workertransaction_Registrazione(object sender, DoWorkEventArgs e)
+        {
+            object[] parameters = e.Argument as object[];
+            string[] resultArray = Array.ConvertAll(parameters, x => x.ToString());
+            string username = resultArray[0];
+            this.username = username;
+            string password = resultArray[1];
+            string action = resultArray[2];
+
+            try
+            {
+                WriteStringOnStream(action + username + "+" + password + "+" + mac);    //invio al server le credenziali - IN CHIARO
+            }
+            catch
+            {
+                if (clientsocket.Connected)
+                {
+                    clientsocket.GetStream().Close();
+                    clientsocket.Close();
+                }
+                //MainControl main = new MainControl(1);  //FIXME: magicnumber
+                //App.Current.MainWindow.Content = main;
+                mw.restart(true);
+            }
+
+            e.Result = parameters;
+
+        }
+
+        /*
+         * Callback lanciata quando termina l'invio delle credenziali per la registrazione. 
+         * Attende risposta da server leggendo dallo stream
+         */
+        private void Workertransaction_RegistrazioneCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            object[] parameters = e.Result as object[];
+            RegistratiControl rc = (RegistratiControl)parameters[3];
+
+            try
+            {
+                string message = ReadStringFromStream();
+                if (message.Contains(OK))
+                {
+                    rc.Registrati_Esito(true);
+                    UpdateNotifyIconConnesso();
+                    connesso = true;
+
+                }
+                else
+                {
+                    //se l'autenticazione non va a buon fine torno alla finestra principale e chiude lo stream
+                    //rc.Registrati_Esito(false);
+                    String tmp = message.Substring(1, message.Length - 1);
+                    //MainControl main = new MainControl(1);  //FIXME: magicnumber
+                    //App.Current.MainWindow.Content = main;
+                    mw.restart(true);
+                    //if (mw.clientLogic.clientsocket.Client.Connected)   //FIXME: ma mw.clientLogic non punta a questo stesso oggetto?!
+                    //{
+                    //    mw.clientLogic.clientsocket.GetStream().Close();
+                    //    mw.clientLogic.clientsocket.Close();
+                    //}
+                    if (this.clientsocket.Client.Connected)
+                    {
+                        this.clientsocket.GetStream().Close();
+                        this.clientsocket.Close();
+                    }
+                    return;
+                }
+            }
+            catch
+            {
+                if (mw.clientLogic.clientsocket.Connected)
+                {
+                    mw.clientLogic.clientsocket.GetStream().Close();
+                    mw.clientLogic.clientsocket.Close();
+                }
+                //MainControl main = new MainControl(1);
+                //App.Current.MainWindow.Content = main;
+                mw.restart(true);
+                return;
+            }
+        }
+
+        /*callback usata sia in caso di registrazione sia in caso di login
+         il discriminante è ciò che è contenuto in action dopo che l'array dei parametri viene parsificato
+        */
+        //private void Workertransaction_LoginRegistrazione(object sender, DoWorkEventArgs e)
+        //{
+        //    object[] parameters = e.Argument as object[];
+        //    string[] resultArray = Array.ConvertAll(parameters, x => x.ToString());
+        //    string username = resultArray[0];
+        //    this.username = username;
+        //    string password = resultArray[1];
+        //    string action = resultArray[2];
+        //    try
+        //    {
+        //        WriteStringOnStream(action + username + "+" + password + "+" + mac);    //invio al server le credenziali - IN CHIARO
+        //    }
+        //    catch
+        //    {
+        //        if (clientsocket.Connected)
+        //        {
+        //            clientsocket.GetStream().Close();
+        //            clientsocket.Close();
+        //        }
+        //        //MainControl main = new MainControl(1);  //FIXME: magicnumber
+        //        //App.Current.MainWindow.Content = main;
+        //        mw.restart(true);
+        //    }
+
+        //}
 
         #endregion
 
@@ -377,8 +463,9 @@ namespace Client
                     clientsocket.GetStream().Close();
                     clientsocket.Close();
                 }
-                MainControl main = new MainControl(0);
-                App.Current.MainWindow.Content = main;
+                //MainControl main = new MainControl();
+                //App.Current.MainWindow.Content = main;
+                mw.restart(false);
                 return;
             }
         }
@@ -386,8 +473,9 @@ namespace Client
         private void Workertransaction_DisconnectCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             UpdateNotifyIconDisconnesso();
-            MainControl main = new MainControl(0);
-            App.Current.MainWindow.Content = main;
+            //MainControl main = new MainControl();
+            //App.Current.MainWindow.Content = main;
+            mw.restart(true);
         }
 
         public static void UpdateNotifyIconDisconnesso()
@@ -533,21 +621,21 @@ namespace Client
         {
             try
             {
-                MenuControl mc = (MenuControl)mw.Content;
-                mc.pbStatus.Value = 0;
-                mc.pbStatus.Visibility = Visibility.Hidden;
-                mc.Wait.Visibility = Visibility.Hidden;
-                mc.EffettuaBackup.IsEnabled = true;
-                mc.EffettuaBackup.Visibility = Visibility.Visible;
+                MenuControl menuc = (MenuControl)mw.Content;
+                menuc.pbStatus.Value = 0;
+                menuc.pbStatus.Visibility = Visibility.Hidden;
+                menuc.Wait.Visibility = Visibility.Hidden;
+                menuc.EffettuaBackup.IsEnabled = true;
+                menuc.EffettuaBackup.Visibility = Visibility.Visible;
                 BrushConverter bc = new BrushConverter();
                 if (e.Cancelled)
                 {
                     //Se l'invio file è stato annullato  si ritorna ad uno stato stabile (senza rollback?) e lo si comunica all'utente nella TextBox FileUploading
                     // Questi comandi non dovrebbero essere qui
-                    mc.EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
-                    mc.EffettuaBackup.Content = "Start";
-                    mc.FolderButton.IsEnabled = true;
-                    mc.FileUploading.Text = "Non tutti i dati sono aggiornati";
+                    menuc.EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
+                    menuc.EffettuaBackup.Content = "Start";
+                    menuc.FolderButton.IsEnabled = true;
+                    menuc.FileUploading.Text = "Non tutti i dati sono aggiornati";
                     monitorando = false;
                     MenuControl menuC = (MenuControl)App.Current.MainWindow.Content;
                     if (menuC.exit) //non capisco exit cosa gestisce
@@ -563,22 +651,24 @@ namespace Client
                             mainw.clientLogic.clientsocket.GetStream().Close();
                             mainw.clientLogic.clientsocket.Close();
                         }
-                        MainControl main = new MainControl(0);
-                        App.Current.MainWindow.Content = main;
+                        //MainControl main = new MainControl();
+                        //App.Current.MainWindow.Content = main;
+                        mw.restart(false);
                     }
                 }
                 else
                 {
                     //altrimenti si comunica il 'successo'
-                    mc.FileUploading.Text = "Ultima sincronizzazione : " + DateTime.Now;
+                    menuc.FileUploading.Text = "Ultima sincronizzazione : " + DateTime.Now;
                     lavorandoInvio = false;
                     event_1.Set();
 
                     //se è avvenuto qualche problema nell'esecuzione del task torno a MainControl con un errore
                     if ((bool)e.Result == false)
                     {
-                        MainControl main = new MainControl(1);  //FIXME: magicnumber
-                        App.Current.MainWindow.Content = main;
+                        //MainControl main = new MainControl(1);  //FIXME: magicnumber
+                        //App.Current.MainWindow.Content = main;
+                        mw.restart(true);
                         return;
                     }
                 }
@@ -592,8 +682,9 @@ namespace Client
                     mainw.clientLogic.clientsocket.GetStream().Close();
                     mainw.clientLogic.clientsocket.Close();
                 }
-                MainControl main = new MainControl(1);
-                App.Current.MainWindow.Content = main;
+                //MainControl main = new MainControl(1);
+                //App.Current.MainWindow.Content = main;
+                mw.restart(true);
             }
 
         }

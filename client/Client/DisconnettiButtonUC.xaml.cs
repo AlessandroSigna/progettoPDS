@@ -32,7 +32,7 @@ namespace Client
         {
             //DialogDisconnetti();  //serve un avviso per l'utente che si sta disconnettendo dal server? oppure basta un pulsante più chiaro
             //il controllo torna a MainControl
-            MainControl main = new MainControl(0);
+            MainControl main = new MainControl();
             App.Current.MainWindow.Content = main;
         }
 
