@@ -27,7 +27,11 @@ namespace Client
     {
         private ClientLogic client;
         private TcpClient clientsocket;
-        private int errore;
+        //private int errore;
+        private Object tempContent = null;
+        Window parentWindow;
+        ProgressRing bar;
+
         public MainControl()
         {
             InitializeComponent();
@@ -51,15 +55,23 @@ namespace Client
             MessageBoxResult result = System.Windows.MessageBox.Show("Impossibile raggiungere il server", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-        private void showWaitBar()
+        private void showHideWaitBar(bool show)
         {
-
-            Window parentWindow = (Window)this.Parent;
-            ProgressRing bar = new ProgressRing();  //FIXME: MetroWindow dependence
-            bar.IsActive = true;
-            bar.Width = 100;
-            bar.Height = 100;
-            parentWindow.Content = bar;
+            if (show)
+            {
+                parentWindow = (Window)this.Parent;
+                bar = new ProgressRing();  //FIXME: MetroWindow dependence
+                tempContent = parentWindow.Content;
+                bar.IsActive = true;
+                bar.Width = 100;
+                bar.Height = 100;
+                parentWindow.Content = bar;
+            }
+            else
+            {
+                bar.IsActive = false;
+                parentWindow.Content = tempContent;
+            }
         }
 
         #endregion
@@ -74,7 +86,7 @@ namespace Client
 
             if (IpValid && PortValid)
             {
-                showWaitBar();
+                showHideWaitBar(true);
                 clientsocket = new TcpClient();
                 MainWindow mw = (MainWindow)Application.Current.MainWindow;
                 client = new ClientLogic(clientsocket, IPAddress.Parse(ip), int.Parse(port), mw, this);
@@ -100,6 +112,7 @@ namespace Client
                 LoginRegisterControl login = new LoginRegisterControl();
                 App.Current.MainWindow.Content = login;
             } else {
+                showHideWaitBar(false);
                 messaggioErrore();
             }
         }

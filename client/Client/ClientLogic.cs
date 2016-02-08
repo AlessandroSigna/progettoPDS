@@ -150,6 +150,7 @@ namespace Client
         void Workertransaction_ConnectionCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             MainControl mc = (MainControl)e.Result;
+            mac = GetMacAddress();  //FIXME: al prof non è piaciuta sta cosa del mac
 
             if (errore == 1)
             {
@@ -159,19 +160,16 @@ namespace Client
                 // Perché creare una nuova MainControl solo per passare l'errore?
                 // Qui sono ancora nel MainControl
                 mc.Esito_Connect(false);
-            }
-            mac = GetMacAddress();  //FIXME: al prof non è piaciuta sta cosa del mac
-            if (mac.Equals(String.Empty))
-            {
+            } else if (mac.Equals(String.Empty)) {
                 //MainControl main = new MainControl(1);  //FIXME: magicnumber!
                 //App.Current.MainWindow.Content = main;
                 //return;
                 // Perché creare una nuova MainControl solo per passare l'errore?
                 // Qui sono ancora nel MainControl
                 mc.Esito_Connect(false);
+            } else {
+                mc.Esito_Connect(true);
             }
-
-            mc.Esito_Connect(true);
         }
 
         private string GetMacAddress()

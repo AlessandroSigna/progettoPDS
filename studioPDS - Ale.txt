@@ -144,7 +144,6 @@ Il progress ring si deve sostituire :(
 
 idee
 - Server stampa il suo IP
-- visualizzazione della navigazione del restore più simile a windows
 - navigazione per fare la restore su un'unica finestra in cui è visibile e accessibile tutto l'albero delle directory
 a partire dalla root. Se si conferma una cartella si vuole fare la restore della cartella (+file eliminati?)
 se si seleziona un file si deve poi confermare la versione. navigando sono visibili i file eliminati
@@ -154,19 +153,18 @@ se si seleziona un file si deve poi confermare la versione. navigando sono visib
 - login e registrazione con logica diversa
 - togliere ricerca
 - versioni delle cartelle (?)
+- visualizzazione della navigazione del restore più simile a windows
 http://stackoverflow.com/questions/6415037/populate-treeview-from-list-of-file-paths-in-wpf
 http://www.codeproject.com/Articles/21248/A-Simple-WPF-Explorer-Tree
 - usare sempre socket come stream e non Socket.Send
-- controllo su numero caratteri username e password (controllo su tipo di carattere per evitare sql injection)
+- Customizzare messaggi di errore per register fallito
 
 sicurezza
 (assumiamo il server sicuro e la rete insicura)
 - registrazione con invio credenziali protette da DH ?
-https://msdn.microsoft.com/en-us/library/system.security.cryptography.ecdiffiehellmancng(v=vs.110).aspx
 - autenticazione a sfida -> psw in chiaro sul server ma in rete viene mandato solo hash di psw + sfida
 oppure 
 - autenticazione psw ripetibili -> invio hash della psw e il server conserva hash e sale
-Per autenticazione a sfida vedere progetto remote control client Connection.connectServerWorker_DoWork
 
 FIX
 - se da LoginRegisterControl si torna indietro la finestra non cambia nome
@@ -174,11 +172,8 @@ FIX
 - autenticazione a sfida
 - migliore aderenza al pattern MVC
 - il client si deve disconnettere quando il server si disconnette
-- Inserire un check sul tasto disconnetti (per vedere lo stato del server) (ridondante?)
 - pulsante back in ogni finestra 
 - messaggio errore utente già loggato (?)
-- StartDownload viene chiamata solo in DownloadFile e non in DownloadFolder
-- Utente già registrato "impossibile raggiungere il server" e si disconnette
 
 Dubbi
 - Come funziona lo stream? se nessuno legge e qualcuno scrive i dati restano lì? e viceversa?
@@ -188,4 +183,3 @@ https://msdn.microsoft.com/en-us/library/w89fhyex(v=vs.110).aspx
 http://www.codeproject.com/Articles/10649/An-Introduction-to-Socket-Programming-in-NET-using
 - I controlli dei dialog andrebbero gestiti nel loro .cs ? MenuControl assegna le callback dei Button di Disconnetti
 - E' possibile mettere un UserControl dentro una window (sicuramente sì) così da evitare duplicazione di codice? (Es back/home button)
-- Come gestiamo il caso includi file cancellati nel downlad della cartella?
