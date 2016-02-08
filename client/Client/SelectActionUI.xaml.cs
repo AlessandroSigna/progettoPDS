@@ -83,9 +83,10 @@ namespace Client
                     mw.clientLogic.clientsocket.GetStream().Close();
                     mw.clientLogic.clientsocket.Close();
                 }
-                MainControl main = new MainControl();
-                App.Current.MainWindow.Content = main;
-                main.messaggioErrore();
+                //MainControl main = new MainControl();
+                //App.Current.MainWindow.Content = main;
+                //main.messaggioErrore();
+                mw.restart(true);
 
             }
 

@@ -280,10 +280,11 @@ namespace Client
                 clientLogic.clientsocket.GetStream().Close();
                 clientLogic.clientsocket.Close();
             }
-            App.Current.MainWindow = mw;
-            MainControl main = new MainControl();
-            mw.Content = main;
-            main.messaggioErrore();
+            //App.Current.MainWindow = mw;
+            //MainControl main = new MainControl();
+            //mw.Content = main;
+            //main.messaggioErrore();
+            mw.restart(true);
             return;
 
         }

@@ -69,8 +69,7 @@ namespace Client
                 MenuControl main = new MenuControl();
                 App.Current.MainWindow.Content = main;
             } else {
-                // Stampa un messaggio da qualche parte con registrazione non andata a buon fine
-                // ma rimane in qusta stessa finestra
+                // Il caso in cui Registrati_Esito viene chiamata con false non c'è... Per ora!
             }
         }
 

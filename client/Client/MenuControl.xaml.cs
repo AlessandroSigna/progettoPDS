@@ -527,8 +527,9 @@ namespace Client
                     //    mainw.clientLogic.clientsocket.GetStream().Close();
                     //    mainw.clientLogic.clientsocket.Close();
                     //}
-                    MainControl main = new MainControl();
-                    App.Current.MainWindow.Content = main;
+                    //MainControl main = new MainControl();
+                    //App.Current.MainWindow.Content = main;
+                    mw.restart(false);
                 }
             }
             catch
@@ -751,11 +752,12 @@ namespace Client
             //    obj.clientLogic.clientsocket.Close();
             //}
 
-            App.Current.MainWindow = obj;
+            //App.Current.MainWindow = obj;
             updating = false;
-            MainControl main = new MainControl();
-            mw.Content = main;
-            main.messaggioErrore();
+            //MainControl main = new MainControl();
+            //mw.Content = main;
+            //main.messaggioErrore();
+            obj.restart(true);
         }
 
         private /*async*/ void messaggioErrore(string mess)
