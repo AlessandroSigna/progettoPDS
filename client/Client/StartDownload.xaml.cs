@@ -61,11 +61,11 @@ namespace Client
         {
             workertransaction = new BackgroundWorker();
             workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_RiceviFile);
-            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(workertranaction_RiceviFileCompleted);
+            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(workertransaction_RiceviFileCompleted);
             workertransaction.RunWorkerAsync();
         }
 
-        private void workertranaction_RiceviFileCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void workertransaction_RiceviFileCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             try
             {

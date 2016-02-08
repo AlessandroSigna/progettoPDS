@@ -147,7 +147,7 @@ namespace Client
             //assegno le callback a workertransaction
             workertransaction = new BackgroundWorker();
             workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_RiceviRestore);
-            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(workertranaction_RiceviRestoreCompleted);
+            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(workertransaction_RiceviRestoreCompleted);
             workertransaction.RunWorkerAsync();
 
 
@@ -156,7 +156,7 @@ namespace Client
         /*
          * Al termine dei download si apre l'explorer per mostrate quanto ripristinato
          */
-        private void workertranaction_RiceviRestoreCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void workertransaction_RiceviRestoreCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             downloading = false;
             System.Diagnostics.Process.Start("explorer.exe", clientLogic.folderR);
