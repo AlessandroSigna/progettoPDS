@@ -39,15 +39,15 @@ namespace Client
 
         private void Login_MouseEnter(object sender, MouseEventArgs e)
         {
-            //BrushConverter bc = new BrushConverter();
-            //Login.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+            BrushConverter bc = new BrushConverter();
+            Login.Background = (Brush)bc.ConvertFrom("#F5FFFA");
 
         }
 
         private void Login_MouseLeave(object sender, MouseEventArgs e)
         {
-            //BrushConverter bc = new BrushConverter();
-            //Login.Background = (Brush)bc.ConvertFrom("#FF44E572");
+            BrushConverter bc = new BrushConverter();
+            Login.Background = (Brush)bc.ConvertFrom("#FF44E572");
 
         }
         #endregion
@@ -61,15 +61,15 @@ namespace Client
 
         private void Registrati_MouseEnter(object sender, MouseEventArgs e)
         {
-            //BrushConverter bc = new BrushConverter();
-            //Registrati.Background = (Brush)bc.ConvertFrom("#FFFACD");
+            BrushConverter bc = new BrushConverter();
+            Registrati.Background = (Brush)bc.ConvertFrom("#FFFACD");
 
         }
 
         private void Registrati_MouseLeave(object sender, MouseEventArgs e)
         {
-            //BrushConverter bc = new BrushConverter();
-            //Registrati.Background = (Brush)bc.ConvertFrom("#FFF5F804");
+            BrushConverter bc = new BrushConverter();
+            Registrati.Background = (Brush)bc.ConvertFrom("#FFF5F804");
         }
 
 

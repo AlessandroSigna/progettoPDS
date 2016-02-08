@@ -67,18 +67,18 @@ namespace Client
         #region Button Connetti
         private void connect_button_Click(object sender, RoutedEventArgs e)
         {
-            //string ip = IpAddressBox.Text;
-            //string port = PortBox.Text;
+            string ip = IpAddressBox.Text;
+            string port = PortBox.Text;
             //Boolean IpValid = IsValidIPAddress(ip);
             //Boolean PortValid = IsValidPort(port);
 
             //if (IpValid && PortValid)
             //{
                 showWaitBar();
-                //clientsocket = new TcpClient();
-                //MainWindow mw = (MainWindow)Application.Current.MainWindow;
-                //client = new ClientLogic(clientsocket, IPAddress.Parse(ip), int.Parse(port), mw);
-                //mw.clientLogic = client;
+                clientsocket = new TcpClient();
+                MainWindow mw = (MainWindow)Application.Current.MainWindow;
+                client = new ClientLogic(clientsocket, IPAddress.Parse(ip), int.Parse(port), mw);
+                mw.clientLogic = client;
             //}
             //else
             //{
@@ -98,15 +98,15 @@ namespace Client
 
         private void Connect_MouseEnter(object sender, MouseEventArgs e)
         {
-        //    BrushConverter bc = new BrushConverter();
-        //    Connect.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+            BrushConverter bc = new BrushConverter();
+            Connect.Background = (Brush)bc.ConvertFrom("#F5FFFA");
 
         }
 
         private void Connect_MouseLeave(object sender, MouseEventArgs e)
         {
-        //    BrushConverter bc = new BrushConverter();
-        //    Connect.Background = (Brush)bc.ConvertFrom("#FF44E572");
+            BrushConverter bc = new BrushConverter();
+            Connect.Background = (Brush)bc.ConvertFrom("#FF44E572");
 
         }
         #endregion

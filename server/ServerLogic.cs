@@ -29,6 +29,7 @@ namespace BackupServer
         public const string ERRORE = "+ERR+";
         public const string STOP = "+STOP+";
         public const string REGISTRAZIONE = "+REG+";
+        public const string ECDH = "+ECDH+";   //key agreement per proteggere la registrazione
         public const string LOGIN = "+LOGIN+";
         public const string LOGOUT = "+LOGOUT+";
         public const string DISCONETTI = "+DISCO+";
@@ -129,6 +130,264 @@ namespace BackupServer
         // Chiamati da readStringFromStream
         #region Metodi handler comandi
 
+        private string comandoECDH(string responseData, TcpClient clientsocket)
+        {
+            // Tutti i comandi relativi alla gestione della transazione sono commentati e per questo anche il rollback è scritto
+            // ma commentato.
+            //SQLiteTransaction transazioneReg = mainWindow.m_dbConnection.BeginTransaction();
+            Console.WriteLine(responseData);
+            try
+            {
+                //mi aspetto dal client: ECDH + chiave pubblica client
+                String[] parametri = responseData.Split('+');
+                int numParametri = parametri.Length;
+                if (numParametri != 3)  //parametri[0] è sempre vuoto perché responseData inizia con +
+                {
+                    //transazioneReg.Rollback();
+                    //transazioneReg.Dispose();
+                    return ERRORE + "Numero di paramentri passati per ECDH errato: " + numParametri;
+                }
+
+                String clientPublicKeyString = parametri[2];    //ricavo stringa con la chiave pubblica inviata dal client
+                Console.WriteLine("ClientPublicKey " + clientPublicKeyString);
+
+                //converto la chiave pubblica del client da string in byte[]
+                String[] arr = clientPublicKeyString.Split('-');
+                byte[] clientPublicKey = new byte[arr.Length];
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    clientPublicKey[i] = Convert.ToByte(arr[i], 16);
+                }
+
+                byte[] serverPublicKey;
+                string serverPublicKeyString;
+                ECDiffieHellmanCng serverECDH = new ECDiffieHellmanCng();   //istanzio la struttua dati per l'ECDH
+
+                serverECDH.KeyDerivationFunction = ECDiffieHellmanKeyDerivationFunction.Hash;
+                serverECDH.HashAlgorithm = CngAlgorithm.Sha256;
+                serverPublicKey = serverECDH.PublicKey.ToByteArray();       //chiave pubblica del server in byte[]
+                serverPublicKeyString = BitConverter.ToString(serverPublicKey);     //chiave convertita in string
+                writeStringOnStream(clientsocket, ECDH + serverPublicKeyString);    //invio al client la mia chiave pubblica
+                Console.WriteLine("ServerPublicKey " + serverPublicKeyString);
+                
+                //derivo la chiave simmetrica del server per questa connessione
+                CngKey k = CngKey.Import(clientPublicKey, CngKeyBlobFormat.EccPublicBlob);
+                byte[] serverKey = serverECDH.DeriveKeyMaterial(k);
+                Console.WriteLine("ServerSimmetricKey " + BitConverter.ToString(serverKey));
+                return registrazioneSicura(serverKey, clientsocket);
+            }
+            catch
+            {
+                //transazioneReg.Rollback();
+                //transazioneReg.Dispose();
+
+                return ERRORE + "Errore durante DH";
+            }
+        }
+
+        private string registrazioneSicura(byte[] simmetricKey, TcpClient clientsocket)
+        {
+
+            try
+            {
+                //devo ricevere dal client REG + IV + {username + password}chiave simmetrica
+                String responseData = ReadStringFromStream(clientsocket);
+                Console.WriteLine("messaggio: " + responseData);
+
+                String[] parametri = responseData.Split('+');
+                int numParametri = parametri.Length;
+                if (numParametri != 4)
+                {
+                    //transazioneReg.Rollback();
+                    //transazioneReg.Dispose();
+                    return ERRORE + "Numero di paramentri passati per la registrazione sicura errato";
+                }
+
+                String comando = parametri[1];
+                String ivString = parametri[2];
+                String ciphertextString = parametri[3];
+
+                if (comando == null || !comando.Equals(REGISTRAZIONE.Replace('+', ' ').Trim()))
+                {
+                    //transazioneReg.Rollback();
+                    //transazioneReg.Dispose();
+                    return ERRORE + "Comando errato";
+                }
+
+                //converto IV e ciphertext in byte[]
+                String[] arr = ivString.Split('-');
+                byte[] iv = new byte[arr.Length];
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    iv[i] = Convert.ToByte(arr[i], 16);
+                }
+
+                String[] arr2 = ciphertextString.Split('-');
+                byte[] ciphertext = new byte[arr2.Length];
+                for (int i = 0; i < arr2.Length; i++)
+                {
+                    ciphertext[i] = Convert.ToByte(arr2[i], 16);
+                }
+                Console.WriteLine("IV: " + ivString);
+                Console.WriteLine("ciphertext: " + ciphertextString);
+
+                //decifro
+                String plaintext = EffettuaDecifraturaSimmetrica(ciphertext, iv, simmetricKey);
+                String[] credenziali = plaintext.Split('+');
+                String user = credenziali[0].ToUpper();
+                String pass = credenziali[1];
+                Console.WriteLine("user: " + user);
+                Console.WriteLine("pass: " + pass);
+
+                if (user == null || user.Equals(""))
+                {
+                    //transazioneReg.Rollback();
+                    //transazioneReg.Dispose();
+                    return ERRORE + "User non valido";
+                }
+
+                if (pass == null || pass.Equals(""))
+                {
+                    //transazioneReg.Rollback();
+                    //transazioneReg.Dispose();
+                    return ERRORE + "Password non valida";
+                }
+
+
+                SQLiteCommand comandoP = new SQLiteCommand(mainWindow.m_dbConnection);
+                // Perché queste SELECT non sono protette dal lock?
+                comandoP.CommandText = "SELECT * FROM UTENTI WHERE username=@username";
+                comandoP.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
+                //comandoP.Transaction = transazioneReg;
+
+                try
+                {
+                    // L'ACID della transazione è garantita da questo lock. Ma forse i metodi transaction gestiscono tutto automaticamente?
+                    _readerWriterLock.EnterReadLock();
+
+                    if (comandoP.ExecuteScalar() != null)
+                    {
+                        //transazioneReg.Rollback();
+                        //transazioneReg.Dispose();
+                        return ERRORE + "Utente gia' registrato";
+                    }
+                }
+                finally
+                {
+                    _readerWriterLock.ExitReadLock();
+                }
+
+                SQLiteCommand comandoP2 = new SQLiteCommand(mainWindow.m_dbConnection);
+                comandoP2.CommandText = "INSERT INTO UTENTI (username,password) VALUES(@username,@password)";
+                comandoP2.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
+                comandoP2.Parameters.Add("@password", System.Data.DbType.String, pass.Length).Value = pass;
+                //comandoP2.Transaction = transazioneReg;
+
+                bool isBroken = false;
+                do
+                {
+                    try
+                    {
+                        _readerWriterLock.EnterWriteLock();
+                        if (_readerWriterLock.WaitingReadCount > 0)
+                        {
+                            isBroken = true;
+                        }
+                        else
+                        {
+                            if (comandoP2.ExecuteNonQuery().Equals(0))
+                            {
+                                //transazioneReg.Rollback();
+                                //transazioneReg.Dispose();
+                                return ERRORE + "Errore durante la registrazione";
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        _readerWriterLock.ExitWriteLock();
+                    }
+                    if (isBroken)
+                    {
+                        Thread.Sleep(10);
+                    }
+                    else
+                        isBroken = false;
+                } while (isBroken);
+
+                SQLiteCommand comandoP4 = new SQLiteCommand(mainWindow.m_dbConnection);
+                comandoP4.CommandText = "INSERT INTO UTENTILOGGATI (username,lastUpdate) VALUES (@username,@lastUpdate)";
+                comandoP4.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
+                comandoP4.Parameters.Add("@lastUpdate", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
+
+                //comandoP4.Transaction = transazioneReg;
+                bool isBroken2 = false;
+                do
+                {
+                    try
+                    {
+                        _readerWriterLock.EnterWriteLock();
+                        if (_readerWriterLock.WaitingReadCount > 0)
+                        {
+                            isBroken2 = true;
+                        }
+                        else
+                        {
+                            if (comandoP4.ExecuteNonQuery() != 1)
+                            {
+                                //transazioneReg.Rollback();
+                                //transazioneReg.Dispose();
+                                return ERRORE + "Errore durante la registrazione";
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        _readerWriterLock.ExitWriteLock();
+                    }
+                    if (isBroken2)
+                    {
+                        Thread.Sleep(10);
+                    }
+                    else
+                        isBroken2 = false;
+                } while (isBroken2);
+
+
+                //transazioneReg.Commit();
+                //transazioneReg.Dispose();
+
+                return OK + "Registrazione avvenuta correttamente!";
+            }
+            catch
+            {
+                //transazioneReg.Rollback();
+                //transazioneReg.Dispose();
+
+                return ERRORE + "Errore durante la registrazione";
+            }
+        }
+
+        private string EffettuaDecifraturaSimmetrica(byte[] encryptedMessage, byte[] iv, byte[] key)
+        {
+            Aes aes = new AesCryptoServiceProvider();
+            aes.Key = key;
+            aes.IV = iv;
+            // Decrypt the message
+            using (MemoryStream plaintext = new MemoryStream())
+            {
+                using (CryptoStream cs = new CryptoStream(plaintext, aes.CreateDecryptor(), CryptoStreamMode.Write))
+                {
+                    cs.Write(encryptedMessage, 0, encryptedMessage.Length);
+                    cs.Close();
+                    string message = Encoding.UTF8.GetString(plaintext.ToArray());
+                    Console.WriteLine("Plaintext: " + message);
+                    return message;
+                }
+            }
+            
+        }
+
         private string comandoRegistazione(string responseData)
         {
             // Tutti i comandi relativi alla gestione della transazione sono commentati e per questo anche il rollback è scritto
@@ -164,7 +423,7 @@ namespace BackupServer
                 {
                     //transazioneReg.Rollback();
                     //transazioneReg.Dispose();
-                    return ERRORE + "User non valido";
+                    return ERRORE + "Username non valido";
                 }
 
                 if (pass == null || pass.Equals(""))
@@ -195,7 +454,7 @@ namespace BackupServer
                     {
                         //transazioneReg.Rollback();
                         //transazioneReg.Dispose();
-                        return ERRORE + "Utente gia' registrato";
+                        return ERRORE + "Esiste già un utente con questo nome";
                     }
                 }
                 finally
@@ -2452,6 +2711,31 @@ namespace BackupServer
 
         #region Metodi di lettura e scrittura stringa su stream
 
+        public byte[] ReadByteArrayFromStream(TcpClient clientsocket)
+        {
+            TcpState statoConn = TcpState.Established; //GetState(clientsocket); //
+
+            if (statoConn == TcpState.Established)
+            {
+                NetworkStream stream = clientsocket.GetStream();
+                Byte[] data = new Byte[512];
+                //try {
+                Int32 bytes = stream.Read(data, 0, data.Length);
+                //}
+                //catch
+                //{
+                //    return responseData;
+                //}
+                return data;
+            }
+            else
+            {
+                //return ERRORE + "Connessione chiusa dal client";
+                return null;
+            }
+
+        }
+
         public string ReadStringFromStream(TcpClient clientsocket)
         {
             TcpState statoConn = TcpState.Established; //GetState(clientsocket); //
@@ -2516,10 +2800,14 @@ namespace BackupServer
 
                     switch (comando)
                     {
-                        case REGISTRAZIONE:
-                            risposta = comandoRegistazione(responseData);
+                        case ECDH:
+                            risposta = comandoECDH(responseData, clientsocket);
                             nowrite = false;
                             break;
+                        //case REGISTRAZIONE:   //obsoleto ormai
+                        //    risposta = comandoRegistazione(responseData);
+                        //    nowrite = false;
+                        //    break;
                         case LOGIN:
                             risposta = comandoLogin(responseData);
                             nowrite = false;

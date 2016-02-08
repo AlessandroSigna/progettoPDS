@@ -33,6 +33,7 @@ namespace Client
         public const string ERRORE = "+ERR+";
         public const string INFO = "+INFO+";
         public const string REGISTRAZIONE = "+REG+";
+        public const string ECDH = "+ECDH+";   //key agreement per proteggere la registrazione
         public const string LOGIN = "+LOGIN+";
         public const string STOP = "+STOP+";
         public const string DISCONETTI = "+DISCO+";
@@ -264,7 +265,7 @@ namespace Client
             object paramObj2 = pass;
             object[] parameters = new object[] { paramObj, paramObj2, paramAct };
 
-            workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_LoginRegistrazione);
+            workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Registrazione);
             workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_RegistrazioneCompleted);
             workertransaction.RunWorkerAsync(parameters);
 
@@ -276,6 +277,7 @@ namespace Client
          */
         private void Workertransaction_RegistrazioneCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            return;
             try
             {
                 string message = ReadStringFromStream();
@@ -343,6 +345,96 @@ namespace Client
 
         }
 
+        /*
+         * Invio delle credenziali di registrazione effettuando il KeyAgreement con DH per proteggerle
+         */
+        private void Workertransaction_Registrazione(object sender, DoWorkEventArgs e)
+        {
+            object[] parameters = e.Argument as object[];
+            string[] resultArray = Array.ConvertAll(parameters, x => x.ToString());
+            //string username = ;
+            this.username = resultArray[0];
+            string password = resultArray[1];
+            //string action = resultArray[2];
+            byte[] clientPublicKey;
+            string clientPublicKeyString;
+            ECDiffieHellmanCng clientECDH = new ECDiffieHellmanCng();
+
+            try
+            {
+                clientECDH.KeyDerivationFunction = ECDiffieHellmanKeyDerivationFunction.Hash;
+                clientECDH.HashAlgorithm = CngAlgorithm.Sha256;
+                clientPublicKey = clientECDH.PublicKey.ToByteArray();   //chiave pubblica in byte[]
+                //devo inviare la chiave publica al server
+                clientPublicKeyString = BitConverter.ToString(clientPublicKey); //converto la chiave pubblica in string. Byte separati da '-'
+                Console.WriteLine("PublicKey " + clientPublicKeyString);
+
+                WriteStringOnStream(ECDH + clientPublicKeyString);    //comunico che voglio iniziare il DH + mando la pkey
+                string serverResponse = ReadStringFromStream(); //deve essere ECDH + serverPublicKeyString
+                if (!serverResponse.Contains(ECDH))
+                {
+                    Console.WriteLine("Risposta inaspettata dal server");
+                    return;
+                }
+                String[] parametri = serverResponse.Split('+');
+                string serverPublicKeyString = parametri[2];
+                Console.WriteLine("serverPublicKey " + serverPublicKeyString);
+                //la chiave del server deve essere convertita in byte[]
+                String[] arr = serverPublicKeyString.Split('-');
+                byte[] serverPublicKey = new byte[arr.Length];
+                for (int i = 0; i < arr.Length; i++)
+                {
+                    serverPublicKey[i] = Convert.ToByte(arr[i], 16);
+                }
+                CngKey k = CngKey.Import(serverPublicKey, CngKeyBlobFormat.EccPublicBlob);
+                byte[] clientKey = clientECDH.DeriveKeyMaterial(k); //derivo la chiave simmetrica
+                Console.WriteLine("ClientSimmetricKey " + BitConverter.ToString(clientKey));
+
+                //procedo con la cifratura delle credenziali username e password
+                string encryptedMessage = null;
+                byte[] iv = null;
+                String secretMessage = username + '+' + password;
+                encryptedMessage = EffettuaCifraturaSimmetrica(clientKey, secretMessage, out iv);
+
+                //invio al server credenziali cifrate + iv
+                string ivString = BitConverter.ToString(iv);
+                Console.WriteLine("IV" + ivString.Length + ": " + ivString);
+                Console.WriteLine("ciphertext: " + encryptedMessage);
+
+                String messaggio = REGISTRAZIONE + ivString + '+' + encryptedMessage;
+                WriteStringOnStream(messaggio);
+                Console.WriteLine("messaggio: " + messaggio);
+            }
+            catch
+            {
+                if (clientsocket.Connected)
+                {
+                    clientsocket.GetStream().Close();
+                    clientsocket.Close();
+                }
+                MainControl main = new MainControl(1);  //FIXME: magicnumber
+                App.Current.MainWindow.Content = main;
+            }
+        }
+
+        private string EffettuaCifraturaSimmetrica(byte[] key, string secretMessage, out byte[] iv)
+        {
+
+            Aes aes = new AesCryptoServiceProvider();
+            aes.Key = key;
+            iv = aes.IV;
+
+            // Encrypt the message
+            using (MemoryStream ciphertext = new MemoryStream())
+            using (CryptoStream cs = new CryptoStream(ciphertext, aes.CreateEncryptor(), CryptoStreamMode.Write))
+            {
+                byte[] plaintextMessage = Encoding.UTF8.GetBytes(secretMessage);
+                cs.Write(plaintextMessage, 0, plaintextMessage.Length);
+                cs.Close();
+                return BitConverter.ToString(ciphertext.ToArray());
+            }
+            
+        }
         #endregion
 
         #region Metodi di Disconnesione
@@ -402,6 +494,32 @@ namespace Client
         #endregion
 
         #region Accesso allo stream
+        public int WriteByteArrayOnStream(byte[] message)
+        {
+            TcpState statoConn = GetState(clientsocket);    //FIXME: istruzione inutile?! controllare statoConn
+            NetworkStream stream = clientsocket.GetStream();
+            stream.WriteTimeout = 30000;
+            stream.Write(message, 0, message.Length);
+            return 1;   //FIXME: perchè return 1?
+        }
+
+        public byte[] ReadByteArrayFromStream()
+        {
+            TcpState statoConn = GetState(clientsocket);
+            if (statoConn == TcpState.Established)
+            {
+                NetworkStream stream = clientsocket.GetStream();
+                stream.ReadTimeout = 30000;
+                Byte[] data = new Byte[512];
+                Int32 bytes = stream.Read(data, 0, data.Length);
+                return data;
+            }
+            else
+            {
+                return null;
+            }
+        }
+
         public int WriteStringOnStream(string message)
         {
             TcpState statoConn = GetState(clientsocket);    //FIXME: istruzione inutile?! controllare statoConn

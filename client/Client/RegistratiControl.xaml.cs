@@ -52,8 +52,8 @@ namespace Client
         private void Registrati_Click(object sender, RoutedEventArgs e)
         {
 
-            //MainWindow mw = (MainWindow)App.Current.MainWindow;
-            //mw.clientLogic.Registrati(Username.Text, Password.Password);
+            MainWindow mw = (MainWindow)App.Current.MainWindow;
+            mw.clientLogic.Registrati(Username.Text, Password.Password);
 
             // Serve un if else per gestire la risposta del server, analizzata da clientLogic,
             // ma passata e usata qui con un valore di return per decidere quale sarà la prossima finestra
