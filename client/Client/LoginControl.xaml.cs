@@ -28,29 +28,24 @@ namespace Client
         private string mess;
 
         #region Costruttore ed Errore
-        public LoginControl(string message)
+        public LoginControl()
         {
             InitializeComponent();
             //((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true;
             App.Current.MainWindow.Title = "Login";
-            //mess = message;
-            //if (mess != null)
-            //{
-            //    messaggioErrore(mess);
-            //}
-            //mess = null;
+
             //deve essere la finestra a customizzare l'evento per il click sul back button
             //perché è la finestra stessa a sapere quale è la finestra precedente
             BackButtonControl.BackButton.Click += Back_Click;
         }
 
-        //private /*async*/ void messaggioErrore(string mess)
-        //{
-        //    //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-        //    //await mw.ShowMessageAsync("Errore", mess);
-        //    MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+        private /*async*/ void messaggioErrore(string mess)
+        {
+            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
+            //await mw.ShowMessageAsync("Errore", mess);
+            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
 
-        //}
+        }
         #endregion
 
         #region Back Button
@@ -85,23 +80,33 @@ namespace Client
             // controllo da fare alla fine
 
             // Queste informazioni vanno comunque passate a clientLogic, magari non così
-            //MainWindow mw = (MainWindow)App.Current.MainWindow;
-            //mw.clientLogic.Login(Username.Text, Password.Password);
+            MainWindow mw = (MainWindow)App.Current.MainWindow;
+            mw.clientLogic.Login(Username.Text, Password.Password, this);
 
 
             // Serve un if else per gestire la risposta del server, analizzata da clientLogic,
             // ma passata e usata qui con un valore di return per decidere quale sarà la prossima finestra
             //if (message.Contains(OK))
             //{
-                MenuControl main = new MenuControl();
-                App.Current.MainWindow.Content = main;
+                //MenuControl main = new MenuControl();
+                //App.Current.MainWindow.Content = main;
             //}
             //else
             //{
-            //    LoginControl main = new LoginControl(messaggioErrore);
-            //    App.Current.MainWindow.Content = main;
+            //LoginControl main = new LoginControl(messaggioErrore);
+            //App.Current.MainWindow.Content = main;
             //}
 
+        }
+
+        public void Esito_Login(bool esito, string messaggio = null)
+        {
+            if (esito) {
+                MenuControl main = new MenuControl();
+                App.Current.MainWindow.Content = main;
+            } else {
+                messaggioErrore(messaggio);
+            }
         }
 
         private void Login_MouseEnter(object sender, MouseEventArgs e)

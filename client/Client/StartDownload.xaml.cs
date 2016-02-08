@@ -61,11 +61,11 @@ namespace Client
         {
             workertransaction = new BackgroundWorker();
             workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_RiceviFile);
-            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(workertranaction_RiceviFileCompleted);
+            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(workertransaction_RiceviFileCompleted);
             workertransaction.RunWorkerAsync();
         }
 
-        private void workertranaction_RiceviFileCompleted(object sender, RunWorkerCompletedEventArgs e)
+        private void workertransaction_RiceviFileCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             try
             {
@@ -175,9 +175,11 @@ namespace Client
                 clientLogic.clientsocket.GetStream().Close();
                 clientLogic.clientsocket.Close();
             }
-            App.Current.MainWindow = mw;
-            MainControl main = new MainControl(1);
-            mw.Content = main;
+            //App.Current.MainWindow = mw;
+            //MainControl main = new MainControl();
+            //mw.Content = main;
+            //main.messaggioErrore();
+            mw.restart(true);
             return;
         }
 

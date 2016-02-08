@@ -53,33 +53,36 @@ namespace Client
         {
 
             MainWindow mw = (MainWindow)App.Current.MainWindow;
-            mw.clientLogic.Registrati(Username.Text, Password.Password);
+            mw.clientLogic.Registrati(this, Username.Text, Password.Password);
 
-            // Serve un if else per gestire la risposta del server, analizzata da clientLogic,
-            // ma passata e usata qui con un valore di return per decidere quale sarà la prossima finestra
-            //if (message.Contains(OK))
-            //{
-            MenuControl main = new MenuControl();
-            App.Current.MainWindow.Content = main;
-            //}
-            //else
-            //{
-            //    RegisterControl main = new RegisterControl(messaggioErrore);
-            //    App.Current.MainWindow.Content = main;
-            //}
+            //MenuControl main = new MenuControl();
+            //App.Current.MainWindow.Content = main;
 
+        }
+
+        public void Registrati_Esito(bool esito)
+        {
+            // If else per gestire la risposta del server, analizzata da clientLogic,
+            // usata qui per decidere quale sarà la prossima finestra
+
+            if (esito) {
+                MenuControl main = new MenuControl();
+                App.Current.MainWindow.Content = main;
+            } else {
+                // Il caso in cui Registrati_Esito viene chiamata con false non c'è... Per ora!
+            }
         }
 
         private void Registrati_MouseEnter(object sender, MouseEventArgs e)
         {
-            //BrushConverter bc = new BrushConverter();
-            //Registrati.Background = (Brush)bc.ConvertFrom("#99FFFF");
+            BrushConverter bc = new BrushConverter();
+            Registrati.Background = (Brush)bc.ConvertFrom("#99FFFF");
         }
 
         private void Registrati_MouseLeave(object sender, MouseEventArgs e)
         {
-            //BrushConverter bc = new BrushConverter();
-            //Registrati.Background = (Brush)bc.ConvertFrom("#33CCFF");
+            BrushConverter bc = new BrushConverter();
+            Registrati.Background = (Brush)bc.ConvertFrom("#33CCFF");
 
         }
         #endregion

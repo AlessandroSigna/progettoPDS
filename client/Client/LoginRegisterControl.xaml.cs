@@ -32,7 +32,7 @@ namespace Client
 
         private void Login_Click(object sender, RoutedEventArgs e)
         {
-            LoginControl main = new LoginControl(null);
+            LoginControl main = new LoginControl();
             App.Current.MainWindow.Content = main;
         }
 

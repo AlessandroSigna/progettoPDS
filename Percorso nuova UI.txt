@@ -1,6 +1,6 @@
-X MainControl (Connetti)
-X LoginRegisterControl
-X LoginControl - X RegistratiControl (Logga) (se la registrazione non va a buon fine torna a Login o Register Control con messaggio di errore)
+XL MainControl (Connetti)
+XL LoginRegisterControl
+XL LoginControl - XL RegistratiControl (Logga) (se la registrazione non va a buon fine torna a Login o Register Control con messaggio di errore)
 (Disabled) MenuControl (Pulsante start sync/monitor, pulsante cartella, label path della cartella monitorata, Pulsante restore)
 
 Pulsante cartella per backup:

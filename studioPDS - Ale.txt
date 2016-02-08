@@ -157,6 +157,7 @@ se si seleziona un file si deve poi confermare la versione. navigando sono visib
 http://stackoverflow.com/questions/6415037/populate-treeview-from-list-of-file-paths-in-wpf
 http://www.codeproject.com/Articles/21248/A-Simple-WPF-Explorer-Tree
 - usare sempre socket come stream e non Socket.Send
+- controllo su numero caratteri username e password (controllo su tipo di carattere per evitare sql injection)
 
 sicurezza
 (assumiamo il server sicuro e la rete insicura)

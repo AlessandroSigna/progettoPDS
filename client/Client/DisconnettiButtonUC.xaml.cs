@@ -20,6 +20,7 @@ namespace Client
     /// </summary>
     public partial class DisconnettiButtonUC : UserControl
     {
+
         public DisconnettiButtonUC()
         {
             InitializeComponent();
@@ -31,9 +32,11 @@ namespace Client
         private void Logout_Click(object sender, RoutedEventArgs e)
         {
             //DialogDisconnetti();  //serve un avviso per l'utente che si sta disconnettendo dal server? oppure basta un pulsante più chiaro
-            //il controllo torna a MainControl
-            MainControl main = new MainControl(0);
-            App.Current.MainWindow.Content = main;
+            ////il controllo torna a MainControl
+            //MainControl main = new MainControl();
+            //App.Current.MainWindow.Content = main;
+            MainWindow mw = (MainWindow)App.Current.MainWindow;
+            mw.restart(false);
         }
 
         /*

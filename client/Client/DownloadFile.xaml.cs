@@ -80,9 +80,11 @@ namespace Client
                     clientLogic.clientsocket.GetStream().Close();
                     clientLogic.clientsocket.Close();
                 }
-                App.Current.MainWindow = mainw;
-                MainControl main = new MainControl(1);
-                App.Current.MainWindow.Content = main;
+                //App.Current.MainWindow = mainw;
+                //MainControl main = new MainControl();
+                //App.Current.MainWindow.Content = main;
+                //main.messaggioErrore();
+                mainw.restart(true);
                 return;
             }
         }

@@ -40,7 +40,7 @@ namespace Client
             closing = false;
             this.Left = SystemParameters.PrimaryScreenWidth - this.Width;
             this.Top = SystemParameters.PrimaryScreenHeight - this.Height - 40;
-            MainControl main = new MainControl(0);
+            MainControl main = new MainControl();
             App.Current.MainWindow.Content = main;
             MyNotifyIcon = new System.Windows.Forms.NotifyIcon();
             MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/uploadicon.ico");
@@ -113,6 +113,15 @@ namespace Client
             _exitwindow.BCancel.Click += ButtonCancelOnClick;
             _customDialog.Content = _exitwindow;
             //await this.ShowMetroDialogAsync(_customDialog);
+        }
+
+        public void restart(bool error)
+        {
+            MainControl main = new MainControl();
+            App.Current.MainWindow.Content = main;
+
+            if (error)
+                main.messaggioErrore();
         }
 
         private void ButtonOkOnClick(object sender, RoutedEventArgs e)

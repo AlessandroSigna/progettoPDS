@@ -28,7 +28,7 @@ namespace Client
         private ClientLogic client;
         private TcpClient clientsocket;
         private int errore;
-        public MainControl(int errorePassed)
+        public MainControl()
         {
             InitializeComponent();
             App.Current.MainWindow.Width = 400;
@@ -43,13 +43,13 @@ namespace Client
         }
 
         #region Altri Metodi
-        //private void messaggioErrore()
-        //{
-        //    //Window mw = (Window)App.Current.MainWindow;
-        //    //await mw.ShowMessageAsync("Errore", "Impossibile raggiungere il server");
-        //    MessageBoxResult result = System.Windows.MessageBox.Show("Impossibile raggiungere il server", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
-            
-        //}
+        public void messaggioErrore()
+        {
+            ClientLogic.UpdateNotifyIconDisconnesso();
+            //Window mw = (Window)App.Current.MainWindow;
+            //await mw.ShowMessageAsync("Errore", "Impossibile raggiungere il server");
+            MessageBoxResult result = System.Windows.MessageBox.Show("Impossibile raggiungere il server", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
 
         private void showWaitBar()
         {
@@ -69,31 +69,40 @@ namespace Client
         {
             string ip = IpAddressBox.Text;
             string port = PortBox.Text;
-            //Boolean IpValid = IsValidIPAddress(ip);
-            //Boolean PortValid = IsValidPort(port);
+            Boolean IpValid = IsValidIPAddress(ip);
+            Boolean PortValid = IsValidPort(port);
 
-            //if (IpValid && PortValid)
-            //{
+            if (IpValid && PortValid)
+            {
                 showWaitBar();
                 clientsocket = new TcpClient();
                 MainWindow mw = (MainWindow)Application.Current.MainWindow;
-                client = new ClientLogic(clientsocket, IPAddress.Parse(ip), int.Parse(port), mw);
+
+                client = new ClientLogic(clientsocket, IPAddress.Parse(ip), int.Parse(port), mw, this);
                 mw.clientLogic = client;
-            //}
-            //else
-            //{
-            //    Console.Out.WriteLine("No addr");
-            //}
+            }
+            else
+            {
+                Console.Out.WriteLine("No addr");
+            }
 
-            // Il passaggio a LoginRegisterControl non avviene qui, ma in ClientLogic,
-            // dopo che viene stabilita la connessione.
-            // Vorrei provare a mettere tutti i passaggi tra le finestre, nella logica delle finestre stesse.
-            // (come è già nella maggior parte dei casi)
-            // In questo caso a connessione stabilita il ClientLogic deve comunicarlo a MainControl che poi instanzia
-            // LoginRegisterControl:
+        }
 
-            LoginRegisterControl login = new LoginRegisterControl();
-            App.Current.MainWindow.Content = login;
+        public void Esito_Connect(bool esito)
+        {
+            if (esito) {
+                // Il passaggio a LoginRegisterControl non avviene qui, ma in ClientLogic,
+                // dopo che viene stabilita la connessione.
+                // Vorrei provare a mettere tutti i passaggi tra le finestre, nella logica delle finestre stesse.
+                // (come è già nella maggior parte dei casi)
+                // In questo caso a connessione stabilita il ClientLogic deve comunicarlo a MainControl che poi instanzia
+                // LoginRegisterControl:
+
+                LoginRegisterControl login = new LoginRegisterControl();
+                App.Current.MainWindow.Content = login;
+            } else {
+                messaggioErrore();
+            }
         }
 
         private void Connect_MouseEnter(object sender, MouseEventArgs e)
@@ -115,66 +124,66 @@ namespace Client
 
         private void PortBox_LostFocus(object sender, RoutedEventArgs e)
         {
-        //    IsValidPort(PortBox.Text);
+            IsValidPort(PortBox.Text);
         }
 
         private void IpAddressBox_LostFocus(object sender, RoutedEventArgs e)
         {
-        //    IsValidIPAddress(IpAddressBox.Text);
-        //}
+            IsValidIPAddress(IpAddressBox.Text);
+        }
         //Controllo IP valido
-        //public bool IsValidIPAddress(string addr)
-        //{
-        //    try
-        //    {
-        //        IPAddress address;
-        //        if (IPAddress.TryParse(addr, out address))
-        //        {
-        //            IpAddressBox.BorderBrush = Brushes.Green;
-        //            IpAddressBox.BorderThickness = new Thickness(1);
-        //            return true;
-        //        }
-        //        else
-        //        {
-        //            IpAddressBox.BorderBrush = Brushes.Red;
-        //            IpAddressBox.BorderThickness = new Thickness(2);
-        //            return false;
-        //        }
-        //    }
-        //    catch
-        //    {
-        //        IpAddressBox.BorderBrush = Brushes.Red;
-        //        IpAddressBox.BorderThickness = new Thickness(2);
-        //        return false;
-        //    }
-        //}
+        public bool IsValidIPAddress(string addr)
+        {
+            try
+            {
+                IPAddress address;
+                if (IPAddress.TryParse(addr, out address))
+                {
+                    IpAddressBox.BorderBrush = Brushes.Green;
+                    IpAddressBox.BorderThickness = new Thickness(1);
+                    return true;
+                }
+                else
+                {
+                    IpAddressBox.BorderBrush = Brushes.Red;
+                    IpAddressBox.BorderThickness = new Thickness(2);
+                    return false;
+                }
+            }
+            catch
+            {
+                IpAddressBox.BorderBrush = Brushes.Red;
+                IpAddressBox.BorderThickness = new Thickness(2);
+                return false;
+            }
+        }
 
-        ////Controllo Porta valida
-        //public bool IsValidPort(string addr)
-        //{
+        //Controllo Porta valida
+        public bool IsValidPort(string addr)
+        {
 
-        //    try
-        //    {
-        //        int port = int.Parse(addr);
-        //        if (port > 0 && port < 65536)
-        //        {
-        //            PortBox.BorderBrush = Brushes.Green;
-        //            PortBox.BorderThickness = new Thickness(1);
-        //            return true;
-        //        }
-        //        else
-        //        {
-        //            PortBox.BorderBrush = Brushes.Red;
-        //            PortBox.BorderThickness = new Thickness(2);
-        //            return false;
-        //        }
-        //    }
-        //    catch
-        //    {
-        //        PortBox.BorderBrush = Brushes.Red;
-        //        PortBox.BorderThickness = new Thickness(2);
-        //        return false;
-        //    }
+            try
+            {
+                int port = int.Parse(addr);
+                if (port > 0 && port < 65536)
+                {
+                    PortBox.BorderBrush = Brushes.Green;
+                    PortBox.BorderThickness = new Thickness(1);
+                    return true;
+                }
+                else
+                {
+                    PortBox.BorderBrush = Brushes.Red;
+                    PortBox.BorderThickness = new Thickness(2);
+                    return false;
+                }
+            }
+            catch
+            {
+                PortBox.BorderBrush = Brushes.Red;
+                PortBox.BorderThickness = new Thickness(2);
+                return false;
+            }
 
         }
         #endregion
