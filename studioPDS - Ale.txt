@@ -158,7 +158,8 @@ http://stackoverflow.com/questions/6415037/populate-treeview-from-list-of-file-p
 http://www.codeproject.com/Articles/21248/A-Simple-WPF-Explorer-Tree
 - usare sempre socket come stream e non Socket.Send
 - controllo su numero caratteri username e password (controllo su tipo di carattere per evitare sql injection) (il controllo di username e password in registrazione nella classe controller locale e non sul server)
-- Customizzare messaggi di errore per register fallito
+- Customizzare messaggi di errore per register fallito e altro
+- Quando indietro fa sloggare inserire avviso (es. hai effettuato il logout, stai per effettuare il logout)
 
 sicurezza
 (assumiamo il server sicuro e la rete insicura)
@@ -170,6 +171,7 @@ oppure
 Per autenticazione a sfida vedere progetto remote control client Connection.connectServerWorker_DoWork
 
 FIX
+- Risolvere problema "utente già loggato"
 - se da LoginRegisterControl si torna indietro la finestra non cambia nome
 - autenticazione su mac -> ma se è sul mac come abbiamo fatto a connetterci dal mixto?!
 - autenticazione a sfida

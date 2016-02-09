@@ -150,6 +150,7 @@ namespace Client
 
         void Workertransaction_ConnectionCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            
             MainControl mc = (MainControl)e.Result;
             mac = GetMacAddress();  //FIXME: al prof non è piaciuta sta cosa del mac
 
@@ -171,6 +172,8 @@ namespace Client
             } else {
                 mc.Esito_Connect(true);
             }
+
+
         }
 
         private string GetMacAddress()
@@ -232,6 +235,7 @@ namespace Client
             try
             {
                 WriteStringOnStream(action + username + "+" + password + "+" + mac);    //invio al server le credenziali - IN CHIARO
+                e.Result = parameters;
             }
             catch
             {
@@ -244,9 +248,6 @@ namespace Client
                 //App.Current.MainWindow.Content = main;
                 mw.restart(true);
             }
-
-            e.Result = parameters;
-
         }
 
         /*
@@ -254,12 +255,11 @@ namespace Client
          */
         private void Workertransaction_LoginCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            object[] parameters = e.Result as object[];
-            LoginControl lc = (LoginControl)parameters[3];
-
-
             try
             {
+                object[] parameters = e.Result as object[];
+                LoginControl lc = (LoginControl)parameters[3];
+
                 string message = ReadStringFromStream();
                 if (message.Contains(OK))
                 {
@@ -300,7 +300,7 @@ namespace Client
             }
         }
 
-        internal void Registrati(RegistratiControl rc, string username, string pass)
+        internal void Registrati(string username, string pass, RegistratiControl rc)
         {
             workertransaction = new BackgroundWorker();
 
@@ -343,7 +343,7 @@ namespace Client
                 if (!serverResponse.Contains(ECDH))
                 {
                     Console.WriteLine("Risposta inaspettata dal server");
-                    return;
+                    throw new Exception();
                 }
                 String[] parametri = serverResponse.Split('+');
                 string serverPublicKeyString = parametri[2];
@@ -373,6 +373,7 @@ namespace Client
                 String messaggio = REGISTRAZIONE + ivString + '+' + encryptedMessage;
                 WriteStringOnStream(messaggio);
                 Console.WriteLine("messaggio: " + messaggio);
+                e.Result = parameters;
             }
             catch
             {
@@ -385,9 +386,6 @@ namespace Client
                 //App.Current.MainWindow.Content = main;
                 mw.restart(true);
             }
-
-            e.Result = parameters;
-
         }
 
         private string EffettuaCifraturaSimmetrica(byte[] key, string secretMessage, out byte[] iv)
@@ -416,11 +414,11 @@ namespace Client
          */
         private void Workertransaction_RegistrazioneCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            object[] parameters = e.Result as object[];
-            RegistratiControl rc = (RegistratiControl)parameters[3];
-
             try
             {
+                object[] parameters = e.Result as object[];
+                RegistratiControl rc = (RegistratiControl)parameters[3];
+
                 string message = ReadStringFromStream();
                 if (message.Contains(OK))
                 {

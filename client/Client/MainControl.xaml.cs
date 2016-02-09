@@ -52,7 +52,7 @@ namespace Client
             ClientLogic.UpdateNotifyIconDisconnesso();
             //Window mw = (Window)App.Current.MainWindow;
             //await mw.ShowMessageAsync("Errore", "Impossibile raggiungere il server");
-            MessageBoxResult result = System.Windows.MessageBox.Show("Impossibile raggiungere il server", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBoxResult result = System.Windows.MessageBox.Show("Errore durante la comunicazione con il server.", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         private void showHideWaitBar(bool show)

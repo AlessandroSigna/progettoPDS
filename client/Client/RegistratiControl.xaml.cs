@@ -53,7 +53,7 @@ namespace Client
         {
 
             MainWindow mw = (MainWindow)App.Current.MainWindow;
-            mw.clientLogic.Registrati(this, Username.Text, Password.Password);
+            mw.clientLogic.Registrati(Username.Text, Password.Password, this);
 
             //MenuControl main = new MenuControl();
             //App.Current.MainWindow.Content = main;
