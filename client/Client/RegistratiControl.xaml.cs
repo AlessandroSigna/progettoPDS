@@ -75,14 +75,14 @@ namespace Client
 
         private void Registrati_MouseEnter(object sender, MouseEventArgs e)
         {
-            //BrushConverter bc = new BrushConverter();
-            //Registrati.Background = (Brush)bc.ConvertFrom("#99FFFF");
+            BrushConverter bc = new BrushConverter();
+            Registrati.Background = (Brush)bc.ConvertFrom("#99FFFF");
         }
 
         private void Registrati_MouseLeave(object sender, MouseEventArgs e)
         {
-            //BrushConverter bc = new BrushConverter();
-            //Registrati.Background = (Brush)bc.ConvertFrom("#33CCFF");
+            BrushConverter bc = new BrushConverter();
+            Registrati.Background = (Brush)bc.ConvertFrom("#33CCFF");
 
         }
         #endregion
