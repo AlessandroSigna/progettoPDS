@@ -128,7 +128,7 @@
                 </Style>
             </Button.Style>
         </Button>
-        <Button x:Name="RestoreFile" Content="Restore File" HorizontalAlignment="Left" Margin="265,311,0,0" VerticalAlignment="Top" Width="100" Height="33" FontFamily="Yu Gothic UI Semibold" FontSize="13" Opacity="0.9" Background="LightGray" IsEnabled="False" MouseEnter="RestoreFile_MouseEnter" MouseLeave="RestoreFile_MouseLeave" Click="RestoreFile_Click">
+        <Button x:Name="RestoreFile" Content="Restore File" HorizontalAlignment="Left" Margin="142,172,0,0" VerticalAlignment="Top" Width="100" Height="33" FontFamily="Yu Gothic UI Semibold" FontSize="13" Opacity="0.9" Background="LightGray" IsEnabled="True" MouseEnter="RestoreFile_MouseEnter" MouseLeave="RestoreFile_MouseLeave" Click="RestoreFile_Click">
             <Button.Resources>
                 <Style TargetType="{x:Type Border}">
                     <Setter Property="CornerRadius" Value="10"/>

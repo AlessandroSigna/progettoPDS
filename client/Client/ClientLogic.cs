@@ -430,7 +430,7 @@ namespace Client
                 else
                 {
                     //se l'autenticazione non va a buon fine torno alla finestra principale e chiude lo stream
-                    //rc.Registrati_Esito(false);
+                    rc.Registrati_Esito(false, "Registrazione fallita.");
                     String tmp = message.Substring(1, message.Length - 1);
                     //MainControl main = new MainControl(1);  //FIXME: magicnumber
                     //App.Current.MainWindow.Content = main;

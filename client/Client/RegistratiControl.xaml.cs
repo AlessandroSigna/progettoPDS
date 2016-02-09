@@ -42,11 +42,12 @@ namespace Client
             BackButtonControl.BackButton.Click += Back_Click;
         }
 
-        //private async void messaggioErrore(string mess)
-        //{
-        //    MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-        //    await mw.ShowMessageAsync("Errore", mess);
-        //}
+        private void messaggioerrore(string mess)
+        {
+            //metrowindow mw = (metrowindow)app.current.mainwindow;
+            //await mw.showmessageasync("errore", mess);
+            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
 
         #region Button Registrati
         private void Registrati_Click(object sender, RoutedEventArgs e)
@@ -60,7 +61,7 @@ namespace Client
 
         }
 
-        public void Registrati_Esito(bool esito)
+        public void Registrati_Esito(bool esito, string messaggio = null)
         {
             // If else per gestire la risposta del server, analizzata da clientLogic,
             // usata qui per decidere quale sarà la prossima finestra
@@ -69,7 +70,7 @@ namespace Client
                 MenuControl main = new MenuControl();
                 App.Current.MainWindow.Content = main;
             } else {
-                // Il caso in cui Registrati_Esito viene chiamata con false non c'è... Per ora!
+                messaggioerrore(messaggio);
             }
         }
 
