@@ -36,6 +36,7 @@ namespace Client
         public const string REGISTRAZIONE = "+REG+";
         public const string ECDH = "+ECDH+";   //key agreement per proteggere la registrazione
         public const string LOGIN = "+LOGIN+";
+        public const string LOGOUT = "+LOGOUT+";
         public const string STOP = "+STOP+";
         public const string DISCONETTI = "+DISCO+";
         public const string FILE = "+FILE+";
@@ -62,7 +63,7 @@ namespace Client
         public string folderR;
         public string mac;
         private string _username;
-        public bool connesso = false;
+        public bool connesso = false;   //true se loggato
         public string username
         {
             get
@@ -535,7 +536,52 @@ namespace Client
         //}
         #endregion
 
-        #region Metodi di Disconnesione
+        #region Metodi di Disconnesione e Logout
+        internal void Logout(MenuControl mc)
+        {
+            object window = mc;
+            workertransaction = new BackgroundWorker();
+            workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Logout);
+            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_LogoutCompleted);
+            workertransaction.RunWorkerAsync(mc);
+
+        }
+
+        private void Workertransaction_Logout(object sender, DoWorkEventArgs e)
+        {
+            object[] res = { ERRORE + "Errore inatteso nel logout", e.Argument }; //oggetto che verrà analizzato da Workertransaction_LoginCompleted
+            e.Result = res;
+            WriteStringOnStream(LOGOUT + username);
+            String message = ReadStringFromStream();
+            res[0] = message;
+            e.Result = res;
+        }
+
+        private void Workertransaction_LogoutCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            object[] res = e.Result as object[];
+            String message = (String)res[0];
+            MenuControl mc = (MenuControl)res[1];
+            if (message.Contains(OK))
+            {
+                connesso = false;
+                UpdateNotifyIconDisconnesso();
+                mc.Logout_Esito(true);
+            }
+            else
+            {
+                //se il logout non va a buon fine torno alla MainControl e chiudo lo stream
+                mc.Logout_Esito(false, "Errore nella procedura di logout");
+                mw.restart(false);
+                if (this.clientsocket.Client.Connected)
+                {
+                    this.clientsocket.GetStream().Close();
+                    this.clientsocket.Close();
+                }
+                return;
+            }
+        }
+
         internal void DisconnettiServer(Boolean esci)
         {
             workertransaction = new BackgroundWorker();
