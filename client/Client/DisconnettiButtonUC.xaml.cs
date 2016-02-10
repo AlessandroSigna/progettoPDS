@@ -35,8 +35,21 @@ namespace Client
             ////il controllo torna a MainControl
             //MainControl main = new MainControl();
             //App.Current.MainWindow.Content = main;
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            mw.restart(false);
+
+            //devo disconnettermi dal server ma prima evnetualmente devo sloggare
+            //delego la decisione a ClientLogic piochè conosce lo stato della connessione
+            //avverto l'utente
+            MessageBoxResult result = System.Windows.MessageBox.Show("Verrai disconnesso dal server.\nProcedere?", "Disconnessione", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.OK)
+            {
+                //prima di chiamare la ClientLogic.DisconnettiServer occorrerebbe attendere e/o interrompere eventuali operazioni in corso di backup o restore
+                //vedere vecchia implementazione su MenuControl.ButtonServerOnClick
+
+                MainWindow mw = (MainWindow)App.Current.MainWindow;
+                mw.clientLogic.DisconnettiServer(false);
+            }
+
         }
 
         /*

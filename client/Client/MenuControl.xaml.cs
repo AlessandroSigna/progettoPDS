@@ -651,7 +651,7 @@ namespace Client
         {
 
             //avverto l'utente
-            MessageBoxResult result = System.Windows.MessageBox.Show("Verrà effettuato il logout. Procedere?", "Logout", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+            MessageBoxResult result = System.Windows.MessageBox.Show("Verrà effettuato il logout.\nProcedere?", "Logout", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
             
             if (result == MessageBoxResult.OK)
             {
@@ -728,7 +728,7 @@ namespace Client
 
             //exit = true;
             //if (mainw.clientLogic.lavorandoInvio || updating)
-            //    EffettuaBackup.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            //    EffettuaBackup.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));    //riscatena l'evento click che stavolta porterà ad AttendiTermineUpdate
             //else
             //    mainw.clientLogic.DisconnettiServer(false);
 

@@ -76,6 +76,28 @@ namespace Client
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Console.Out.WriteLine("MainWindow: Closing");
+            if (App.Current.MainWindow.Content is MainControl)
+            {
+                //se la finestra corrente è MainControl posso uscire direttmente senza comunicare nulla nè al server nè all'utente
+                return;
+            }
+
+            //altrimenti prima chiedo conferma e poi disconnetto e chiudo
+            MessageBoxResult result = System.Windows.MessageBox.Show("Sicuro di volere uscire?", "Chiusura", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                //prima di chiamare la ClientLogic.DisconnettiServer occorrerebbe attendere e/o interrompere eventuali operazioni in corso di backup o restore
+                //vedere vecchia implementazione su MenuControl.ButtonServerOnClick
+
+                clientLogic.DisconnettiServer(true);
+            }
+
+            e.Cancel = true;    //cancello questo evento. Sarà la DisconnettiServer a richiamare la Close in modo efficace dopo aver effettuato la disconnessione pulita
+            return;
+
+
+            //vecchia implementazione che dipende dal contesto
             if (closing)
             {
                 clientLogic.DisconnettiServer(true);
@@ -104,6 +126,9 @@ namespace Client
             return;
         }
 
+        /*
+         * Chiamata da closing se (App.Current.MainWindow.Content is LoginControl) || (App.Current.MainWindow.Content is LoginRegisterControl) || (App.Current.MainWindow.Content is RegistratiControl)
+         */
         private /*async*/ void messaggioDisconnetti()
         {
             Console.Out.WriteLine("MainWindow: messaggioDisconnetti");

@@ -38,7 +38,8 @@ namespace Client
         public const string LOGIN = "+LOGIN+";
         public const string LOGOUT = "+LOGOUT+";
         public const string STOP = "+STOP+";
-        public const string DISCONETTI = "+DISCO+";
+        public const string DISCONETTI = "+DISCO+";//obsoleto
+        public const string DISCONNETTICLIENT = "+DISCOCLIENT+"; //chiude lo stream di comunicazione con il client (utente non loggato)
         public const string FILE = "+FILE+";
         public const string NONINVIARE = "+NOINVIO+";
         public const string EXITDOWNLOAD = "+EXITDOWNLOAD+";
@@ -50,7 +51,7 @@ namespace Client
         public const string CANC = "+CANC+"; //+CANC+user+filename
         public const string RENAMEFILE = "+RENAMEFI+"; //+RENAMEFILE+user+fileNameOLD+fileNameNEW
         public const string ENDSYNC = "+ENDSYN+"; //+ENDSYN+user+folder
-        public const string DISCONETTIUTENTE = "+DISCUTENTE+"; //+DISCUTENTE+user
+        public const string DISCONNETTIUTENTE = "+DISCUTENTE+"; //+DISCUTENTE+user
         public const string GETFOLDERUSER = "+GETFOLDUSER+"; // +GETFOLDUSER+user
         public const string FLP = "+FLP+";
         public const string CONNESSIONE_CHIUSA_SERVER = "Connessione chiusa dal server";
@@ -249,7 +250,11 @@ namespace Client
                     //throw new Exception();//gestire le eccezioni 
                     return;
                 }
-
+                //comunico che va tutto bene. Necessario inviare in messaggio adesso perché:
+                //non posso leggere di seguito prima una stringa e dopo un byte
+                //potrebbe capitare che il byte si metta in coda alla stringa nello stream
+                //e lo leggo come parte della stringa 
+                WriteStringOnStream(OK);
                 //aspetto dal server il nonce (challenge)
                 byte[] challenge = new byte[CHALLENGESIZE];
                 ReadByteArrayFromStream(challenge);
@@ -586,9 +591,8 @@ namespace Client
         {
             workertransaction = new BackgroundWorker();
             workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Disconnect);
-            if (!esci)
-                workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_DisconnectCompleted);
-            workertransaction.RunWorkerAsync();
+            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_DisconnectCompleted);
+            workertransaction.RunWorkerAsync(esci);
 
         }
 
@@ -596,15 +600,22 @@ namespace Client
         {
             try
             {
-                if (connesso)
+                if (connesso)   //devo fare logout + disconnessione
                 {
-                    WriteStringOnStream(DISCONETTIUTENTE + username + "+" + mac);
+                    WriteStringOnStream(DISCONNETTIUTENTE + username);
                     connesso = false;
                 }
-                else
-                    WriteStringOnStream(DISCONETTI);
-                clientsocket.GetStream().Close();
-                clientsocket.Close();
+                else            //devo solo fare disconnessione
+                {
+                    WriteStringOnStream(DISCONNETTICLIENT);
+                } 
+                if (clientsocket.Connected)
+                {
+                    clientsocket.GetStream().Close();
+                    clientsocket.Close();
+                }
+                UpdateNotifyIconDisconnesso();
+                e.Result = e.Argument;
             }
             catch
             {
@@ -622,10 +633,13 @@ namespace Client
 
         private void Workertransaction_DisconnectCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            UpdateNotifyIconDisconnesso();
-            //MainControl main = new MainControl();
-            //App.Current.MainWindow.Content = main;
+
             mw.restart(false);
+            Boolean esci = (Boolean)e.Result;
+            if (esci)
+            {
+                mw.Close();
+            }
         }
 
         public static void UpdateNotifyIconDisconnesso()
@@ -645,8 +659,9 @@ namespace Client
          */
         public void WriteByteArrayOnStream(byte[] message)
         {
-            TcpState statoConn = GetState(clientsocket);
-            if (statoConn == TcpState.Established)
+            //TcpState statoConn = GetState(clientsocket);
+            //if (statoConn == TcpState.Established)
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 NetworkStream stream = clientsocket.GetStream();
                 stream.WriteTimeout = 30000;
@@ -663,8 +678,9 @@ namespace Client
          */
         public void ReadByteArrayFromStream(byte[] buffer)
         {
-            TcpState statoConn = GetState(clientsocket);
-            if (statoConn == TcpState.Established)
+            //TcpState statoConn = GetState(clientsocket);
+            //if (statoConn == TcpState.Established)
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 NetworkStream stream = clientsocket.GetStream();
                 stream.ReadTimeout = 30000;
@@ -679,28 +695,46 @@ namespace Client
             }
         }
 
-        public int WriteStringOnStream(string message)
+        public void WriteStringOnStream(string message)
         {
-            TcpState statoConn = GetState(clientsocket);    //FIXME: istruzione inutile?! controllare statoConn
-            NetworkStream stream = clientsocket.GetStream();
-            stream.WriteTimeout = 30000;
-            Byte[] data = System.Text.Encoding.ASCII.GetBytes(message); //preparo i dati per l'invio sul canale
-            stream.Write(data, 0, data.Length);
-            return 1;   //FIXME: perchè return 1?
+            //TcpState statoConn = GetState(clientsocket);
+            //if (statoConn == TcpState.Established)
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+            {
+                NetworkStream stream = clientsocket.GetStream();
+                stream.WriteTimeout = 30000;
+                Byte[] data = System.Text.Encoding.ASCII.GetBytes(message); //preparo i dati per l'invio sul canale
+                stream.Write(data, 0, data.Length);
+            }
+            else
+            {
+                throw new Exception("Network exception");
+            }
         }
 
 
         public string ReadStringFromStream()
         {
-            TcpState statoConn = GetState(clientsocket);    //FIXME: istruzione inutile?!  oppure serve solo per lanciare una eccezione?
-
-            NetworkStream stream = clientsocket.GetStream();
-            stream.ReadTimeout = 30000;
-            Byte[] data = new Byte[512];
-            String responseData = String.Empty;
-            Int32 bytes = stream.Read(data, 0, data.Length);
-            responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);    //parsifico i byte ricevuti
-            return responseData;
+            //TcpState statoConn = GetState(clientsocket);
+            //if (statoConn == TcpState.Established)
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+            {
+                NetworkStream stream = clientsocket.GetStream();
+                stream.ReadTimeout = 30000;
+                Byte[] data = new Byte[512];
+                String responseData = String.Empty;
+                Int32 bytes = stream.Read(data, 0, data.Length);
+                if (bytes == 0)
+                {
+                    throw new IOException("No data is available");
+                }
+                responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);    //parsifico i byte ricevuti
+                return responseData;
+            }
+            else
+            {
+                throw new Exception("Network exception");
+            }
 
         }
         #endregion
@@ -832,7 +866,7 @@ namespace Client
                         MainWindow mainw = (MainWindow)App.Current.MainWindow;
                         mainw.clientLogic.monitorando = false;
                         mainw.clientLogic.lavorandoInvio = false;
-                        mainw.clientLogic.WriteStringOnStream(ClientLogic.DISCONETTIUTENTE + username + "+" + mac);
+                        mainw.clientLogic.WriteStringOnStream(ClientLogic.DISCONNETTIUTENTE + username + "+" + mac);
                         connesso = false;
                         ClientLogic.UpdateNotifyIconDisconnesso();
                         if (mainw.clientLogic.clientsocket.Client.Connected)
