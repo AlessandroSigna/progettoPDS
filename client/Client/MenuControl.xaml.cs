@@ -642,7 +642,25 @@ namespace Client
         }
         #endregion
 
-        #region Logout
+        #region Logout e Disconnessione
+
+        /*
+         * Back button - si deve occupare di effettuare il logout
+         */
+        private void Back_Click(object sender, RoutedEventArgs e)
+        {
+
+            //avverto l'utente
+            MessageBoxResult result = System.Windows.MessageBox.Show("Verrà effettuato il logout. Procedere?", "Logout", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+            
+            if (result == MessageBoxResult.OK)
+            {
+                //prima di chiamare la ClientLogic.Logout occorrerebbe attendere e/o interrompere eventuali operazioni in corso di backup o restore
+                //vedere loro vecchia implementazione ButtonServerOnClick
+                mw.clientLogic.Logout(this);
+            }
+        }
+
         /*
          * Button Logout
          */
@@ -650,7 +668,19 @@ namespace Client
         {
             //DialogDisconnetti();
         }
-        
+
+        public void Logout_Esito(bool success, string messaggio = null) 
+        {
+            if (success)
+            {
+                LoginControl main = new LoginControl();
+                App.Current.MainWindow.Content = main;
+            }
+            else
+            {
+                messaggioErrore(messaggio);
+            }
+        }
         /*
          * Metodo che gestisce un CustomDialog con dipendenza da Metro
          */
@@ -760,7 +790,7 @@ namespace Client
             obj.restart(true);
         }
 
-        private /*async*/ void messaggioErrore(string mess)
+        private void messaggioErrore(string mess)
         {
             //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
             //await mw.ShowMessageAsync("Errore", mess);
@@ -783,10 +813,6 @@ namespace Client
         }
         #endregion
 
-        private void Back_Click(object sender, RoutedEventArgs e)
-        {
-            LoginControl main = new LoginControl();
-            App.Current.MainWindow.Content = main;
-        }
+
     }
 }

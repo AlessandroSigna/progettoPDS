@@ -19,3 +19,15 @@ Pulsante Back e Disconnetti in tutte le cartelle
 Back disabilitato nella LoginRegisterControl
 Back dopo il login fa sloggare e porta a LoginControl 
 Disconnetti porta sempre a MainControl (e slogga oltre a disconnettere)
+
+OK
+Back (LoginRegisterControl) -> disattivato
+
+(aspettare che eventuali lavori siano finiti)
+Back (MenuControl) -> message box: "Verrà effettuato il logout. Continuare?" OK-Annulla -> Logout -> LoginControl
+
+OK
+Back (Altre finestre) -> Cambio di finestra senza comuniralo al server nè all'utente
+
+(Da fare)
+Disconnetti (Ogni finestra) -> message box: "Verrai disconnesso dal server. Continuare?" OK-Annulla -> (Logout ->) Disconnetti -> MainControl 

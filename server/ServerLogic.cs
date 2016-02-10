@@ -80,6 +80,13 @@ namespace BackupServer
 
         }
         
+        /*
+         * Thread che attende connessioni dai client.
+         * 
+         * Task principale del server: loop in attesa di connessioni. 
+         * Quando avviene la connessione con un client la comunicazione è delegata a un BackgroundWorker
+         * e il thread si rimette in attesa di altri client
+         */
         void workertransaction_DoWork(object sender, DoWorkEventArgs e)
         {
             TcpClient clientsocket;
@@ -118,11 +125,15 @@ namespace BackupServer
             //writeStringOnStream(e.Result.ToString());
         }
 
+        /*
+         * Thread generato per ogni client connesso.
+         * Ritorna quando la comunicazione deve essere interrotta (stream chiuso)
+         */
         private void nuovoClientConnesso_DoWork(object sender, DoWorkEventArgs e)
         {
             object[] parameters = e.Argument as object[];
             TcpClient clientsocket = (TcpClient)parameters[0];
-            // Legge i comandi
+            // Legge i comandi. Internamente c'è un loop che viene interrotto opportunamente
             readStringFromStream(clientsocket);
 
         }
@@ -397,9 +408,10 @@ namespace BackupServer
             //SQLiteTransaction transazioneLogout = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
+                //mi aspetto LOGOUT + username
                 String[] parametri = responseData.Split('+');
                 int numParametri = parametri.Length;
-                if (numParametri > 4 || numParametri < 4)
+                if (numParametri != 3)
                 {
                     //transazioneLogout.Commit();
                     //transazioneLogout.Dispose();
@@ -408,12 +420,10 @@ namespace BackupServer
 
                 String comando = parametri[1];
                 String user = parametri[2].ToUpper();
-                String MAC = parametri[3];
 
                 SQLiteCommand comandoP = new SQLiteCommand(mainWindow.m_dbConnection);
-                comandoP.CommandText = "DELETE FROM UTENTILOGGATI WHERE username=@username and indirizzoMAC=@indirizzoMAC";
+                comandoP.CommandText = "DELETE FROM UTENTILOGGATI WHERE username=@username";
                 comandoP.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                comandoP.Parameters.Add("@indirizzoMAC", System.Data.DbType.String, MAC.Length).Value = MAC;
                 //comandoP.Transaction = transazioneLogout;
                 bool isBroken = false;
                 do
@@ -555,10 +565,6 @@ namespace BackupServer
                 {
                     return ERRORE + "Username e/o Password Errati";
                 }
-                
-
-
-                //l'accesso deve riprendere da qui
                 
                 SQLiteCommand comandoP3 = new SQLiteCommand(mainWindow.m_dbConnection);
                 comandoP3.CommandText = "SELECT * FROM UTENTILOGGATI WHERE username=@username";
@@ -2678,7 +2684,7 @@ namespace BackupServer
                             risposta = comandoLogout(responseData);
                             nowrite = false;
                             break;
-                        case DISCONETTI:
+                        case DISCONETTI:    //è un alias di LOGOUT - ora obsoleto - si deve trasformare in: chiudo lo stream senza fare il logout perché ancora non sono loggato
                             Boolean risultato = comandoDisconnetti(responseData);
                             if (risultato)
                             {
@@ -2735,7 +2741,7 @@ namespace BackupServer
                             risposta = comandoGetFoldersUser(responseData);
                             nowrite = false;
                             break;
-                        case DISCONETTIUTENTE:
+                        case DISCONETTIUTENTE:  //chiusura dello stream con logout - Utile per disconnetti da MenuControl
                             risposta = comandoLogout(responseData);
                             chiudere = true;
                             nowrite = true;
