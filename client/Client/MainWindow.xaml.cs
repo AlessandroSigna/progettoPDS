@@ -115,13 +115,13 @@ namespace Client
             //await this.ShowMetroDialogAsync(_customDialog);
         }
 
-        public void restart(bool error)
+        public void restart(bool error, string messaggio = null)
         {
             MainControl main = new MainControl();
             App.Current.MainWindow.Content = main;
 
             if (error)
-                main.messaggioErrore();
+                main.messaggioErrore(messaggio);
         }
 
         private void ButtonOkOnClick(object sender, RoutedEventArgs e)

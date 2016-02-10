@@ -154,26 +154,19 @@ namespace Client
 
         void Workertransaction_ConnectionCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            
-            mac = GetMacAddress();  //FIXME: al prof non è piaciuta sta cosa del mac
-
-            if (e.Error == null)
+            try
             {
+                mac = GetMacAddress();  //FIXME: al prof non è piaciuta sta cosa del mac
                 MainControl mc = (MainControl)e.Result;
                 mc.Esito_Connect(true);
             }
-            else
+            catch
             {
-                if(mac.Equals(String.Empty))
-                {
-                    //mc.Esito_Connect(false);
-                }
-                else
-                {
-                    System.Console.WriteLine("!!!" + e.Error.ToString());
-                    //mc.Esito_Connect(false);
-                }
+                System.Console.WriteLine("!!!" + e.Error.ToString());
+                // In realtà questa chiamata sarebbe da evitare perché siamo già in MainControl
+                //mw.restart(true, e.Error.ToString());
             }
+            
             
             //if (errore == 1)
             //{
