@@ -54,8 +54,27 @@ namespace Client
         {
 
             MainWindow mw = (MainWindow)App.Current.MainWindow;
-            mw.clientLogic.Registrati(Username.Text, Password.Password, this);
 
+            if (Username.Text == null || Username.Text.Equals("") || Password.Password == null || Password.Password.Equals(""))
+            {
+                Registrati_Esito(false, "Campi username e/o password vuoti.");
+            }
+            else if (Username.Text.Contains("+"))
+            {
+                Registrati_Esito(false, "Lo username contiene uno o piu' caratteri invalidi.");
+            }
+            else if (Password.Password.Contains("+") || Password.Password.Contains("(") || Password.Password.Contains(")") || Password.Password.Contains("{") || Password.Password.Contains("}") || Password.Password.Contains("'"))
+            {
+                Registrati_Esito(false, "La password contiene uno o piu' caratteri invalidi.");
+            }
+            else if (Password.Password.Length < 5 || Password.Password.Length > 15)
+            {
+                Registrati_Esito(false, "La lunghezza della password deve essere compresa tra 5 e 15 caratteri.");
+            }
+            else
+            {
+                mw.clientLogic.Registrati(Username.Text, Password.Password, this);
+            }
             //MenuControl main = new MenuControl();
             //App.Current.MainWindow.Content = main;
 

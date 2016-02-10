@@ -251,20 +251,6 @@ namespace BackupServer
                 Console.WriteLine("user: " + user);
                 Console.WriteLine("pass: " + pass);
 
-                if (user == null || user.Equals(""))
-                {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
-                    return ERRORE + "User non valido";
-                }
-
-                if (pass == null || pass.Equals(""))
-                {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
-                    return ERRORE + "Password non valida";
-                }
-
 
                 SQLiteCommand comandoP = new SQLiteCommand(mainWindow.m_dbConnection);
                 // Perché queste SELECT non sono protette dal lock?
