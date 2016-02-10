@@ -29,6 +29,7 @@ namespace Client
 
         #region Costanti comandi
         private const int BUFFERSIZE = 1024;
+        private const int CHALLENGESIZE = 64;
         public const string OK = "+OK+";
         public const string ERRORE = "+ERR+";
         public const string INFO = "+INFO+";
@@ -211,12 +212,10 @@ namespace Client
         internal void Login(string username, string pass, LoginControl lc)
         {
             workertransaction = new BackgroundWorker();
-            object paramAct = LOGIN;
             object paramObj = username;
-            this.username = username;
             object paramObj2 = pass;
             object paramWindow = lc;
-            object[] parameters = new object[] { paramObj, paramObj2, paramAct, paramWindow };   //incapsulo username, password e azione per poterli passare come parametro (array)
+            object[] parameters = new object[] { paramObj, paramObj2, paramWindow };   //incapsulo username, password e azione per poterli passare come parametro (array)
 
             workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Login);
             workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_LoginCompleted);
@@ -228,16 +227,58 @@ namespace Client
         {
             object[] parameters = e.Argument as object[];
             string[] resultArray = Array.ConvertAll(parameters, x => x.ToString());
-            string username = resultArray[0];
-            this.username = username;
+            this.username = resultArray[0];
             string password = resultArray[1];
-            string action = resultArray[2];
+
+            object[] res = { ERRORE + "Errore inatteso nel login", parameters[2] }; //oggetto che verrà analizzato da Workertransaction_LoginCompleted
+            e.Result = res;
+
             try
             {
-                WriteStringOnStream(action + username + "+" + password + "+" + mac);    //invio al server le credenziali - IN CHIARO
-                e.Result = parameters;
+                //comunico al server che voglio iniziare il login
+                //mando LOGIN + username
+                WriteStringOnStream(LOGIN + username);
+
+                //mi aspetto OK
+                String response = ReadStringFromStream();
+                if (!response.Equals(OK) )
+                {
+                    //devo comunicare qualcosa alla login completed in e
+                    res[0] = response;
+                    //throw new Exception();//gestire le eccezioni 
+                    return;
+                }
+
+                //aspetto dal server il nonce (challenge)
+                byte[] challenge = new byte[CHALLENGESIZE];
+                ReadByteArrayFromStream(challenge);
+
+                Console.WriteLine("challenge: " + BitConverter.ToString(challenge));
+
+                //concateno pasword e challenge
+                byte[] passwordChallengeBytes = new byte[password.Length + CHALLENGESIZE];
+                Array.Copy(Encoding.ASCII.GetBytes(password), passwordChallengeBytes, password.Length);
+                Array.Copy(challenge, 0, passwordChallengeBytes, password.Length, CHALLENGESIZE);
+
+                //calcolo l'hash (risposta alla sfida)
+                SHA256 sha = SHA256Managed.Create();
+                byte[] challengeResponse = sha.ComputeHash(passwordChallengeBytes);   //sha256 ha hash di 256 bit (32 byte)
+
+
+                //invio al server la risposta al challenge: sha256(nonce||password)
+                WriteByteArrayOnStream(challengeResponse);
+                Console.WriteLine("challengeResponse: " + BitConverter.ToString(challengeResponse));
+
+                //ricevo il responso del server
+                response = ReadStringFromStream();
+                res[0] = response;
+                if (!response.Contains(OK))
+                {
+                    //throw new Exception();  //gestire le eccezioni 
+                    return;
+                }
             }
-            catch
+            catch   //il backgroudworker gestisce le eccezioni in modo particolare http://stackoverflow.com/questions/1044460/unhandled-exceptions-in-backgroundworker
             {
                 if (clientsocket.Connected)
                 {
@@ -248,6 +289,7 @@ namespace Client
                 //App.Current.MainWindow.Content = main;
                 mw.restart(true);
             }
+            e.Result = res;
         }
 
         /*
@@ -255,12 +297,12 @@ namespace Client
          */
         private void Workertransaction_LoginCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            object[] parameters = e.Result as object[]; //errore - http://stackoverflow.com/questions/1044460/unhandled-exceptions-in-backgroundworker
+            LoginControl lc = (LoginControl)parameters[1];
+            String message = (String)parameters[0];
+
             try
             {
-                object[] parameters = e.Result as object[];
-                LoginControl lc = (LoginControl)parameters[3];
-
-                string message = ReadStringFromStream();
                 if (message.Contains(OK))
                 {
                     //MenuControl main = new MenuControl();
@@ -551,29 +593,42 @@ namespace Client
         #endregion
 
         #region Accesso allo stream
-        public int WriteByteArrayOnStream(byte[] message)
+        /*
+         * Scrive nello stream l'array di byte passato come parametro
+         */
+        public void WriteByteArrayOnStream(byte[] message)
         {
-            TcpState statoConn = GetState(clientsocket);    //FIXME: istruzione inutile?! controllare statoConn
-            NetworkStream stream = clientsocket.GetStream();
-            stream.WriteTimeout = 30000;
-            stream.Write(message, 0, message.Length);
-            return 1;   //FIXME: perchè return 1?
+            TcpState statoConn = GetState(clientsocket);
+            if (statoConn == TcpState.Established)
+            {
+                NetworkStream stream = clientsocket.GetStream();
+                stream.WriteTimeout = 30000;
+                stream.Write(message, 0, message.Length);
+            }
+            else
+            {
+                throw new Exception("Network exception");
+            }
         }
 
-        public byte[] ReadByteArrayFromStream()
+        /*
+         * Legge dallo stream tanti byte quanti buffer.Length e li inserisce in buffer
+         */
+        public void ReadByteArrayFromStream(byte[] buffer)
         {
             TcpState statoConn = GetState(clientsocket);
             if (statoConn == TcpState.Established)
             {
                 NetworkStream stream = clientsocket.GetStream();
                 stream.ReadTimeout = 30000;
-                Byte[] data = new Byte[512];
-                Int32 bytes = stream.Read(data, 0, data.Length);
-                return data;
+                if (stream.Read(buffer, 0, buffer.Length) == 0)
+                {
+                    throw new IOException("No data is available");
+                }
             }
             else
             {
-                return null;
+                throw new Exception("Network exception");
             }
         }
 

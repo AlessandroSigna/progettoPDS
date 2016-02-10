@@ -25,6 +25,7 @@ namespace BackupServer
 
         #region Costanti
         private const int BUFFERSIZE = 1024;
+        private const int CHALLENGESIZE = 64;
         public const string OK = "+OK+";
         public const string ERRORE = "+ERR+";
         public const string STOP = "+STOP+";
@@ -264,7 +265,7 @@ namespace BackupServer
                 {
                     // L'ACID della transazione è garantita da questo lock. Ma forse i metodi transaction gestiscono tutto automaticamente?
                     _readerWriterLock.EnterReadLock();
-
+            
                     if (comandoP.ExecuteScalar() != null)
                     {
                         //transazioneReg.Rollback();
@@ -388,171 +389,6 @@ namespace BackupServer
             
         }
 
-        private string comandoRegistazione(string responseData)
-        {
-            // Tutti i comandi relativi alla gestione della transazione sono commentati e per questo anche il rollback è scritto
-            // ma commentato.
-            //SQLiteTransaction transazioneReg = mainWindow.m_dbConnection.BeginTransaction();
-
-            try
-            {
-
-                String[] parametri = responseData.Split('+');
-                int numParametri = parametri.Length;
-                if (numParametri > 5 || numParametri < 5)
-                {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
-                    return ERRORE + "Numero di paramentri passati per la registrazione errato";
-                }
-
-                String comando = parametri[1];
-                String user = parametri[2].ToUpper();
-                String pass = parametri[3];
-                // Che significato logico ha il MAC?
-                String MAC = parametri[4];
-
-                if (comando == null || !comando.Equals(REGISTRAZIONE.Replace('+', ' ').Trim()))
-                {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
-                    return ERRORE + "Comando errato";
-                }
-
-                if (user == null || user.Equals(""))
-                {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
-                    return ERRORE + "Username non valido";
-                }
-
-                if (pass == null || pass.Equals(""))
-                {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
-                    return ERRORE + "Password non valida";
-                }
-                if (MAC == null || MAC.Equals(""))
-                {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
-                    return ERRORE + "MAC non valido";
-                }
-
-                SQLiteCommand comandoP = new SQLiteCommand(mainWindow.m_dbConnection);
-                // Perché queste SELECT non sono protette dal lock?
-                comandoP.CommandText = "SELECT * FROM UTENTI WHERE username=@username";
-                comandoP.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                //comandoP.Transaction = transazioneReg;
-
-                try
-                {
-                    // L'ACID della transazione è garantita da questo lock. Ma forse i metodi transaction gestiscono tutto automaticamente?
-                    _readerWriterLock.EnterReadLock();
-
-                    if (comandoP.ExecuteScalar() != null)
-                    {
-                        //transazioneReg.Rollback();
-                        //transazioneReg.Dispose();
-                        return ERRORE + "Esiste già un utente con questo nome";
-                    }
-                }
-                finally
-                {
-                    _readerWriterLock.ExitReadLock();
-                }
-
-                SQLiteCommand comandoP2 = new SQLiteCommand(mainWindow.m_dbConnection);
-                comandoP2.CommandText = "INSERT INTO UTENTI (username,password) VALUES(@username,@password)";
-                comandoP2.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                comandoP2.Parameters.Add("@password", System.Data.DbType.String, pass.Length).Value = pass;
-                //comandoP2.Transaction = transazioneReg;
-
-                bool isBroken = false;
-                do
-                {
-                    try
-                    {
-                        _readerWriterLock.EnterWriteLock();
-                        if (_readerWriterLock.WaitingReadCount > 0)
-                        {
-                            isBroken = true;
-                        }
-                        else
-                        {
-                            if (comandoP2.ExecuteNonQuery().Equals(0))
-                            {
-                                //transazioneReg.Rollback();
-                                //transazioneReg.Dispose();
-                                return ERRORE + "Errore durante la registrazione";
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        _readerWriterLock.ExitWriteLock();
-                    }
-                    if (isBroken)
-                    {
-                        Thread.Sleep(10);
-                    }
-                    else
-                        isBroken = false;
-                } while (isBroken);
-
-                SQLiteCommand comandoP4 = new SQLiteCommand(mainWindow.m_dbConnection);
-                comandoP4.CommandText = "INSERT INTO UTENTILOGGATI (username,indirizzoMAC,lastUpdate) VALUES (@username,@indirizzoMAC,@lastUpdate)";
-                comandoP4.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                comandoP4.Parameters.Add("@lastUpdate", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
-                comandoP4.Parameters.Add("@indirizzoMAC", System.Data.DbType.String, MAC.Length).Value = MAC;
-
-                //comandoP4.Transaction = transazioneReg;
-                bool isBroken2 = false;
-                do
-                {
-                    try
-                    {
-                        _readerWriterLock.EnterWriteLock();
-                        if (_readerWriterLock.WaitingReadCount > 0)
-                        {
-                            isBroken2 = true;
-                        }
-                        else
-                        {
-                            if (comandoP4.ExecuteNonQuery() != 1)
-                            {
-                                //transazioneReg.Rollback();
-                                //transazioneReg.Dispose();
-                                return ERRORE + "Errore durante la registrazione";
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        _readerWriterLock.ExitWriteLock();
-                    }
-                    if (isBroken2)
-                    {
-                        Thread.Sleep(10);
-                    }
-                    else
-                        isBroken2 = false;
-                } while (isBroken2);
-
-
-                //transazioneReg.Commit();
-                //transazioneReg.Dispose();
-
-                return OK + "Registrazione avvenuta correttamente!";
-            }
-            catch
-            {
-                //transazioneReg.Rollback();
-                //transazioneReg.Dispose();
-
-                return ERRORE + "Errore durante la registrazione";
-            }
-        }
 
         #region Comandi Login/Logout
         // Chiamato anche da comando disconnetti.
@@ -624,17 +460,18 @@ namespace BackupServer
             }
         }
 
-        private string comandoLogin(string responseData)
+        private string comandoLogin(string responseData, TcpClient clientsocket)
         {
 
             //SQLiteTransaction transazioneLogin = mainWindow.m_dbConnection.BeginTransaction();
 
             try
             {
+                //mi aspetto LOGIN + username
                 String[] parametri = responseData.Split('+');
                 int numParametri = parametri.Length;
 
-                if (numParametri > 5 || numParametri < 5)
+                if (numParametri != 3)
                 {
                     //transazioneLogin.Rollback();
                     //transazioneLogin.Dispose();
@@ -643,8 +480,7 @@ namespace BackupServer
 
                 String comando = parametri[1];
                 String user = parametri[2].ToUpper();
-                String pass = parametri[3];
-                String MAC = parametri[4];
+                String pass = String.Empty;
 
                 if (comando == null || !comando.Equals(LOGIN.Replace('+', ' ').Trim()))
                 {
@@ -659,36 +495,21 @@ namespace BackupServer
                     //transazioneLogin.Dispose();
                     return ERRORE + "User non valido";
                 }
+                
 
-                if (pass == null || pass.Equals(""))
-                {
-                    //transazioneLogin.Rollback();
-                    //transazioneLogin.Dispose();
-                    return ERRORE + "Password non valida";
-                }
-                if (MAC == null || MAC.Equals(""))
-                {
-                    //transazioneLogin.Rollback();
-                    //transazioneLogin.Dispose();
-                    return ERRORE + "MAC non validao";
-                }
+                SQLiteCommand comandoP0= new SQLiteCommand(mainWindow.m_dbConnection);
+                comandoP0.CommandText = "SELECT * FROM UTENTI WHERE username=@username";
+                comandoP0.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
+                //comandoP3.Transaction = transazioneLogin;
 
-                SQLiteCommand comandoP2 = new SQLiteCommand(mainWindow.m_dbConnection);
-                comandoP2.CommandText = "SELECT * FROM UTENTI WHERE username=@username AND password=@password";
-                comandoP2.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                comandoP2.Parameters.Add("@password", System.Data.DbType.String, pass.Length).Value = pass;
-                //comandoP2.Transaction = transazioneLogin;
-                //String queryAlreadyReg = "SELECT * FROM UTENTI WHERE USERNAME = UPPER('" + user + "') AND PASSWORD = '" + pass + "'";
-                //SQLiteCommand comand = new SQLiteCommand(queryAlreadyReg, mainWindow.m_dbConnection, transazioneLOG);
+
                 try
                 {
                     _readerWriterLock.EnterReadLock();
-
-                    if (comandoP2.ExecuteScalar() == null)
+                    SQLiteDataReader reader = comandoP0.ExecuteReader();
+                    if (reader.Read()) 
                     {
-                        //transazioneLogin.Rollback();
-                        //transazioneLogin.Dispose();
-                        return ERRORE + "Utente e/o Password Errati";
+                        pass = reader["password"].ToString();
                     }
                 }
                 finally
@@ -696,10 +517,52 @@ namespace BackupServer
                     _readerWriterLock.ExitReadLock();
                 }
 
+                if (pass == String.Empty)
+                {
+                    //transazioneLogin.Rollback();
+                    //transazioneLogin.Dispose();
+
+                    //utente non presente nel DB da gestire
+                    return ERRORE + "Username e/o Password Errati ";
+                }
+
+                //pass contiene la password del supplicant
+                //do l'OK al client perché l'utente esiste
+                writeStringOnStream(clientsocket, OK);
+
+                //posso procedere con l'invio della sfida
+                byte[] challenge = new byte[CHALLENGESIZE];
+                Random random = new Random();
+                random.NextBytes(challenge);
+                WriteByteArrayOnStream(clientsocket, challenge);
+
+                //leggo la risposta al challenge del client
+                byte[] challengeResponse = new byte[32];    //dimensione dell'hash sha256
+                ReadByteArrayFromStream(clientsocket, challengeResponse);
+
+                //calcolo la risposta corretta
+                //concateno pasword e challenge
+                byte[] passwordChallengeBytes = new byte[pass.Length + CHALLENGESIZE];
+                Array.Copy(Encoding.ASCII.GetBytes(pass), passwordChallengeBytes, pass.Length);
+                Array.Copy(challenge, 0, passwordChallengeBytes, pass.Length, CHALLENGESIZE);
+                SHA256 sha = SHA256Managed.Create();
+                byte[] challengeResponseCorrect = sha.ComputeHash(passwordChallengeBytes);  //32 byte
+
+                //valuto la risposta del client
+                Console.WriteLine("RispostaClient: " + BitConverter.ToString(challengeResponse));
+                Console.WriteLine("RispostaServer: " + BitConverter.ToString(challengeResponseCorrect));
+                if (!BitConverter.ToString(challengeResponseCorrect).Equals(BitConverter.ToString(challengeResponse))) 
+                {
+                    return ERRORE + "Username e/o Password Errati";
+                }
+                
+
+
+                //l'accesso deve riprendere da qui
+                
                 SQLiteCommand comandoP3 = new SQLiteCommand(mainWindow.m_dbConnection);
-                comandoP3.CommandText = "SELECT * FROM UTENTILOGGATI WHERE username=@username and indirizzoMAC=@indirizzoMAC";
+                comandoP3.CommandText = "SELECT * FROM UTENTILOGGATI WHERE username=@username";
                 comandoP3.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                comandoP3.Parameters.Add("@indirizzoMAC", System.Data.DbType.String, MAC.Length).Value = MAC;
                 //comandoP3.Transaction = transazioneLogin;
                 string utenteLog = String.Empty;
                 try
@@ -716,13 +579,12 @@ namespace BackupServer
                 {
                     //transazioneLogin.Rollback();
                     //transazioneLogin.Dispose();
-                    return ERRORE + "Utente gia' loggato";
+                    return ERRORE + "Utente gia' loggato";  //dove si elimina l'utente al logout?
                 }
 
                 SQLiteCommand comandoP4 = new SQLiteCommand(mainWindow.m_dbConnection);
-                comandoP4.CommandText = "INSERT INTO UTENTILOGGATI (username,indirizzoMAC,lastUpdate) VALUES (@username,@indirizzoMAC,@lastUpdate)";
+                comandoP4.CommandText = "INSERT INTO UTENTILOGGATI (username,lastUpdate) VALUES (@username,@lastUpdate)";
                 comandoP4.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                comandoP4.Parameters.Add("@indirizzoMAC", System.Data.DbType.String, MAC.Length).Value = MAC;
                 comandoP4.Parameters.Add("@lastUpdate", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
                 //comandoP4.Transaction = transazioneLogin;
                 bool isBroken = false;
@@ -753,8 +615,8 @@ namespace BackupServer
                     {
                         Thread.Sleep(10);
                     }
-                    else
-                        isBroken = false;
+                    //else
+                    //    isBroken = false;
                 } while (isBroken);
 
                 //transazioneLogin.Commit();
@@ -2711,29 +2573,33 @@ namespace BackupServer
 
         #region Metodi di lettura e scrittura stringa su stream
 
-        public byte[] ReadByteArrayFromStream(TcpClient clientsocket)
+        public bool WriteByteArrayOnStream(TcpClient clientsocket, byte[] message)
         {
-            TcpState statoConn = TcpState.Established; //GetState(clientsocket); //
-
+            TcpState statoConn = GetState(clientsocket);
             if (statoConn == TcpState.Established)
             {
                 NetworkStream stream = clientsocket.GetStream();
-                Byte[] data = new Byte[512];
-                //try {
-                Int32 bytes = stream.Read(data, 0, data.Length);
-                //}
-                //catch
-                //{
-                //    return responseData;
-                //}
-                return data;
+                stream.WriteTimeout = 30000;
+                stream.Write(message, 0, message.Length);
+                return true;
             }
-            else
-            {
-                //return ERRORE + "Connessione chiusa dal client";
-                return null;
-            }
+            return false;
+        }
 
+        public bool ReadByteArrayFromStream(TcpClient clientsocket, byte[] buffer)
+        {
+            TcpState statoConn = GetState(clientsocket);
+            if (statoConn == TcpState.Established)
+            {
+                NetworkStream stream = clientsocket.GetStream();
+                stream.ReadTimeout = 30000;
+                Int32 bytes = stream.Read(buffer, 0, buffer.Length);
+                if (bytes > 0)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
 
         public string ReadStringFromStream(TcpClient clientsocket)
@@ -2804,12 +2670,8 @@ namespace BackupServer
                             risposta = comandoECDH(responseData, clientsocket);
                             nowrite = false;
                             break;
-                        //case REGISTRAZIONE:   //obsoleto ormai
-                        //    risposta = comandoRegistazione(responseData);
-                        //    nowrite = false;
-                        //    break;
                         case LOGIN:
-                            risposta = comandoLogin(responseData);
+                            risposta = comandoLogin(responseData, clientsocket);
                             nowrite = false;
                             break;
                         case LOGOUT:

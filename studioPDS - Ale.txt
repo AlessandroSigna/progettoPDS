@@ -182,6 +182,8 @@ FIX
 - messaggio errore utente già loggato (?)
 - StartDownload viene chiamata solo in DownloadFile e non in DownloadFolder
 - Utente già registrato "impossibile raggiungere il server" e si disconnette
+- Gestione eccezioni da background workertr
+http://stackoverflow.com/questions/1044460/unhandled-exceptions-in-backgroundworker
 
 Dubbi
 - Come funziona lo stream? se nessuno legge e qualcuno scrive i dati restano lì? e viceversa?
