@@ -471,23 +471,24 @@ namespace Client
                 }
                 else
                 {
-                    //se l'autenticazione non va a buon fine torno alla finestra principale e chiude lo stream
-                    rc.Registrati_Esito(false, "Registrazione fallita.");
                     String tmp = message.Substring(1, message.Length - 1);
+                    String messaggioErrore = message.Substring(tmp.IndexOf('+') + 2, tmp.Length - tmp.IndexOf('+') - 1);
+                    //se l'autenticazione non va a buon fine torno alla finestra principale e chiude lo stream
+                    rc.Registrati_Esito(false, "Registrazione fallita: " + messaggioErrore);
                     //MainControl main = new MainControl(1);  //FIXME: magicnumber
                     //App.Current.MainWindow.Content = main;
-                    mw.restart(true);
+                    //mw.restart(true);
                     //if (mw.clientLogic.clientsocket.Client.Connected)   //FIXME: ma mw.clientLogic non punta a questo stesso oggetto?!
                     //{
                     //    mw.clientLogic.clientsocket.GetStream().Close();
                     //    mw.clientLogic.clientsocket.Close();
                     //}
-                    if (this.clientsocket.Client.Connected)
-                    {
-                        this.clientsocket.GetStream().Close();
-                        this.clientsocket.Close();
-                    }
-                    return;
+                    //if (this.clientsocket.Client.Connected)
+                    //{
+                    //    this.clientsocket.GetStream().Close();
+                    //    this.clientsocket.Close();
+                    //}
+                    //return;
                 }
             }
             catch
@@ -568,7 +569,7 @@ namespace Client
                 }
                 //MainControl main = new MainControl();
                 //App.Current.MainWindow.Content = main;
-                mw.restart(false);
+                mw.restart(true);
                 return;
             }
         }
@@ -578,7 +579,7 @@ namespace Client
             UpdateNotifyIconDisconnesso();
             //MainControl main = new MainControl();
             //App.Current.MainWindow.Content = main;
-            mw.restart(true);
+            mw.restart(false);
         }
 
         public static void UpdateNotifyIconDisconnesso()
