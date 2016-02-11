@@ -20,7 +20,7 @@ namespace Client
     /// <summary>
     /// Logica di interazione per Restore.xaml
     /// </summary>
-    public partial class Restore : MetroWindow
+    public partial class Restore : /*MetroWindow*/ Window
     {
         private ClientLogic clientlogic;
         public MainWindow mw;
@@ -34,7 +34,8 @@ namespace Client
             InitializeComponent();
             clientlogic = client;
             mw = mainw;
-            RestoreUC main = new RestoreUC(clientlogic, mw);
+            //RestoreUC main = new RestoreUC(clientlogic, mw);
+            RestoreControl main = new RestoreControl(clientlogic, mw);
             App.Current.MainWindow = this;
             App.Current.MainWindow.Content = main;
         }
@@ -45,6 +46,11 @@ namespace Client
          */
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            //riallineo la MainWindow
+            App.Current.MainWindow = mw;
+            return;
+            
+            //vecchia implementazione - con attesa
             if (App.Current.MainWindow.Content is DownloadFolder)
             {
                 DownloadFolder df = (DownloadFolder)App.Current.MainWindow.Content;
@@ -84,10 +90,12 @@ namespace Client
             }
         }
 
-        private async void messaggioAttendi(string mess)
+        private /*async*/ void messaggioAttendi(string mess)
         {
-            MetroWindow mw = (MetroWindow)this;
-            await mw.ShowMessageAsync("Attendi", mess);
+            //MetroWindow mw = (MetroWindow)this;
+            //await mw.ShowMessageAsync("Attendi", mess);
+
+            MessageBoxResult result = System.Windows.MessageBox.Show("Errore durante la comunicazione con il server.", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
     }

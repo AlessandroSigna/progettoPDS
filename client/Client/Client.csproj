@@ -106,6 +106,9 @@
     <Compile Include="Restore.xaml.cs">
       <DependentUpon>Restore.xaml</DependentUpon>
     </Compile>
+    <Compile Include="RestoreControl.xaml.cs">
+      <DependentUpon>RestoreControl.xaml</DependentUpon>
+    </Compile>
     <Compile Include="RestoreUC.xaml.cs">
       <DependentUpon>RestoreUC.xaml</DependentUpon>
     </Compile>
@@ -172,6 +175,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Restore.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="RestoreControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

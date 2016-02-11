@@ -91,7 +91,7 @@ FIXME: Due classi diverse che fanno quasi la stessa cosa ?!
 RESTORE
 Viene istanziato un nuovo ClientLogic che aprirà un nuovo socket (quello che già c'è è riservato per il backup?)
 il controllo passa a Restore che ha un .xaml non visibile come la MainWindow
-Resotre nel suo costruttore istanzia RestoreUC che gestisce la finestra dalla quale scegliere cartella o file da ripristinare
+Resotre nel suo costruttore istanzia RestoreUC che gestisce la finestra dalla quale scegliere cartella da ripristinare
 la MainWindow diventa Restore che però salva un riferimento alla vecchia MainWindow
 Restore gestisce la chiusura della finestra rilasciando le risorse in modo opportuno a seconda di quale classe sia la MainWindow
 RestoreUC gestisce una ListBox e un Button di selezione
