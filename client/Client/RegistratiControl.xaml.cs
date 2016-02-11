@@ -67,6 +67,10 @@ namespace Client
             {
                 Registrati_Esito(false, "La password contiene uno o piu' caratteri invalidi: + () {} '");
             }
+            else if (Username.Text.Length > 15)
+            {
+                Registrati_Esito(false, "La lunghezza dello username deve essere inferiore a 15 caratteri.");
+            }
             else if (Password.Password.Length < 5 || Password.Password.Length > 15)
             {
                 Registrati_Esito(false, "La lunghezza della password deve essere compresa tra 5 e 15 caratteri.");

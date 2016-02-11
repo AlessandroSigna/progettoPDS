@@ -136,56 +136,61 @@ namespace Client
         #region  Metodi di connessione
         void Workertransaction_Connect(object sender, DoWorkEventArgs e)
         {
-            //try
-            //{
+            try
+            {
                 clientsocket = new TcpClient();
                 clientsocket.Connect(ip, porta);
-            //}
-            //catch (SocketException)
-            //{
-            // Questo errore andava tolto a prescindere, è una variabile globale
-            // ma è usata solo in questi due metodi.
-            //    errore = 1;
-            //}
-
+            }
+            catch (SocketException)
+            {
+             //Questo errore andava tolto a prescindere, è una variabile globale
+             //ma è usata solo in questi due metodi.
+                errore = 1;
+            }
             e.Result = e.Argument;
         }
 
 
         void Workertransaction_ConnectionCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            try
-            {
-                mac = GetMacAddress();  //FIXME: al prof non è piaciuta sta cosa del mac
-                MainControl mc = (MainControl)e.Result;
-                mc.Esito_Connect(true);
-            }
-            catch
-            {
-                System.Console.WriteLine("!!!" + e.Error.ToString());
-                // In realtà questa chiamata sarebbe da evitare perché siamo già in MainControl
-                //mw.restart(true, e.Error.ToString());
-            }
-            
-            
-            //if (errore == 1)
+            //try
             //{
+            //    if (e.Error != null)
+            //    {
+            //        mw.restart(true, e.Error.ToString());
+            //    }
+
+            //    mac = GetMacAddress();  //FIXME: al prof non è piaciuta sta cosa del mac
+            //    MainControl mc = (MainControl)e.Result;
+            //    mc.Esito_Connect(true);
+            //}
+            //catch
+            //{
+            //    //System.Console.WriteLine("!!!" + e.Error.ToString());
+            //    //In realtà questa chiamata sarebbe da evitare perché siamo già in MainControl
+                
+            //}
+
+            MainControl mc = (MainControl)e.Result;
+            
+            if (errore == 1)
+            {
                 //MainControl main = new MainControl(errore);
                 //App.Current.MainWindow.Content = main;
                 //return;
-                // Perché creare una nuova MainControl solo per passare l'errore?
-                // Qui sono ancora nel MainControl
-            //    mc.Esito_Connect(false);
+                 //Perché creare una nuova MainControl solo per passare l'errore?
+                 //Qui sono ancora nel MainControl
+                mc.Esito_Connect(false);
             //} else if (mac.Equals(String.Empty)) {
-                //MainControl main = new MainControl(1);  //FIXME: magicnumber!
-                //App.Current.MainWindow.Content = main;
-                //return;
-                // Perché creare una nuova MainControl solo per passare l'errore?
-                // Qui sono ancora nel MainControl
-                //mc.Esito_Connect(false);
-            //} else {
-            //    mc.Esito_Connect(true);
-            //}
+            //    //MainControl main = new MainControl(1);  //FIXME: magicnumber!
+            //    //App.Current.MainWindow.Content = main;
+            //    //return;
+            //     //Perché creare una nuova MainControl solo per passare l'errore?
+            //     //Qui sono ancora nel MainControl
+            //    mc.Esito_Connect(false);
+            } else {
+                mc.Esito_Connect(true);
+            }
 
 
         }
@@ -514,7 +519,7 @@ namespace Client
                 //MainControl main = new MainControl(1);
                 //App.Current.MainWindow.Content = main;
                 mw.restart(true);
-                return;
+                //return;
             }
         }
 
