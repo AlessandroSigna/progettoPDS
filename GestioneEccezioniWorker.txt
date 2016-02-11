@@ -1,4 +1,4 @@
-doWork{
+﻿doWork{
     if(problema)
         e.cancel e return
     
@@ -15,7 +15,7 @@ workCompleted{
         
         quindi
         
-        if(e.error || e.cancel) {disconnetti e restart}
+        if(e.error != null || e.cancel == true) {disconnetti e restart}
         
         accedo a e.result
     } catch {

@@ -80,8 +80,15 @@ namespace Client
             // controllo da fare alla fine
 
             // Queste informazioni vanno comunque passate a clientLogic, magari non così
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            mw.clientLogic.Login(Username.Text, Password.Password, this);
+            if (Username.Text == null || Username.Text.Equals("") || Password.Password == null || Password.Password.Equals(""))
+            {
+                Esito_Login(false, "Campi username e/o password vuoti.");
+            }
+            else
+            {
+                MainWindow mw = (MainWindow)App.Current.MainWindow;
+                mw.clientLogic.Login(Username.Text, Password.Password, this);
+            }
 
 
             // Serve un if else per gestire la risposta del server, analizzata da clientLogic,
