@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Globalization;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -21,12 +22,14 @@ namespace Client
     /// </summary>
     public partial class RestoreControl : UserControl
     {
+
+        enum ItemType { RootFolder, Folder, File };
         private ClientLogic clientlogic;
         private String selFolderPath;
         private MainWindow mw;
         private object dummyNode = null;
         public string SelectedImagePath { get; set; }
-
+        public static HeaderToImageConverter ConverterInstance = new HeaderToImageConverter();
         /*
          * Costruttore
          */
@@ -54,10 +57,6 @@ namespace Client
                     clientLogic.clientsocket.GetStream().Close();
                     clientLogic.clientsocket.Close();
                 }
-                //App.Current.MainWindow = mainw;
-                //MainControl main = new MainControl();
-                //App.Current.MainWindow.Content = main;
-                //main.messaggioErrore();
                 mainw.restart(true);
                 return;
             }
@@ -65,15 +64,22 @@ namespace Client
 
         }
         #region Explorer Tree
+        /*
+         * Aggiunge i campi relativi alle root folders nel tree
+         */
         private void CreateTree(String[] folders)
         {
             foreach (String s in folders)
             {
                 if (s != String.Empty)
                 {
+                    //istanzio in ItemTag con le info contenute in subFileInfo
+                    ItemTag rootItemTag = new ItemTag(s, ItemType.RootFolder);
+                    rootItemTag.relativePath = s.Substring(s.LastIndexOf("\\") + 1);  //nome 
+                    rootItemTag.nome = rootItemTag.relativePath;
                     TreeViewItem item = new TreeViewItem();
-                    item.Header = s.Substring(s.LastIndexOf("\\") + 1);  //nome
-                    item.Tag = s;       //fullpath
+                    item.Header = rootItemTag.nome;
+                    item.Tag = rootItemTag;
                     item.FontWeight = FontWeights.Normal;
                     item.Items.Add(dummyNode);
                     item.Expanded += new RoutedEventHandler(folder_Expanded);   //callback per l'espansione
@@ -98,36 +104,28 @@ namespace Client
                 try
                 {
                     
-                    //devo controllare se l'oggetto espanso è un file o una cartella (dal fullpath - item.Tag?)
-                    if (true)
-                    {
-                        //se l'oggetto espanso è una cartella si chiede al server la lista dei file nella folder (che contengono likeNome)
-                        //clientLogic.WriteStringOnStream(ClientLogic.LISTFILES + clientLogic.username + "+" + folder + "+" + likeNome);
-                        //vedi FileSelection.FileSelection e FileSelection.item_MouseDoubleClickFolder
-                        List<String> folderContent = RetrieveFolderContent((String)item.Tag);
-                        foreach (String s in folderContent)
-                        {
-                            TreeViewItem subitem = new TreeViewItem();
-                            subitem.Header = s.Substring(s.LastIndexOf("\\") + 1);  //nome
-                            subitem.Tag = s;    //fullpath
-                            subitem.FontWeight = FontWeights.Normal;
-                            subitem.Items.Add(dummyNode);
-                            subitem.Expanded += new RoutedEventHandler(folder_Expanded);
-                            item.Items.Add(subitem);
-                        }
-                    }
-                    else
-                    {
+                    //se l'oggetto espanso è una cartella si chiede al server la lista dei file nella folder (che contengono likeNome)
+                    //clientLogic.WriteStringOnStream(ClientLogic.LISTFILES + clientLogic.username + "+" + folder + "+" + likeNome);
+                    //vedi FileSelection.FileSelection e FileSelection.item_MouseDoubleClickFolder
+
                     //se invece l'oggetto espanso è un file (posso espandere un file?)
                     //domando al server le versioni del file selezionato
                     //clientLogic.WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + "+" + folder + "+" + completePath + "+" + idFile);
                     //vedi DownloadFile.DownloadFile
-                    }
+                    ItemTag tag = (ItemTag)item.Tag;
+                    List<String> folderContent = RetrieveFolderContent(tag.fullPath);   //lista di stringhe contenenti fileinfo
+                    foreach (String s in folderContent)
+                    {
 
+                        AddSubItem(item, s);
+                    }
                 }
-                catch (Exception) { }
+                catch (Exception) { }   //FIXME
             }
         }
+        /*
+         * Callback chiamata in casi di cambio selezione nel TreeView, magari ci serve
+         */
         private void foldersItem_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
             return;
@@ -159,90 +157,151 @@ namespace Client
         }
 
         /*
-         * Analizza una stringa alla volta e aggiunge folder o file come subitem all'item
+         * Analizza la stringa di subFileInfo e aggiunge folder e/o file come subitem al parentItem
          * 
          */
-        private void AddSubItem(TreeViewItem item, String fileInfo, String folderPath) 
+        private void AddSubItem(TreeViewItem parentItem, String subFileInfo) 
         {
-            //info comuni sia a file che a cartelle (le posso mettere in una classe incapsulata dentro item.Tag)
-            String[] info = fileInfo.Split('?');
-            String filename = info[0];
-            String versione = info[1];
-            int dimFile = int.Parse(info[2]);
-            String timestamp = info[3];
-            String relativePath = MakeRelativePath(folderPath, filename);
-            
 
-            
-            if (!relativePath.Contains(@"\"))    //è il path di un file che sta direttamente nella folder aperta
+            String itemFullPath = subFileInfo.Substring(0, subFileInfo.IndexOf("?"));
+            String parentFolderPath = ((ItemTag)parentItem.Tag).fullPath;
+            String itemRelativePath = MakeRelativePath(parentFolderPath, itemFullPath);
+
+
+            if (!itemRelativePath.Contains(@"\"))    //è il path di un file che sta direttamente nella folder aperta
             {
-                //String idfile = info[4];
-                //StackPanel sp = new StackPanel();
-                //sp.Orientation = Orientation.Horizontal;
-                //Image folderImg = new Image();
-                //BitmapImage fld = new BitmapImage();
-                //fld.BeginInit();
-                //fld.UriSource = new Uri(@"Images/file.png", UriKind.RelativeOrAbsolute);
-                //fld.EndInit();
-                //folderImg.Source = fld;
-                //folderImg.Width = 40;
-                //folderImg.Height = 40;
-                //folderImg.Margin = new Thickness(10, 10, 0, 10);
-                //sp.Children.Add(folderImg);
-                //Label folderName = new Label();
-                //folderName.Content = relativePath;
-                //folderName.Background = Brushes.Transparent;
-                //folderName.BorderBrush = Brushes.Transparent;
-                //folderName.Margin = new Thickness(30, 15, 0, 15);
-                //folderName.FontSize = 14;
-                //folderName.FontFamily = new FontFamily("Tahoma");
-                //sp.Children.Add(folderName);
-                //TextBox id = new TextBox();
-                //id.Text = idfile;
-                //id.Visibility = Visibility.Hidden;
-                //sp.Children.Add(id);
-                //ListBoxItem item = new ListBoxItem();
-                //item.Content = sp;
-                //item.MouseDoubleClick += item_MouseDoubleClick; //aggiungo callback per doppio click sulla entry file
-                //ListBox.Items.Add(item);
+                //istanzio in ItemTag con le info contenute in subFileInfo
+                ItemTag subItemTag = new ItemTag(subFileInfo, ItemType.File);
+                subItemTag.relativePath = itemRelativePath;
+                subItemTag.nome = itemRelativePath;
+
+                //istanzio il TreeViewItem (oggetto visibile nel TreeView) mettendogli come tag l'oggetto ItemTag appena creato
+                TreeViewItem subItem = new TreeViewItem();
+                subItem.Header = subItemTag.nome;
+                subItem.Tag = subItemTag;
+                subItem.FontWeight = FontWeights.Normal;
+                subItem.Items.Add(dummyNode);
+                subItem.Expanded += new RoutedEventHandler(folder_Expanded);        //file expanded
+                parentItem.Items.Add(subItem);
+
             }
-            else if (relativePath.Contains(@"\"))    //è il path di un file che sta in una sottocartella - estraggo solo il nome della cartella
+            else if (itemRelativePath.Contains(@"\"))    //è il path di un file che sta in una sottocartella - estraggo solo il nome della cartella
             {
-                //string[] subfolder = relativePath.Split('\\');
-                //if (listElement.Contains(subfolder[0]))
-                //    return;
-                //StackPanel sp = new StackPanel();
-                //sp.Orientation = Orientation.Horizontal;
-                //Image folderImg = new Image();
-                //BitmapImage fld = new BitmapImage();
-                //fld.BeginInit();
-                //fld.UriSource = new Uri(@"Images/folder.png", UriKind.RelativeOrAbsolute);
-                //fld.EndInit();
-                //folderImg.Source = fld;
-                //folderImg.Width = 40;
-                //folderImg.Height = 40;
-                //folderImg.Margin = new Thickness(10, 10, 0, 10);
-                //sp.Children.Add(folderImg);
-                //Label folderName = new Label();
-                //folderName.Content = subfolder[0];
-                //folderName.Background = Brushes.Transparent;
-                //folderName.BorderBrush = Brushes.Transparent;
-                //folderName.Margin = new Thickness(30, 15, 0, 15);
-                //folderName.FontSize = 14;
-                //folderName.FontFamily = new FontFamily("Tahoma");
-                //sp.Children.Add(folderName);
-                //ListBoxItem item = new ListBoxItem();
-                //item.Content = sp;
-                //item.MouseDoubleClick += item_MouseDoubleClickFolder;   //callback click entry cartella
-                //ListBox.Items.Insert(0, item);
-                //listElement.Add(subfolder[0]);
+
+                String folderName = itemRelativePath.Substring(0, itemRelativePath.IndexOf("\\"));
+                //cerco se esiste già una cartella adibita a contenere il file
+                TreeViewItem folderItem = searchFolderInParent(parentItem, folderName);
+
+                //se la cartella esiste già devo chiamare la addSubItem su di essa
+                //se non esiste devo crearla, aggiungerla e chiamare la addSubItem
+                if (folderItem == null)
+                {
+
+                    //istanzio in ItemTag con le info contenute in subFileInfo
+                    String folderFullPath = parentFolderPath + "\\" + folderName;
+                    ItemTag subItemTag = new ItemTag(folderFullPath, ItemType.Folder);
+                    subItemTag.relativePath = itemRelativePath;
+                    subItemTag.nome = folderName;
+
+                    //istanzio il TreeViewItem (oggetto visibile nel TreeView) mettendogli come tag l'oggetto ItemTag appena creato
+                    folderItem = new TreeViewItem();
+                    folderItem.Header = subItemTag.nome;
+                    folderItem.Tag = subItemTag;
+                    folderItem.FontWeight = FontWeights.Normal;
+                    //folderItem.Items.Add(dummyNode);  //qui il dummyNode non serve perchè gestisco a mano l'inserimento del primo nodo
+                    folderItem.Expanded += new RoutedEventHandler(folder_Expanded);        //file expanded
+                    parentItem.Items.Add(folderItem);
+                }
+                AddSubItem(folderItem, subFileInfo);
             }
             
+        }
+
+        /*
+         * Cerca se in parentItem c'è una cartella con nome folderName
+         * Se sì ne ritorna un riferimento
+         * Se no ritorna null
+         */
+        private TreeViewItem searchFolderInParent(TreeViewItem parentItem, string folderName)
+        {
+            foreach(TreeViewItem item in parentItem.Items)
+            {
+                ItemTag tag = (ItemTag)item.Tag;
+                bool chk = tag.tipo == ItemType.Folder && tag.nome == folderName;
+                if (chk)
+                {
+                    return item;
+                }
+            }
+            return null;
         }
 
         public string MakeRelativePath(string workingDirectory, string fullPath)
         {
             return fullPath.Substring(workingDirectory.Length + 1);
+        }
+
+        private class ItemTag {
+            public ItemType tipo;
+            public String nome;
+            public String fileInfo;
+            public String fullPath;
+            public String relativePath;
+            public String versione;
+            public int dimFile;
+            public String timeStamp;
+
+            public ItemTag(string fileInfo, ItemType itemType)
+            {
+                this.fileInfo = fileInfo;
+                tipo = itemType;
+                if (tipo != ItemType.File)
+                {
+                    //in questo caso fileInfo contiene solo il path della rootFolder
+                    this.fullPath = fileInfo;
+                }
+                else 
+                {
+                    //fileInfo ha info sul file 
+                    String[] info = fileInfo.Split('?');
+                    fullPath = info[0];
+                    versione = info[1];
+                    dimFile = int.Parse(info[2]);
+                    timeStamp = info[3];
+                }
+            }
+        }
+
+        /*
+         * Converter per ottenere l'immagine corretta in base al tipo di value
+         * value è bindato nello xaml ad essere il tag del TreeViewItem (quindi un oggetto ItemTag)
+         */
+        public class HeaderToImageConverter : IValueConverter
+        {
+
+            public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            {
+                ItemTag tag = (ItemTag)value;
+                // this is a diskdrive
+                if (tag.tipo == ItemType.File)
+                {
+
+                    Uri uri = new Uri("pack://application:,,,/Images/file.png");
+                    BitmapImage source = new BitmapImage(uri);
+                    return source;
+                }
+                else //if (tag.tipo == ItemType.Folder)
+                {
+                    Uri uri = new Uri("pack://application:,,,/Images/folder.png");
+                    BitmapImage source = new BitmapImage(uri);
+                    return source;
+                }
+            }
+
+            public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+            {
+                throw new NotSupportedException("Cannot convert back");
+            }
         }
         #endregion
         #region ListBox
