@@ -595,13 +595,12 @@ namespace Client
         #endregion
 
         #region Metodi di Disconnesione e Logout
-        internal void Logout(MenuControl mc)
+        internal void Logout(MenuControl menuc)
         {
-            object window = mc;
             workertransaction = new BackgroundWorker();
             workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Logout);
             workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_LogoutCompleted);
-            workertransaction.RunWorkerAsync(mc);
+            workertransaction.RunWorkerAsync(menuc);
 
         }
 
@@ -630,26 +629,25 @@ namespace Client
                 }
                 else
                 {
-                    object[] res = e.Result as object[];
-                    MenuControl mc = (MenuControl)res[0];
+                    object res = e.Result;
+                    MenuControl menuc = (MenuControl)res;
                     String message = ReadStringFromStream();
                     if (message.Contains(OK))
                     {
                         connesso = false;
                         UpdateNotifyIconDisconnesso();
-                        mc.Logout_Esito(true);
+                        menuc.Logout_Esito(true);
                     }
                     else
                     {
                         //se il logout non va a buon fine torno alla MainControl e chiudo lo stream
-                        mc.Logout_Esito(false, "Errore nella procedura di logout");
+                        menuc.Logout_Esito(false, "Errore nella procedura di logout");
                         mw.restart(false);
                         if (this.clientsocket.Client.Connected)
                         {
                             this.clientsocket.GetStream().Close();
                             this.clientsocket.Close();
                         }
-                        return;
                     }
                 }
             }
@@ -666,11 +664,12 @@ namespace Client
             }
         }
 
+        // Questo metodo e relativi worker veniva chiamato dal dialog che abbiamo disabilitato
         internal void DisconnettiServer(Boolean esci)
         {
             workertransaction = new BackgroundWorker();
             workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Disconnect);
-            if (!esci)
+            if (!esci) //?
                 workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_DisconnectCompleted);
             workertransaction.RunWorkerAsync();
 
@@ -678,19 +677,57 @@ namespace Client
 
         private void Workertransaction_Disconnect(object sender, DoWorkEventArgs e)
         {
+            //try
+        //{
+            if (connesso)
+            {
+                WriteStringOnStream(DISCONETTIUTENTE + username + "+" + mac);
+                connesso = false;
+            }
+            else
+                WriteStringOnStream(DISCONETTI);
+
+            clientsocket.GetStream().Close();
+            clientsocket.Close();
+            //}
+            //catch
+            //{
+            //    if (clientsocket.Connected)
+            //    {
+            //        clientsocket.GetStream().Close();
+            //        clientsocket.Close();
+            //    }
+            //    //MainControl main = new MainControl();
+            //    //App.Current.MainWindow.Content = main;
+            //    mw.restart(true);
+            //    return;
+            //}
+        }
+
+        private void Workertransaction_DisconnectCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
             try
             {
-                if (connesso)
+                if (e.Error != null)
                 {
-                    WriteStringOnStream(DISCONETTIUTENTE + username + "+" + mac);
-                    connesso = false;
+                    if (clientsocket.Connected)
+                    {
+                        clientsocket.GetStream().Close();
+                        clientsocket.Close();
+                    }
+                    //MainControl main = new MainControl();
+                    //App.Current.MainWindow.Content = main;
+                    mw.restart(true, e.Error.Message);
                 }
                 else
-                    WriteStringOnStream(DISCONETTI);
-                clientsocket.GetStream().Close();
-                clientsocket.Close();
+                {
+                    UpdateNotifyIconDisconnesso();
+                    //MainControl main = new MainControl();
+                    //App.Current.MainWindow.Content = main;
+                    mw.restart(false);
+                }
             }
-            catch
+            catch (Exception exc)
             {
                 if (clientsocket.Connected)
                 {
@@ -699,17 +736,8 @@ namespace Client
                 }
                 //MainControl main = new MainControl();
                 //App.Current.MainWindow.Content = main;
-                mw.restart(true);
-                return;
+                mw.restart(true, exc.Message);
             }
-        }
-
-        private void Workertransaction_DisconnectCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            UpdateNotifyIconDisconnesso();
-            //MainControl main = new MainControl();
-            //App.Current.MainWindow.Content = main;
-            mw.restart(false);
         }
 
         public static void UpdateNotifyIconDisconnesso()
@@ -832,34 +860,35 @@ namespace Client
 
         private void Workertransaction_InviaFile(object sender, DoWorkEventArgs e)
         {
+            bool inviato = false;
             lavorandoInvio = true;
             object[] parameters = e.Argument as object[];
             string[] resultArray = Array.ConvertAll(parameters, x => x.ToString()); //riottengo le stringhe con i filenames
             int nFile = 100 / resultArray.Length;   //per calcolare la percentuale di progresso
             foreach (string name in resultArray)
             {
-                try
-                {
+                //try
+                //{
                     this.WriteStringOnStream(ClientLogic.FILE + username);  //scrivo lo username sullo stream preceduto da FILE (per avvisare il server?)
-                }
-                catch
-                {
-                    //gestione eccezione: chiudo socket
-                    if (this.clientsocket.Client.Connected)
-                    {
-                        this.clientsocket.GetStream().Close();
-                        this.clientsocket.Close();
-                    }
-                    e.Result = false;
-                }
+                //}
+                //catch
+                //{
+                //    //gestione eccezione: chiudo socket
+                //    if (this.clientsocket.Client.Connected)
+                //    {
+                //        this.clientsocket.GetStream().Close();
+                //        this.clientsocket.Close();
+                //    }
+                //    e.Result = false;
+                //}
 
-                int retVal = InviaFile(name);
+                InviaFile(name, ref inviato);
 
                 //gestisco i codici di errore ritornati da IviaFile
-                if (retVal == 1)    //FIXME: magicnumber - file inviato
+                if (inviato)    //FIXME: magicnumber - file inviato
                 {
-                    try
-                    {
+                    //try
+                    //{
                         workertransaction.ReportProgress(nFile, "Ultimo file sincronizzato: " + Path.GetFileName(name)); //si invoca la callback per monitorare il progresso
                         string message = ReadStringFromStream();
                         if (message == (ERRORE + "Invio file non riuscito"))
@@ -867,41 +896,42 @@ namespace Client
                             UpdateNotifyIconDisconnesso();
                         }
                         e.Result = true;
-                    }
-                    catch
-                    {
-                        e.Result = false;
-                        break;
-                    }
+                    //}
+                    //catch
+                    ////{
+                    //    e.Result = false;
+                    //    break;
+                    //}
                 }
-                else if (retVal == 0)   //FIXME: magicnumber - Non è stato necessario inviare il file
+                else   //FIXME: magicnumber - Non è stato necessario inviare il file
                 {
                     workertransaction.ReportProgress(nFile, "Ultimo file sincronizzato: " + Path.GetFileName(name));
                     e.Result = true;
                 }
-                else if (retVal == 2)   //FIXME: magicnumber - eccezione
-                {
-                    e.Result = false;
-                    break;
-                }
+                //else if (retVal == 2)   //FIXME: magicnumber - eccezione
+                //{
+                //    //e.Result = false; 
+                //    throw new Exception();
+                //    // break;
+                //}
                 if (monitorando == false)   //monitorando vale false in modo anomalo (?) - flaggo il task come canceled
                 {
                     e.Cancel = true;
                     return;
                 }
             }
-            try
-            {
+            //try
+            //{
                 this.WriteStringOnStream(ClientLogic.ENDSYNC + username + "+" + folder);    //comunico al server che ho terminato l'invio dei file
-            }
-            catch
-            {
-                if (this.clientsocket.Client.Connected)
-                {
-                    this.clientsocket.GetStream().Close();
-                    this.clientsocket.Close();
-                }
-            }
+            //}
+            //catch
+            //{
+                //if (this.clientsocket.Client.Connected)
+                //{
+                //    this.clientsocket.GetStream().Close();
+                //    this.clientsocket.Close();
+                //}
+            //}
         }
 
         /*
@@ -918,6 +948,19 @@ namespace Client
                 menuc.EffettuaBackup.IsEnabled = true;
                 menuc.EffettuaBackup.Visibility = Visibility.Visible;
                 BrushConverter bc = new BrushConverter();
+
+                if (e.Error != null)
+                {
+                    if (clientsocket.Connected)
+                    {
+                        clientsocket.GetStream().Close();
+                        clientsocket.Close();
+                    }
+                    //MainControl main = new MainControl();
+                    //App.Current.MainWindow.Content = main;
+                    mw.restart(true, e.Error.Message);
+                }
+
                 if (e.Cancelled)
                 {
                     //Se l'invio file è stato annullato  si ritorna ad uno stato stabile (senza rollback?) e lo si comunica all'utente nella TextBox FileUploading
@@ -954,23 +997,22 @@ namespace Client
                     event_1.Set();
 
                     //se è avvenuto qualche problema nell'esecuzione del task torno a MainControl con un errore
-                    if ((bool)e.Result == false)
-                    {
-                        //MainControl main = new MainControl(1);  //FIXME: magicnumber
-                        //App.Current.MainWindow.Content = main;
-                        mw.restart(true);
-                        return;
-                    }
+                    //if ((bool)e.Result == false)
+                    //{
+                    //    //MainControl main = new MainControl(1);  //FIXME: magicnumber
+                    //    //App.Current.MainWindow.Content = main;
+                    //    mw.restart(true);
+                    //    return;
+                    //}
                 }
             }
             catch
             {
                 //gestione eccezione chiudo stream e socket
-                MainWindow mainw = (MainWindow)App.Current.MainWindow;
-                if (mainw.clientLogic.clientsocket.Connected)
+                if (clientsocket.Connected)
                 {
-                    mainw.clientLogic.clientsocket.GetStream().Close();
-                    mainw.clientLogic.clientsocket.Close();
+                    clientsocket.GetStream().Close();
+                    clientsocket.Close();
                 }
                 //MainControl main = new MainControl(1);
                 //App.Current.MainWindow.Content = main;
@@ -986,15 +1028,16 @@ namespace Client
          */
         private void WorkerProgressChanged(object sender, ProgressChangedEventArgs e)
         {
-            MenuControl mc = (MenuControl)mw.Content;
-            mc.pbStatus.Value += e.ProgressPercentage;
-            mc.FileUploading.Text = (string)e.UserState;
+            MenuControl menuc = (MenuControl)mw.Content;
+            // Manca show?
+            menuc.pbStatus.Value += e.ProgressPercentage;
+            menuc.FileUploading.Text = (string)e.UserState;
         }
 
         /*
          * Invia il file relativo a Filename al server
          */
-        private int InviaFile(string Filename)
+        private void InviaFile(string Filename, ref bool inviato)
         {
             try
             {
@@ -1019,7 +1062,8 @@ namespace Client
                     //chiudo il FileStream visto che non è necessario inviarlo
                     fs.Close();
                     fs.Dispose();
-                    return 0;
+                    //return false;
+                    inviato = false;
                 }
 
                 //invio tanti pezzettini di file quanto necessario
@@ -1032,11 +1076,23 @@ namespace Client
                 }
                 fs.Close();
                 fs.Dispose();
-                return 1;   //FIXME: magicnumber
+                //return true;   //FIXME: magicnumber
+                inviato = true;
             }
             catch
             {
-                return 2;   //FIXME: magicnumber
+                //return 2;   //FIXME: magicnumber
+
+                //gestione eccezione chiudo stream e socket
+                if (clientsocket.Connected)
+                {
+                    clientsocket.GetStream().Close();
+                    clientsocket.Close();
+                }
+                //MainControl main = new MainControl(1);
+                //App.Current.MainWindow.Content = main;
+                mw.restart(true);
+                
             }
         }
         #endregion

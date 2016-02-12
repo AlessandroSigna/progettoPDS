@@ -91,6 +91,7 @@ namespace Client
             }
             else if ((App.Current.MainWindow.Content is MenuControl))
             {
+                // Non arriviamo più qui
                 menuContr = (MenuControl)App.Current.MainWindow.Content;
                 e.Cancel = true;
                 DialogDisconnetti();
@@ -140,6 +141,7 @@ namespace Client
             this.Hide();
         }
 
+        // Non viene più utilizzato
         public /*async*/ void DialogDisconnetti()
         {
             Console.Out.WriteLine("MainWindow: DialogDisconnetti");
@@ -152,6 +154,8 @@ namespace Client
             //await mw.ShowMetroDialogAsync(customDialog);
         }
 
+
+        // Non viene più utilizzato
         private void ButtonServerOnClick(object sender, RoutedEventArgs e)
         {
             Console.Out.WriteLine("MainWindow: ButtonServerOnClick");
