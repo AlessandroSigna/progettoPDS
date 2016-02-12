@@ -23,7 +23,7 @@ namespace Client
     public partial class RestoreControl : UserControl
     {
 
-        enum ItemType { RootFolder, Folder, File };
+        enum ItemType { RootFolder, Folder, File, FileVersion };
         private ClientLogic clientlogic;
         private String selFolderPath;
         private MainWindow mw;
@@ -73,10 +73,11 @@ namespace Client
             {
                 if (s != String.Empty)
                 {
-                    //istanzio in ItemTag con le info contenute in subFileInfo
+                    //istanzio in ItemTag con le info contenute in s
                     ItemTag rootItemTag = new ItemTag(s, ItemType.RootFolder);
                     rootItemTag.relativePath = s.Substring(s.LastIndexOf("\\") + 1);  //nome 
                     rootItemTag.nome = rootItemTag.relativePath;
+                    rootItemTag.rootDir = s;
                     TreeViewItem item = new TreeViewItem();
                     item.Header = rootItemTag.nome;
                     item.Tag = rootItemTag;
@@ -89,12 +90,13 @@ namespace Client
         }
 
         /*
-         * Callback chiamata quando l'oggetto viene espanso
+         * Callback chiamata quando una rootFolder viene espansa
          */
         void folder_Expanded(object sender, RoutedEventArgs e)
         {
 
             //la stessa chiamata verrà fatta sulle eventuali sottocartelle
+            //ma non avranno dummynode quindi forse meglio non legare proprio la callback alle sottocartelle
             TreeViewItem item = (TreeViewItem)sender;
             if (item.Items.Count == 1 && item.Items[0] == dummyNode)
             {
@@ -108,10 +110,6 @@ namespace Client
                     //clientLogic.WriteStringOnStream(ClientLogic.LISTFILES + clientLogic.username + "+" + folder + "+" + likeNome);
                     //vedi FileSelection.FileSelection e FileSelection.item_MouseDoubleClickFolder
 
-                    //se invece l'oggetto espanso è un file (posso espandere un file?)
-                    //domando al server le versioni del file selezionato
-                    //clientLogic.WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + "+" + folder + "+" + completePath + "+" + idFile);
-                    //vedi DownloadFile.DownloadFile
                     ItemTag tag = (ItemTag)item.Tag;
                     List<String> folderContent = RetrieveFolderContent(tag.fullPath);   //lista di stringhe contenenti fileinfo
                     foreach (String s in folderContent)
@@ -123,6 +121,38 @@ namespace Client
                 catch (Exception) { }   //FIXME
             }
         }
+        /*
+         * Callback chiamata quando un file viene espanso
+         */
+        void file_Expanded(object sender, RoutedEventArgs e)
+        {
+
+            
+            TreeViewItem item = (TreeViewItem)sender;
+            if (item.Items.Count == 1 && item.Items[0] == dummyNode)
+            {
+                //entro qui solo quando l'oggetto viene espanso la prima volta
+                item.Items.Clear();
+
+                try
+                {
+                    //se invece l'oggetto espanso è un file (posso espandere un file?)
+                    //domando al server le versioni del file selezionato
+                    //clientLogic.WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + "+" + folder + "+" + completePath + "+" + idFile);
+                    //vedi DownloadFile.DownloadFile
+                    ItemTag tag = (ItemTag)item.Tag;
+                    List<String> fileVersions = RetrieveFileVersions(tag);   //lista di stringhe contenenti fileinfo
+                    foreach (String s in fileVersions)
+                    {
+
+                        AddSubItem(item, s);
+                    }
+                }
+                catch (Exception) { }   //FIXME
+            }
+        }
+
+
         /*
          * Callback chiamata in casi di cambio selezione nel TreeView, magari ci serve
          */
@@ -162,59 +192,79 @@ namespace Client
          */
         private void AddSubItem(TreeViewItem parentItem, String subFileInfo) 
         {
-
-            String itemFullPath = subFileInfo.Substring(0, subFileInfo.IndexOf("?"));
-            String parentFolderPath = ((ItemTag)parentItem.Tag).fullPath;
-            String itemRelativePath = MakeRelativePath(parentFolderPath, itemFullPath);
-
-
-            if (!itemRelativePath.Contains(@"\"))    //è il path di un file che sta direttamente nella folder aperta
+            ItemTag parentTag = (ItemTag)parentItem.Tag;
+            if (parentTag.tipo == ItemType.File)
             {
-                //istanzio in ItemTag con le info contenute in subFileInfo
-                ItemTag subItemTag = new ItemTag(subFileInfo, ItemType.File);
-                subItemTag.relativePath = itemRelativePath;
-                subItemTag.nome = itemRelativePath;
+                //istanzio un ItemTag con le info contenute in subFileInfo
+                ItemTag fileTag = new ItemTag(subFileInfo, ItemType.FileVersion);
+                fileTag.relativePath = parentTag.relativePath;
+                fileTag.nome = parentTag.nome;
+                fileTag.rootDir = parentTag.rootDir;
 
                 //istanzio il TreeViewItem (oggetto visibile nel TreeView) mettendogli come tag l'oggetto ItemTag appena creato
-                TreeViewItem subItem = new TreeViewItem();
-                subItem.Header = subItemTag.nome;
-                subItem.Tag = subItemTag;
-                subItem.FontWeight = FontWeights.Normal;
-                subItem.Items.Add(dummyNode);
-                subItem.Expanded += new RoutedEventHandler(folder_Expanded);        //file expanded
-                parentItem.Items.Add(subItem);
-
+                TreeViewItem filetem = new TreeViewItem();
+                filetem.Header = fileTag.timeStamp;     //FIXME: decidere cosa mostrare sulla entry con la versione del file
+                filetem.Tag = fileTag;
+                filetem.FontWeight = FontWeights.Normal;
+                //filetem.Items.Add(dummyNode);
+                //subItem.Expanded += new RoutedEventHandler(file_Expanded);        //file expanded
+                parentItem.Items.Add(filetem);
             }
-            else if (itemRelativePath.Contains(@"\"))    //è il path di un file che sta in una sottocartella - estraggo solo il nome della cartella
+            else
             {
+                String itemFullPath = subFileInfo.Substring(0, subFileInfo.IndexOf("?"));
+                String parentFolderPath = parentTag.fullPath;
+                String itemRelativePath = MakeRelativePath(parentFolderPath, itemFullPath);
 
-                String folderName = itemRelativePath.Substring(0, itemRelativePath.IndexOf("\\"));
-                //cerco se esiste già una cartella adibita a contenere il file
-                TreeViewItem folderItem = searchFolderInParent(parentItem, folderName);
-
-                //se la cartella esiste già devo chiamare la addSubItem su di essa
-                //se non esiste devo crearla, aggiungerla e chiamare la addSubItem
-                if (folderItem == null)
+                if (!itemRelativePath.Contains(@"\"))    //è il path di un file che sta direttamente nella folder aperta
                 {
-
                     //istanzio in ItemTag con le info contenute in subFileInfo
-                    String folderFullPath = parentFolderPath + "\\" + folderName;
-                    ItemTag subItemTag = new ItemTag(folderFullPath, ItemType.Folder);
+                    ItemTag subItemTag = new ItemTag(subFileInfo, ItemType.File);
                     subItemTag.relativePath = itemRelativePath;
-                    subItemTag.nome = folderName;
+                    subItemTag.nome = itemRelativePath;
+                    subItemTag.rootDir = parentTag.rootDir;
 
                     //istanzio il TreeViewItem (oggetto visibile nel TreeView) mettendogli come tag l'oggetto ItemTag appena creato
-                    folderItem = new TreeViewItem();
-                    folderItem.Header = subItemTag.nome;
-                    folderItem.Tag = subItemTag;
-                    folderItem.FontWeight = FontWeights.Normal;
-                    //folderItem.Items.Add(dummyNode);  //qui il dummyNode non serve perchè gestisco a mano l'inserimento del primo nodo
-                    folderItem.Expanded += new RoutedEventHandler(folder_Expanded);        //file expanded
-                    parentItem.Items.Add(folderItem);
+                    TreeViewItem subItem = new TreeViewItem();
+                    subItem.Header = subItemTag.nome;
+                    subItem.Tag = subItemTag;
+                    subItem.FontWeight = FontWeights.Normal;
+                    subItem.Items.Add(dummyNode);
+                    subItem.Expanded += new RoutedEventHandler(file_Expanded);        //file expanded
+                    parentItem.Items.Add(subItem);
+
                 }
-                AddSubItem(folderItem, subFileInfo);
+                else if (itemRelativePath.Contains(@"\"))    //è il path di un file che sta in una sottocartella - estraggo solo il nome della cartella
+                {
+
+                    String folderName = itemRelativePath.Substring(0, itemRelativePath.IndexOf("\\"));
+                    //cerco se esiste già una cartella adibita a contenere il file
+                    TreeViewItem folderItem = searchFolderInParent(parentItem, folderName);
+
+                    //se la cartella esiste già devo chiamare la addSubItem su di essa
+                    //se non esiste devo crearla, aggiungerla e chiamare la addSubItem
+                    if (folderItem == null)
+                    {
+
+                        //istanzio in ItemTag con le info contenute in subFileInfo
+                        String folderFullPath = parentFolderPath + "\\" + folderName;
+                        ItemTag subItemTag = new ItemTag(folderFullPath, ItemType.Folder);
+                        subItemTag.relativePath = itemRelativePath;
+                        subItemTag.nome = folderName;
+                        subItemTag.rootDir = parentTag.rootDir;
+
+                        //istanzio il TreeViewItem (oggetto visibile nel TreeView) mettendogli come tag l'oggetto ItemTag appena creato
+                        folderItem = new TreeViewItem();
+                        folderItem.Header = subItemTag.nome;
+                        folderItem.Tag = subItemTag;
+                        folderItem.FontWeight = FontWeights.Normal;
+                        //folderItem.Items.Add(dummyNode);  //qui il dummyNode non serve perchè gestisco a mano l'inserimento del primo nodo
+                        folderItem.Expanded += new RoutedEventHandler(folder_Expanded);        //file expanded
+                        parentItem.Items.Add(folderItem);
+                    }
+                    AddSubItem(folderItem, subFileInfo);
+                }
             }
-            
         }
 
         /*
@@ -245,19 +295,21 @@ namespace Client
             public ItemType tipo;
             public String nome;
             public String fileInfo;
+            public String rootDir;
             public String fullPath;
             public String relativePath;
             public String versione;
             public int dimFile;
+            public String id;
             public String timeStamp;
 
             public ItemTag(string fileInfo, ItemType itemType)
             {
                 this.fileInfo = fileInfo;
                 tipo = itemType;
-                if (tipo != ItemType.File)
+                if (tipo == ItemType.RootFolder || tipo == ItemType.Folder)
                 {
-                    //in questo caso fileInfo contiene solo il path della rootFolder
+                    //in questo caso fileInfo contiene solo il path della cartella
                     this.fullPath = fileInfo;
                 }
                 else 
@@ -268,6 +320,7 @@ namespace Client
                     versione = info[1];
                     dimFile = int.Parse(info[2]);
                     timeStamp = info[3];
+                    id = info[4];
                 }
             }
         }
@@ -287,6 +340,13 @@ namespace Client
                 {
 
                     Uri uri = new Uri("pack://application:,,,/Images/file.png");
+                    BitmapImage source = new BitmapImage(uri);
+                    return source;
+                }
+                else if (tag.tipo == ItemType.FileVersion)
+                {
+                    String uriPath = tag.dimFile == 0 ? "pack://application:,,,/Images/filedel.png" : "pack://application:,,,/Images/fileadd.png";
+                    Uri uri = new Uri(uriPath);
                     BitmapImage source = new BitmapImage(uri);
                     return source;
                 }
@@ -443,6 +503,48 @@ namespace Client
         {
             //si chiede al server la lista dei file nella folder (che contengono likeNome)
             clientlogic.WriteStringOnStream(ClientLogic.LISTFILES + clientlogic.username + "+" + folderPath + "+" + "");
+
+
+            List<String> retFiles = new List<String>();
+            Boolean exit = false;
+            Boolean fine = false;
+            //si parsifica opportunamente la stringa che ha inviato il server come risposta
+            while (!exit)
+            {
+                String messaggio = clientlogic.ReadStringFromStream();
+                String[] parametri = messaggio.Split('+');
+                String comando = parametri[1];
+                if (comando.Equals("FLP"))
+                {
+                    retFiles.Add(parametri[3]);     //ricevuta la stringa si aggiunge l'elemeno all'array
+                    clientlogic.WriteStringOnStream(ClientLogic.OK);    //e si manda un ACK al server
+                }
+                else if (comando.Equals("ENDLIST") || comando.Equals("INFO"))
+                {
+                    exit = true;
+                }
+                else
+                {
+                    exit = true;
+                    fine = true;
+                }
+            }
+            if (fine)
+            {
+                App.Current.MainWindow.Close();
+            }
+            //le stringhe qui sono tutti i file contenuti nella rootDir, non vengono ritornate le cartelle
+            //le cartelle si devono creare logicamente esaminando le varie stringhe
+            retFiles.RemoveAll(str => String.IsNullOrEmpty(str));
+            return retFiles;
+        }
+
+        private List<String> RetrieveFileVersions(ItemTag fileTag)
+        {
+            //richiesta versioni del file
+            //WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + "+" + pathDellaRootFolderDiBackup + "+" + fullPathDelFile + "+" + idFile);
+
+            clientlogic.WriteStringOnStream(ClientLogic.GETVFILE + clientlogic.username + "+" + fileTag.rootDir + "+" + fileTag.fullPath + "+" + fileTag.id);
 
 
             List<String> retFiles = new List<String>();
