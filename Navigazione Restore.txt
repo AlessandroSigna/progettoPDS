@@ -1,0 +1,19 @@
+Sto pensando a due strategie per la creazione dell'albero navigabile della restore:
+1. Il server invia al client una grande metadato (string, xml) contenente tutte le info su file e cartelle
+    Il client lo parsifica e popola la listbox 
+    PRO:
+    - navigazione veloce
+    - creazione dell'albero in un solo passaggio
+    CONTRO:
+    - nuovo protocollo per l'invio del metadato (accesso a diverse parti del DB in una sola mossa)
+    - parsifico anche cose che non mi interessano
+    
+2. Il client chiede al server un pezzetto alla volta in base a che cosa si apre nell'albero
+    all'inizio il sevrer mi da solo le root directories e doppiocliccando su una di questa comunico al server
+    che mi deve dare informazioni sul suo contenuto e riempio l'albero in base a quello che dice il server
+    PRO:
+    - modulare quindi si possono sfruttare i protocolli che già ci sono per richiesta e informazione file e cartelle
+    - parsifico solo contenuti che voglio esaminare
+    CONTRO:
+    - navigazione lenta (attesa risposta dal server se richiedo info su una cartella che prima non avevo richiesto)
+    - creazione albero poco alla volta

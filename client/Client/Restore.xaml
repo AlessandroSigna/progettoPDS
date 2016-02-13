@@ -1,11 +1,8 @@
-﻿<Controls:MetroWindow x:Class="Client.Restore"
+﻿<Window x:Class="Client.Restore"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:Controls="clr-namespace:MahApps.Metro.Controls;assembly=MahApps.Metro"
         ResizeMode="NoResize"
-        Icon="/Images/upload.png"
-        IsWindowDraggable="True"              
-        Title="MYCLOUD" Height="400" Width="400"
+        Icon="/Images/upload.png"        
+        Title="MYCLOUD - Restore" Height="400" Width="400"
         WindowStartupLocation="CenterScreen" Closing="Window_Closing">
-    <Controls:ProgressRing Foreground="{DynamicResource AccentColorBrush}" IsActive="True" Height="100" Width="100"/>
-</Controls:MetroWindow>
+</Window>

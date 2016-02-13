@@ -157,10 +157,11 @@ namespace Client
                 relativePath = MakeRelativePath2(selFolderPath, filename);
             }
 
+            //info comuni sia a file che a cartelle (le posso mettere in una classe incapsulata dentro item.Tag)
             String versione = info[1];
             int dimFile = int.Parse(info[2]);
             String timestamp = info[3];
-            if (!relativePath.Contains(@"\") && !search)
+            if (!relativePath.Contains(@"\") && !search)    //è il path di un file che sta direttamente nella folder aperta
             {
                 String idfile = info[4];
                 StackPanel sp = new StackPanel();
@@ -192,7 +193,7 @@ namespace Client
                 item.MouseDoubleClick += item_MouseDoubleClick; //aggiungo callback per doppio click sulla entry file
                 ListBox.Items.Add(item);
             }
-            else if (relativePath.Contains(@"\") && !search)
+            else if (relativePath.Contains(@"\") && !search)    //è il path di un file che sta in una sottocartella - estraggo solo il nome della cartella
             {
                 string[] subfolder = relativePath.Split('\\');
                 if (listElement.Contains(subfolder[0]))
@@ -256,6 +257,7 @@ namespace Client
                 ListBox.Items.Add(item);
             }
         }
+
 
         private void item_MouseDoubleClickBack(object sender, MouseButtonEventArgs e)
         {

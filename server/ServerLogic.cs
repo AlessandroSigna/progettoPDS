@@ -33,7 +33,8 @@ namespace BackupServer
         public const string ECDH = "+ECDH+";   //key agreement per proteggere la registrazione
         public const string LOGIN = "+LOGIN+";
         public const string LOGOUT = "+LOGOUT+";
-        public const string DISCONETTI = "+DISCO+";
+        public const string DISCONETTI = "+DISCO+"; //obsoleto
+        public const string DISCONNETTICLIENT = "+DISCOCLIENT+"; //chiude lo stream di comunicazione con il client (utente non loggato)
         public const string EXITDOWNLOAD = "+EXITDOWNLOAD+";
         public const string INFO = "+INFO+";
         public const string GETVFILE = "+GVF+"; // +GVF+user+file -> Prendo le versioni di un file
@@ -44,7 +45,7 @@ namespace BackupServer
         public const string LISTFILES = "+LISTFILES+"; //+LISTFILES+user+folder+nomeLike (solo nome, senza path -> barra di ricerca. Se nullo, allora nomeLike="")
         public const string RESTORE = "+RESTORE+"; // +RESTORE+user+folderBackup+folderDestinazione (voglio anche la destinazione, così creo una nuova folderRoot) 
         public const string FILE = "+FILE+";
-        public const string DISCONETTIUTENTE = "+DISCUTENTE+"; //+DISCUTENTE+user
+        public const string DISCONNETTIUTENTE = "+DISCUTENTE+"; //+DISCUTENTE+user
         public const string RENAMEFILE = "+RENAMEFI+"; //+RENAMEFILE+user+fileNameOLD+fileNameNEW
         public const string CANC = "+CANC+"; //+CANC+user+filename
         public const string ENDSYNC = "+ENDSYN+"; //+ENDSYN+username
@@ -135,7 +136,6 @@ namespace BackupServer
             TcpClient clientsocket = (TcpClient)parameters[0];
             // Legge i comandi. Internamente c'è un loop che viene interrotto opportunamente
             readStringFromStream(clientsocket);
-
         }
         #endregion
 
@@ -525,17 +525,20 @@ namespace BackupServer
                 //pass contiene la password del supplicant
                 //do l'OK al client perché l'utente esiste
                 writeStringOnStream(clientsocket, OK);
+                string chk = ReadStringFromStream(clientsocket);
+                if (!chk.Equals(OK))
+                {
+                    return ERRORE + "Problema nella connesione durante il login";
+                }
 
                 //posso procedere con l'invio della sfida
                 byte[] challenge = new byte[CHALLENGESIZE];
                 Random random = new Random();
                 random.NextBytes(challenge);
                 WriteByteArrayOnStream(clientsocket, challenge);
-
                 //leggo la risposta al challenge del client
                 byte[] challengeResponse = new byte[32];    //dimensione dell'hash sha256
                 ReadByteArrayFromStream(clientsocket, challengeResponse);
-
                 //calcolo la risposta corretta
                 //concateno pasword e challenge
                 byte[] passwordChallengeBytes = new byte[pass.Length + CHALLENGESIZE];
@@ -621,7 +624,7 @@ namespace BackupServer
             {
                 //transazioneLogin.Rollback();
                 //transazioneLogin.Dispose();
-                return ERRORE + "Errore durante il login";
+                return ERRORE + "Eccezione durante il login";
             }
         }
         #endregion
@@ -1812,7 +1815,7 @@ namespace BackupServer
             }
             catch
             {
-                return ERRORE + "Errore durante il login";
+                return ERRORE + "Errore durante get user folder";
             }
 
         }
@@ -2567,8 +2570,9 @@ namespace BackupServer
 
         public bool WriteByteArrayOnStream(TcpClient clientsocket, byte[] message)
         {
-            TcpState statoConn = GetState(clientsocket);
-            if (statoConn == TcpState.Established)
+            //TcpState statoConn = GetState(clientsocket);
+            //if (statoConn == TcpState.Established)
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 NetworkStream stream = clientsocket.GetStream();
                 stream.WriteTimeout = 30000;
@@ -2580,8 +2584,9 @@ namespace BackupServer
 
         public bool ReadByteArrayFromStream(TcpClient clientsocket, byte[] buffer)
         {
-            TcpState statoConn = GetState(clientsocket);
-            if (statoConn == TcpState.Established)
+            //TcpState statoConn = GetState(clientsocket);
+            //if (statoConn == TcpState.Established)
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 NetworkStream stream = clientsocket.GetStream();
                 stream.ReadTimeout = 30000;
@@ -2596,9 +2601,9 @@ namespace BackupServer
 
         public string ReadStringFromStream(TcpClient clientsocket)
         {
-            TcpState statoConn = TcpState.Established; //GetState(clientsocket); //
-
-            if (statoConn == TcpState.Established)
+            //TcpState statoConn = GetState(clientsocket);
+            //if (statoConn == TcpState.Established)
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 NetworkStream stream = clientsocket.GetStream();
                 Byte[] data = new Byte[512];
@@ -2633,10 +2638,10 @@ namespace BackupServer
         // Dovrebbe chiamarsi read Command from stream
         private void readStringFromStream(TcpClient clientsocket)
         {
-
+            //FIXME: verificare stato connessione e usare try catch
             NetworkStream stream = clientsocket.GetStream();
-            bool chiudere = false;
-            bool nowrite = false;
+            bool chiudere = false;  //condizione di uscita dal loop
+            bool nowrite = false;   //true se NON si deve scrivere al client una risposta
             LinkedList<string> fileReceived = new LinkedList<string>();
 
             DateTime d1 = DateTime.Now;
@@ -2727,8 +2732,13 @@ namespace BackupServer
                             risposta = comandoGetFoldersUser(responseData);
                             nowrite = false;
                             break;
-                        case DISCONETTIUTENTE:  //chiusura dello stream con logout - Utile per disconnetti da MenuControl
+                        case DISCONNETTIUTENTE:  //chiusura dello stream con logout - Utile per disconnetti da MenuControl
                             risposta = comandoLogout(responseData);
+                            chiudere = true;
+                            nowrite = true;
+                            break;
+                        case DISCONNETTICLIENT:  //chiusura dello stream senza logout
+                            risposta = "Client richiede la disconnessione";
                             chiudere = true;
                             nowrite = true;
                             break;

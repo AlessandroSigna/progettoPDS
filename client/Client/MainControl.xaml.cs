@@ -96,7 +96,7 @@ namespace Client
             {
                 showHideWaitBar(true);
                 clientsocket = new TcpClient();
-                MainWindow mw = (MainWindow)Application.Current.MainWindow;
+                MainWindow mw = (MainWindow)App.Current.MainWindow;
 
                 client = new ClientLogic(clientsocket, IPAddress.Parse(ip), int.Parse(port), mw, this);
                 mw.clientLogic = client;

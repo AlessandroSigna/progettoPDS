@@ -91,7 +91,7 @@ FIXME: Due classi diverse che fanno quasi la stessa cosa ?!
 RESTORE
 Viene istanziato un nuovo ClientLogic che aprirà un nuovo socket (quello che già c'è è riservato per il backup?)
 il controllo passa a Restore che ha un .xaml non visibile come la MainWindow
-Resotre nel suo costruttore istanzia RestoreUC che gestisce la finestra dalla quale scegliere cartella o file da ripristinare
+Resotre nel suo costruttore istanzia RestoreUC che gestisce la finestra dalla quale scegliere cartella da ripristinare
 la MainWindow diventa Restore che però salva un riferimento alla vecchia MainWindow
 Restore gestisce la chiusura della finestra rilasciando le risorse in modo opportuno a seconda di quale classe sia la MainWindow
 RestoreUC gestisce una ListBox e un Button di selezione
@@ -160,6 +160,8 @@ http://www.codeproject.com/Articles/21248/A-Simple-WPF-Explorer-Tree
 - controllo su numero caratteri username e password (controllo su tipo di carattere per evitare sql injection) (il controllo di username e password in registrazione nella classe controller locale e non sul server)
 - Customizzare messaggi di errore per register fallito e altro
 - Quando indietro fa sloggare inserire avviso (es. hai effettuato il logout, stai per effettuare il logout)
+- Imporre gli stessi vincoli tra username e password
+- Dire all'utente quali sono i caratteri invalidi per username e password
 
 sicurezza
 (assumiamo il server sicuro e la rete insicura)
@@ -182,8 +184,9 @@ FIX
 - messaggio errore utente già loggato (?)
 - StartDownload viene chiamata solo in DownloadFile e non in DownloadFolder
 - Utente già registrato "impossibile raggiungere il server" e si disconnette
-- Gestione eccezioni da background workertr
+- Gestione eccezioni da background worker
 http://stackoverflow.com/questions/1044460/unhandled-exceptions-in-backgroundworker
+- Prima di fare il logout (back da MainControl) si deve aspettare / interrompere un eventuale lavoro in corso
 
 Dubbi
 - Come funziona lo stream? se nessuno legge e qualcuno scrive i dati restano lì? e viceversa?

@@ -92,84 +92,84 @@ namespace Client
             try
             {
                 MainWindow mw = (MainWindow)App.Current.MainWindow;
-                //if (!mw.clientLogic.monitorando)
-                //{
+                if (!mw.clientLogic.monitorando)
+                {
                     //inizio a monitorare e a inviare al server lo stato attuale della cartella
                     BrushConverter bc = new BrushConverter();
                     EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");   //cambio il colore del bottone
                     EffettuaBackup.Content = "Stop";    //e la scritta
                     FolderButton.IsEnabled = false;     //disabilito il bottone folder
-                    //mw.clientLogic.WriteStringOnStream(ClientLogic.FOLDER + mw.clientLogic.username + "+" + path);  //invio al server la rootfolder
-                    //string retFolder = mw.clientLogic.ReadStringFromStream();
-                    //if (retFolder == ClientLogic.OK + "RootFolder Inserita")
-                    //    FileUploading.Text = "Cartella aggiunta: " + System.IO.Path.GetDirectoryName(path);
-                    //else if (retFolder == ClientLogic.OK + "Stessa RootFolder")
-                    //    FileUploading.Text = "Cartella : " + System.IO.Path.GetDirectoryName(path);
+                    mw.clientLogic.WriteStringOnStream(ClientLogic.FOLDER + mw.clientLogic.username + "+" + path);  //invio al server la rootfolder
+                    string retFolder = mw.clientLogic.ReadStringFromStream();
+                    if (retFolder == ClientLogic.OK + "RootFolder Inserita")
+                        FileUploading.Text = "Cartella aggiunta: " + System.IO.Path.GetDirectoryName(path);
+                    else if (retFolder == ClientLogic.OK + "Stessa RootFolder")
+                        FileUploading.Text = "Cartella : " + System.IO.Path.GetDirectoryName(path);
 
 
                     pbStatus.Value = 0; //La ProgressBar in questione è Hidden in partenza
                     pbStatus.Maximum = 100;
-                    //files = Directory.GetFiles(path, "*.*", System.IO.SearchOption.AllDirectories); //si ricavano i nomi dei files nella rootdir
+                    files = Directory.GetFiles(path, "*.*", System.IO.SearchOption.AllDirectories); //si ricavano i nomi dei files nella rootdir
                     if (files.Length != 0)
                     {
                         pbStatus.Visibility = Visibility.Visible;
-                        //mw.clientLogic.InvioFile(files);    //invio al server i nomi dei files nella cartella e nelle sottocartelle
+                        mw.clientLogic.InvioFile(files);    //invio al server i nomi dei files nella cartella e nelle sottocartelle
                     }
-                    //watcher = new System.IO.FileSystemWatcher();    //FileWatcher a cui si registrano le callback in caso di modifiche sui file
-                    //watcher.Path = BackupDir.Text;
-                    //watcher.Filter = "*.*";
-                    //watcher.NotifyFilter = NotifyFilters.Size | NotifyFilters.FileName | NotifyFilters.DirectoryName;
-                    //watcher.IncludeSubdirectories = true;
-                    //watcher.Changed += new FileSystemEventHandler(OnChanged);
-                    //watcher.Created += new FileSystemEventHandler(OnCreated);
-                    //watcher.Deleted += new FileSystemEventHandler(OnDeleted);
-                    //watcher.Renamed += new RenamedEventHandler(OnRenamed);
-                    //watcher.EnableRaisingEvents = true;
-                //}
-                //else
-                //{
+                    watcher = new System.IO.FileSystemWatcher();    //FileWatcher a cui si registrano le callback in caso di modifiche sui file
+                    watcher.Path = BackupDir.Text;
+                    watcher.Filter = "*.*";
+                    watcher.NotifyFilter = NotifyFilters.Size | NotifyFilters.FileName | NotifyFilters.DirectoryName;
+                    watcher.IncludeSubdirectories = true;
+                    watcher.Changed += new FileSystemEventHandler(OnChanged);
+                    watcher.Created += new FileSystemEventHandler(OnCreated);
+                    watcher.Deleted += new FileSystemEventHandler(OnDeleted);
+                    watcher.Renamed += new RenamedEventHandler(OnRenamed);
+                    watcher.EnableRaisingEvents = true;
+                }
+                else
+                {
                     //termino di monitorare attendendo eventuali lavori in corso
-                    //AttendiTermineUpdate();
-                //}
-                //mw.clientLogic.monitorando = !mw.clientLogic.monitorando;
+                    AttendiTermineUpdate();
+                }
+                mw.clientLogic.monitorando = !mw.clientLogic.monitorando;
             }
             catch
             {
                 //viene catturata l'eventuale eccezione lanciando un apposito thread
-                //Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-                //t.Start();
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+                t.Start();
             }
         }
 
         private void EffettuaBackup_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            //MainWindow mw = (MainWindow)App.Current.MainWindow;
-            //if (path != null && !mw.clientLogic.monitorando)
-            //{
-            //    BrushConverter bc = new BrushConverter();
-            //    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F5FFFA");
-            //}
-            //else if (path != null && mw.clientLogic.monitorando)
-            //{
-            //    BrushConverter bc = new BrushConverter();
-            //    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F6CECE");
-            //}
+            MainWindow mw = (MainWindow)App.Current.MainWindow;
+            if (path != null && !mw.clientLogic.monitorando)
+            {
+                BrushConverter bc = new BrushConverter();
+                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+            }
+            else if (path != null && mw.clientLogic.monitorando)
+            {
+                BrushConverter bc = new BrushConverter();
+                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F6CECE");
+            }
 
         }
 
         private void EffettuaBackup_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            //MainWindow mw = (MainWindow)App.Current.MainWindow;
-            //if (path != null && !mw.clientLogic.monitorando)
-            //{
-            //    BrushConverter bc = new BrushConverter();
-            //    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
-            //}
-            //else if (path != null && mw.clientLogic.monitorando)
-            //{
-            //    BrushConverter bc = new BrushConverter();
-            //    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");
-            //}
+            MainWindow mw = (MainWindow)App.Current.MainWindow;
+            if (path != null && !mw.clientLogic.monitorando)
+            {
+                BrushConverter bc = new BrushConverter();
+                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
+            }
+            else if (path != null && mw.clientLogic.monitorando)
+            {
+                BrushConverter bc = new BrushConverter();
+                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");
+            }
 
         }
         #endregion
@@ -180,40 +180,40 @@ namespace Client
          */
         private void OnDeleted(object sender, FileSystemEventArgs e)
         {
-            //try
-            //{
-            //    Console.WriteLine(" ONdel");
-            //    if (!mw.clientLogic.monitorando)    //se non sto monitorando no devo gestire l'evento
-            //        return;
-            //    if (files.Length != 0)
-            //    {
-            //        mw.clientLogic.event_1.WaitOne();   //aspetto che event_1 venga segnalato - sincronizzazione
-            //    }
-            //    string extension = System.IO.Path.GetExtension(e.FullPath);
-            //    //se il file contiene un'estensione problematica ritorno
-            //    if (extensions.Contains(extension))
-            //    {
-            //        mw.clientLogic.event_1.Set();   //segnalo l'evento e ritorno
-            //        return;
-            //    }
-            //    WatcherChangeTypes wct = e.ChangeType;
-            //    if (e.ChangeType == WatcherChangeTypes.Deleted) //bisogna effettivamente controllare il ChangeType? 
-            //    {
-            //        updating = true;
-            //        //segnalo la cancellazione al server
-            //        mw.clientLogic.WriteStringOnStream(ClientLogic.CANC + mw.clientLogic.username + "+" + e.FullPath);
-            //        mw.clientLogic.ReadStringFromStream();  //consumo la risposta senza analizzarla?
-            //        updating = false;
-            //        mw.clientLogic.event_1.Set();   //segnalo l'evento
-            //    }
-            //}
-            //catch
-            //{
+            try
+            {
+                Console.WriteLine(" ONdel");
+                if (!mw.clientLogic.monitorando)    //se non sto monitorando no devo gestire l'evento
+                    return;
+                if (files.Length != 0)
+                {
+                    mw.clientLogic.event_1.WaitOne();   //aspetto che event_1 venga segnalato - sincronizzazione
+                }
+                string extension = System.IO.Path.GetExtension(e.FullPath);
+                //se il file contiene un'estensione problematica ritorno
+                if (extensions.Contains(extension))
+                {
+                    mw.clientLogic.event_1.Set();   //segnalo l'evento e ritorno
+                    return;
+                }
+                WatcherChangeTypes wct = e.ChangeType;
+                if (e.ChangeType == WatcherChangeTypes.Deleted) //bisogna effettivamente controllare il ChangeType? 
+                {
+                    updating = true;
+                    //segnalo la cancellazione al server
+                    mw.clientLogic.WriteStringOnStream(ClientLogic.CANC + mw.clientLogic.username + "+" + e.FullPath);
+                    mw.clientLogic.ReadStringFromStream();  //consumo la risposta senza analizzarla?
+                    updating = false;
+                    mw.clientLogic.event_1.Set();   //segnalo l'evento
+                }
+            }
+            catch
+            {
 
-            //    Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-            //    t.Start();
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+                t.Start();
 
-            //}
+            }
         }
 
         /*
@@ -221,41 +221,41 @@ namespace Client
          */
         private void OnChanged(object sender, FileSystemEventArgs e)
         {
-        //    try
-        //    {
-        //        Console.WriteLine("Oncha");
-        //        if (files.Length != 0)
-        //        {
-        //            mw.clientLogic.event_1.WaitOne();   //sincronizzazione
-        //        }
-        //        string extension = System.IO.Path.GetExtension(e.FullPath);
-        //        if (extensions.Contains(extension))     //controllo estensioni problematiche
-        //        {
-        //            mw.clientLogic.event_1.Set();
-        //            return;
-        //        }
+            try
+            {
+                Console.WriteLine("Oncha");
+                if (files.Length != 0)
+                {
+                    mw.clientLogic.event_1.WaitOne();   //sincronizzazione
+                }
+                string extension = System.IO.Path.GetExtension(e.FullPath);
+                if (extensions.Contains(extension))     //controllo estensioni problematiche
+                {
+                    mw.clientLogic.event_1.Set();
+                    return;
+                }
 
-        //        Console.WriteLine(e.FullPath);
-        //        if (!mw.clientLogic.monitorando)        //contorllo se sto effettivamente monitorando
-        //        {
-        //            mw.clientLogic.event_1.Set();
-        //            return;
-        //        }
-        //        if (Directory.Exists(e.FullPath))       //controllo se il file in questione è una directory?
-        //        {
-        //            mw.clientLogic.event_1.Set();
-        //            return;
-        //        }
-        //        updating = true;
-        //        InviaSingoloFile(e.FullPath);   //invio il file al server
-        //        updating = false;
-        //        mw.clientLogic.event_1.Set();
-        //    }
-        //    catch
-        //    {
-        //        Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-        //        t.Start();
-        //    }
+                Console.WriteLine(e.FullPath);
+                if (!mw.clientLogic.monitorando)        //contorllo se sto effettivamente monitorando
+                {
+                    mw.clientLogic.event_1.Set();
+                    return;
+                }
+                if (Directory.Exists(e.FullPath))       //controllo se il file in questione è una directory?
+                {
+                    mw.clientLogic.event_1.Set();
+                    return;
+                }
+                updating = true;
+                InviaSingoloFile(e.FullPath);   //invio il file al server
+                updating = false;
+                mw.clientLogic.event_1.Set();
+            }
+            catch
+            {
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+                t.Start();
+            }
 
 
         }
@@ -266,40 +266,40 @@ namespace Client
         private void OnCreated(object sender, FileSystemEventArgs e)
         {
 
-            //try
-            //{
-            //    Console.WriteLine("Oncre");
-            //    if (files.Length != 0)
-            //    {
-            //        mw.clientLogic.event_1.WaitOne();   //sincronizzazione
-            //    }
-            //    string extension = System.IO.Path.GetExtension(e.FullPath);
-            //    if (extensions.Contains(extension)) //controllo estensioni problematiche
-            //    {
-            //        mw.clientLogic.event_1.Set();
-            //        return;
-            //    }
-            //    Console.WriteLine(e.FullPath);
-            //    if (Directory.Exists(e.FullPath))   //controllo se è una directory ?
-            //    {
-            //        mw.clientLogic.event_1.Set();
-            //        return;
-            //    }
-            //    if (!mw.clientLogic.monitorando)
-            //    {
-            //        mw.clientLogic.event_1.Set();
-            //        return;
-            //    }
-            //    updating = true;
-            //    InviaSingoloFile(e.FullPath, "CREATE"); //invio il file al server
-            //    updating = false;
-            //    mw.clientLogic.event_1.Set();
-            //}
-            //catch
-            //{
-            //    Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-            //    t.Start();
-            //}
+            try
+            {
+                Console.WriteLine("Oncre");
+                if (files.Length != 0)
+                {
+                    mw.clientLogic.event_1.WaitOne();   //sincronizzazione
+                }
+                string extension = System.IO.Path.GetExtension(e.FullPath);
+                if (extensions.Contains(extension)) //controllo estensioni problematiche
+                {
+                    mw.clientLogic.event_1.Set();
+                    return;
+                }
+                Console.WriteLine(e.FullPath);
+                if (Directory.Exists(e.FullPath))   //controllo se è una directory ?
+                {
+                    mw.clientLogic.event_1.Set();
+                    return;
+                }
+                if (!mw.clientLogic.monitorando)
+                {
+                    mw.clientLogic.event_1.Set();
+                    return;
+                }
+                updating = true;
+                InviaSingoloFile(e.FullPath, "CREATE"); //invio il file al server
+                updating = false;
+                mw.clientLogic.event_1.Set();
+            }
+            catch
+            {
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+                t.Start();
+            }
         }
 
         /*
@@ -307,52 +307,52 @@ namespace Client
          */
         private void OnRenamed(object sender, RenamedEventArgs e)
         {
-            //try
-            //{
-            //    //i controlli iniziali sono gli stessi
-            //    Console.WriteLine("Onren");
-            //    Console.WriteLine(e.FullPath);
-            //    if (!mw.clientLogic.monitorando)
-            //        return;
+            try
+            {
+                //i controlli iniziali sono gli stessi
+                Console.WriteLine("Onren");
+                Console.WriteLine(e.FullPath);
+                if (!mw.clientLogic.monitorando)
+                    return;
 
-            //    if (files.Length != 0)
-            //    {
-            //        mw.clientLogic.event_1.WaitOne();
-            //    }
-            //    string extension = System.IO.Path.GetExtension(e.FullPath);
-            //    if (extensions.Contains(extension))
-            //    {
-            //        mw.clientLogic.event_1.Set();
-            //        return;
-            //    }
-            //    //invio al server il nuovo nome sia che sia un file o una directory differenziando i due casi
-            //    if (Directory.Exists(e.FullPath))
-            //    {
-            //        updating = true;
-            //        mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + "+" + e.OldFullPath + "+" + e.FullPath + "+" + "DIR");
-            //        mw.clientLogic.ReadStringFromStream();
-            //        updating = false;
-            //        mw.clientLogic.event_1.Set();
+                if (files.Length != 0)
+                {
+                    mw.clientLogic.event_1.WaitOne();
+                }
+                string extension = System.IO.Path.GetExtension(e.FullPath);
+                if (extensions.Contains(extension))
+                {
+                    mw.clientLogic.event_1.Set();
+                    return;
+                }
+                //invio al server il nuovo nome sia che sia un file o una directory differenziando i due casi
+                if (Directory.Exists(e.FullPath))
+                {
+                    updating = true;
+                    mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + "+" + e.OldFullPath + "+" + e.FullPath + "+" + "DIR");
+                    mw.clientLogic.ReadStringFromStream();
+                    updating = false;
+                    mw.clientLogic.event_1.Set();
 
-            //    }
-            //    else
-            //    {
-            //        WatcherChangeTypes wct = e.ChangeType;
-            //        if (e.ChangeType == WatcherChangeTypes.Renamed)
-            //        {
-            //            updating = true;
-            //            mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + "+" + e.OldFullPath + "+" + e.FullPath);
-            //            mw.clientLogic.ReadStringFromStream();
-            //            updating = false;
-            //            mw.clientLogic.event_1.Set();
-            //        }
-            //    }
-            //}
-            //catch
-            //{
-            //    Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-            //    t.Start();
-            //}
+                }
+                else
+                {
+                    WatcherChangeTypes wct = e.ChangeType;
+                    if (e.ChangeType == WatcherChangeTypes.Renamed)
+                    {
+                        updating = true;
+                        mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + "+" + e.OldFullPath + "+" + e.FullPath);
+                        mw.clientLogic.ReadStringFromStream();
+                        updating = false;
+                        mw.clientLogic.event_1.Set();
+                    }
+                }
+            }
+            catch
+            {
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+                t.Start();
+            }
         }
         #endregion
 
@@ -476,19 +476,19 @@ namespace Client
                     EffettuaBackup.Visibility = Visibility.Hidden;
                     EffettuaBackup.IsEnabled = false;
                     Wait.Visibility = Visibility.Visible;
-                    //messaggioStop();
-                    //BackgroundWorker worker = new BackgroundWorker();
-                    //worker.DoWork += new DoWorkEventHandler(Workertransaction_Waited);
-                    //worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_WaitedCompleted);
-                    //worker.RunWorkerAsync();
+                    messaggioStop();
+                    BackgroundWorker worker = new BackgroundWorker();
+                    worker.DoWork += new DoWorkEventHandler(Workertransaction_Waited);
+                    worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_WaitedCompleted);
+                    worker.RunWorkerAsync();
                 }
                 else
                 {
-                    //if (watcher != null)
-                    //{
-                    //    watcher.EnableRaisingEvents = false;
-                    //    watcher.Dispose();
-                    //}
+                    if (watcher != null)
+                    {
+                        watcher.EnableRaisingEvents = false;
+                        watcher.Dispose();
+                    }
                 }
 
             }
@@ -497,7 +497,7 @@ namespace Client
         // Questa funzione non dovrebbe essere qui (?)
         private void Workertransaction_Waited(object sender, DoWorkEventArgs e)
         {
-            //mw.clientLogic.event_1.WaitOne();
+            mw.clientLogic.event_1.WaitOne();
         }
 
         // Questa funzione non dovrebbe essere qui (?)
@@ -512,16 +512,16 @@ namespace Client
                 FolderButton.IsEnabled = true;
                 EffettuaBackup.Visibility = Visibility.Visible;
                 FileUploading.Text = "Ultima sincronizzazione : " + DateTime.Now;
-                //watcher.EnableRaisingEvents = false;
-                //watcher.Dispose();
-                //updating = false;
-                if (exit)   //se nel rattempo mi sono disconnesso pulisco e rilascio tutto
+                watcher.EnableRaisingEvents = false;
+                watcher.Dispose();
+                updating = false;
+                if (exit)   //se nel frattempo mi sono disconnesso pulisco e rilascio tutto
                 {
-                    //MainWindow mainw = (MainWindow)App.Current.MainWindow;
-                    //mainw.clientLogic.monitorando = false;
-                    //mainw.clientLogic.lavorandoInvio = false;
-                    //mainw.clientLogic.WriteStringOnStream(ClientLogic.DISCONETTIUTENTE + mainw.clientLogic.username + "+" + mainw.clientLogic.mac);
-                    //mainw.clientLogic.connesso = false;
+                    MainWindow mainw = (MainWindow)App.Current.MainWindow;
+                    mainw.clientLogic.monitorando = false;
+                    mainw.clientLogic.lavorandoInvio = false;
+                    mainw.clientLogic.WriteStringOnStream(ClientLogic.DISCONNETTIUTENTE + mainw.clientLogic.username + "+" + mainw.clientLogic.mac);
+                    mainw.clientLogic.connesso = false;
                     ClientLogic.UpdateNotifyIconDisconnesso();
                     if (mw.clientLogic.clientsocket.Client.Connected)
                     {
@@ -535,8 +535,8 @@ namespace Client
             }
             catch
             {
-                //Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-                //t.Start();
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+                t.Start();
             }
         }
         #endregion
@@ -557,22 +557,23 @@ namespace Client
          */
         private void RestoreFile_Click(object sender, RoutedEventArgs e)
         {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();
-            DialogResult result = fbd.ShowDialog();
-            if (fbd.SelectedPath != "")
-            {
-                //RestoreDir.Text = fbd.SelectedPath;
-                pathR = fbd.SelectedPath;
-                mw.clientLogic.folderR = pathR;
-            }
+            //FIXME: selezione cartella di restore da collocare meglio
+            //FolderBrowserDialog fbd = new FolderBrowserDialog();
+            //DialogResult result = fbd.ShowDialog();
+            //if (fbd.SelectedPath != "")
+            //{
+            //    //RestoreDir.Text = fbd.SelectedPath;
+            //    pathR = fbd.SelectedPath;
+            //    mw.clientLogic.folderR = pathR;
+            //}
 
             //verifico connessione
             if (mw.clientLogic.clientsocket.Client.Poll(1000, SelectMode.SelectRead))
             {
                 //MainControl main = new MainControl(1);
                 //App.Current.MainWindow.Content = main;
-                messaggioErrore("Connessione Persa");
-                mw.restart(true);
+                //messaggioErrore("Connessione Persa");
+                mw.restart(true, "Connessione persa.");
                 return;
 
             }
@@ -586,6 +587,8 @@ namespace Client
                 //istanzio Restore e la mostro come finestra di dialogo - NO Metro!
                 w = new Restore(clRestore, mw);
                 w.ShowDialog();
+                //da qui in poi App.Current.MainWindow è null - occorre risettarla
+                //App.Current.MainWindow = mw;  //fatto nella Restore:Window_Closing
             }
             catch (Exception)
             {
@@ -604,9 +607,9 @@ namespace Client
 
                 if (App.Current.MainWindow is Restore)
                     App.Current.MainWindow.Close();
-                mw.restart(true);
-                messaggioErrore("Connessione Persa");
-                return;
+                mw.restart(true, "Connessione persa.");
+                //messaggioErrore("Connessione Persa");
+                //return;
             }
 
             //App.Current.MainWindow = mw;
@@ -651,7 +654,7 @@ namespace Client
         {
 
             //avverto l'utente
-            MessageBoxResult result = System.Windows.MessageBox.Show("Verrà effettuato il logout. Procedere?", "Logout", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+            MessageBoxResult result = System.Windows.MessageBox.Show("Verrà effettuato il logout.\nProcedere?", "Logout", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
             
             if (result == MessageBoxResult.OK)
             {
@@ -728,7 +731,7 @@ namespace Client
 
             //exit = true;
             //if (mainw.clientLogic.lavorandoInvio || updating)
-            //    EffettuaBackup.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
+            //    EffettuaBackup.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));    //riscatena l'evento click che stavolta porterà ad AttendiTermineUpdate
             //else
             //    mainw.clientLogic.DisconnettiServer(false);
 
@@ -775,14 +778,14 @@ namespace Client
         {
             if (App.Current.MainWindow is Restore)
                 App.Current.MainWindow.Close();
-            //if (obj.clientLogic.clientsocket.Connected)
-            //{
-            //    Console.WriteLine("socket CHIUSO");
-            //    obj.clientLogic.clientsocket.GetStream().Close();
-            //    obj.clientLogic.clientsocket.Close();
-            //}
+            if (obj.clientLogic.clientsocket.Connected)
+            {
+                Console.WriteLine("socket CHIUSO");
+                obj.clientLogic.clientsocket.GetStream().Close();
+                obj.clientLogic.clientsocket.Close();
+            }
 
-            //App.Current.MainWindow = obj;
+            App.Current.MainWindow = obj;
             updating = false;
             //MainControl main = new MainControl();
             //mw.Content = main;

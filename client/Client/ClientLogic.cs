@@ -38,7 +38,8 @@ namespace Client
         public const string LOGIN = "+LOGIN+";
         public const string LOGOUT = "+LOGOUT+";
         public const string STOP = "+STOP+";
-        public const string DISCONETTI = "+DISCO+";
+        public const string DISCONETTI = "+DISCO+";//obsoleto
+        public const string DISCONNETTICLIENT = "+DISCOCLIENT+"; //chiude lo stream di comunicazione con il client (utente non loggato)
         public const string FILE = "+FILE+";
         public const string NONINVIARE = "+NOINVIO+";
         public const string EXITDOWNLOAD = "+EXITDOWNLOAD+";
@@ -50,7 +51,7 @@ namespace Client
         public const string CANC = "+CANC+"; //+CANC+user+filename
         public const string RENAMEFILE = "+RENAMEFI+"; //+RENAMEFILE+user+fileNameOLD+fileNameNEW
         public const string ENDSYNC = "+ENDSYN+"; //+ENDSYN+user+folder
-        public const string DISCONETTIUTENTE = "+DISCUTENTE+"; //+DISCUTENTE+user
+        public const string DISCONNETTIUTENTE = "+DISCUTENTE+"; //+DISCUTENTE+user
         public const string GETFOLDERUSER = "+GETFOLDUSER+"; // +GETFOLDUSER+user
         public const string FLP = "+FLP+";
         public const string CONNESSIONE_CHIUSA_SERVER = "Connessione chiusa dal server";
@@ -246,6 +247,8 @@ namespace Client
                 }
             }
 
+            WriteStringOnStream(OK);
+
             //aspetto dal server il nonce (challenge)
             byte[] challenge = new byte[CHALLENGESIZE];
             ReadByteArrayFromStream(challenge);
@@ -301,26 +304,21 @@ namespace Client
             try
             {
 
-                if (e.Error != null || e.Cancelled)
+                if (e.Error != null)
                 {
                     if (clientsocket.Connected)
                     {
                         clientsocket.GetStream().Close();
                         clientsocket.Close();
                     }
-                    //MainControl main = new MainControl(1);
-                    //App.Current.MainWindow.Content = main;
-                    if (e.Cancelled)
-                    {
-                        //mw.restart(true, "Username e/o Password Errati");
-                        MessageBoxResult result = System.Windows.MessageBox.Show("Username e/o Password Errati", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
-                    else
-                    {
-                        mw.restart(true, e.Error.Message);
 
-                    }
-                    //return;
+                    mw.restart(true, e.Error.Message);
+
+                } 
+                else if (e.Cancelled)
+                {
+                    //mw.restart(true, "Username e/o Password Errati");
+                    MessageBoxResult result = System.Windows.MessageBox.Show("Username e/o Password Errati", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
                 else
                 {
@@ -331,7 +329,7 @@ namespace Client
                     string message = ReadStringFromStream();
                     String tmp = message.Substring(1, message.Length - 1);
                     String messaggioErrore = message.Substring(tmp.IndexOf('+') + 2, tmp.Length - tmp.IndexOf('+') - 1);
-                        
+
 
                     if (message.Contains(OK))
                     {
@@ -666,43 +664,34 @@ namespace Client
         }
 
         // Questo metodo e relativi worker veniva chiamato dal dialog che abbiamo disabilitato
+
         internal void DisconnettiServer(Boolean esci)
         {
             workertransaction = new BackgroundWorker();
             workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Disconnect);
-            if (!esci) //?
-                workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_DisconnectCompleted);
-            workertransaction.RunWorkerAsync();
+            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_DisconnectCompleted);
+            workertransaction.RunWorkerAsync(esci);
 
         }
 
         private void Workertransaction_Disconnect(object sender, DoWorkEventArgs e)
         {
-            //try
-        //{
-            if (connesso)
+            if (connesso)   //devo fare logout + disconnessione
             {
-                WriteStringOnStream(DISCONETTIUTENTE + username + "+" + mac);
+                WriteStringOnStream(DISCONNETTIUTENTE + username);
                 connesso = false;
             }
-            else
-                WriteStringOnStream(DISCONETTI);
-
-            clientsocket.GetStream().Close();
-            clientsocket.Close();
-            //}
-            //catch
-            //{
-            //    if (clientsocket.Connected)
-            //    {
-            //        clientsocket.GetStream().Close();
-            //        clientsocket.Close();
-            //    }
-            //    //MainControl main = new MainControl();
-            //    //App.Current.MainWindow.Content = main;
-            //    mw.restart(true);
-            //    return;
-            //}
+            else            //devo solo fare disconnessione
+            {
+                WriteStringOnStream(DISCONNETTICLIENT);
+            }
+            if (clientsocket.Connected)
+            {
+                clientsocket.GetStream().Close();
+                clientsocket.Close();
+            }
+            UpdateNotifyIconDisconnesso();
+            e.Result = e.Argument;
         }
 
         private void Workertransaction_DisconnectCompleted(object sender, RunWorkerCompletedEventArgs e)
@@ -716,28 +705,26 @@ namespace Client
                         clientsocket.GetStream().Close();
                         clientsocket.Close();
                     }
-                    //MainControl main = new MainControl();
-                    //App.Current.MainWindow.Content = main;
-                    mw.restart(true, e.Error.Message);
+                    mw.restart(true);
                 }
                 else
                 {
-                    UpdateNotifyIconDisconnesso();
-                    //MainControl main = new MainControl();
-                    //App.Current.MainWindow.Content = main;
                     mw.restart(false);
+                    Boolean esci = (Boolean)e.Result;
+                    if (esci)
+                    {
+                        mw.Close();
+                    }
                 }
             }
-            catch (Exception exc)
+            catch
             {
                 if (clientsocket.Connected)
                 {
                     clientsocket.GetStream().Close();
                     clientsocket.Close();
                 }
-                //MainControl main = new MainControl();
-                //App.Current.MainWindow.Content = main;
-                mw.restart(true, exc.Message);
+                mw.restart(true);
             }
         }
 
@@ -758,8 +745,9 @@ namespace Client
          */
         public void WriteByteArrayOnStream(byte[] message)
         {
-            TcpState statoConn = GetState(clientsocket);
-            if (statoConn == TcpState.Established)
+            //TcpState statoConn = GetState(clientsocket);
+            //if (statoConn == TcpState.Established)
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 NetworkStream stream = clientsocket.GetStream();
                 stream.WriteTimeout = 30000;
@@ -776,8 +764,9 @@ namespace Client
          */
         public void ReadByteArrayFromStream(byte[] buffer)
         {
-            TcpState statoConn = GetState(clientsocket);
-            if (statoConn == TcpState.Established)
+            //TcpState statoConn = GetState(clientsocket);
+            //if (statoConn == TcpState.Established)
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 NetworkStream stream = clientsocket.GetStream();
                 stream.ReadTimeout = 30000;
@@ -792,42 +781,46 @@ namespace Client
             }
         }
 
-        public int WriteStringOnStream(string message)
+        public void WriteStringOnStream(string message)
         {
-            TcpState statoConn = GetState(clientsocket);    //FIXME: istruzione inutile?! controllare statoConn
-            NetworkStream stream = clientsocket.GetStream();
-            stream.WriteTimeout = 30000;
-            Byte[] data = System.Text.Encoding.ASCII.GetBytes(message); //preparo i dati per l'invio sul canale
-            stream.Write(data, 0, data.Length);
-            return 1;   //FIXME: perchè return 1?
+            //TcpState statoConn = GetState(clientsocket);
+            //if (statoConn == TcpState.Established)
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+            {
+                NetworkStream stream = clientsocket.GetStream();
+                stream.WriteTimeout = 30000;
+                Byte[] data = System.Text.Encoding.ASCII.GetBytes(message); //preparo i dati per l'invio sul canale
+                stream.Write(data, 0, data.Length);
+            }
+            else
+            {
+                throw new Exception("Network exception");
+            }
         }
 
         // Riscrivere come ReadArrayByte
         public string ReadStringFromStream()
         {
-            String responseData = String.Empty;
-
-            try
+            //TcpState statoConn = GetState(clientsocket);
+            //if (statoConn == TcpState.Established)
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
-                TcpState statoConn = GetState(clientsocket);    //FIXME: istruzione inutile?!  oppure serve solo per lanciare una eccezione?
                 NetworkStream stream = clientsocket.GetStream();
                 stream.ReadTimeout = 30000;
                 Byte[] data = new Byte[512];
+                String responseData = String.Empty;
                 Int32 bytes = stream.Read(data, 0, data.Length);
-                responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);    //parsifico i byte ricevuti
-
-            }
-            catch(Exception exc)
-            {
-                if (this.clientsocket.Client.Connected)
+                if (bytes == 0)
                 {
-                    this.clientsocket.GetStream().Close();
-                    this.clientsocket.Close();
+                    throw new IOException("No data is available");
                 }
-                Console.WriteLine("Eccezione: " + exc.Message);
+                responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);    //parsifico i byte ricevuti
+                return responseData;
             }
-
-            return responseData;
+            else
+            {
+                throw new Exception("Network exception");
+            }
         }
         #endregion
 
@@ -973,7 +966,7 @@ namespace Client
                         MainWindow mainw = (MainWindow)App.Current.MainWindow;
                         mainw.clientLogic.monitorando = false;
                         mainw.clientLogic.lavorandoInvio = false;
-                        mainw.clientLogic.WriteStringOnStream(ClientLogic.DISCONETTIUTENTE + username + "+" + mac);
+                        mainw.clientLogic.WriteStringOnStream(ClientLogic.DISCONNETTIUTENTE + username + "+" + mac);
                         connesso = false;
                         ClientLogic.UpdateNotifyIconDisconnesso();
                         if (mainw.clientLogic.clientsocket.Client.Connected)
