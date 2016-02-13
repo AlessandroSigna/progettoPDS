@@ -7,10 +7,13 @@
              mc:Ignorable="d" 
              d:DesignHeight="350" d:DesignWidth="400" Background="White">
     <Grid>
-        <ListBox Margin="0,0,0,52.4" Name="ListBox" HorizontalAlignment="Left" Width="400" SelectionChanged="onSelectionChanged" BorderThickness="0,0,0,3" BorderBrush="Yellow" />
+        <Grid.RowDefinitions>
+            <RowDefinition Height="149*"/>
+            <RowDefinition Height="26*"/>
+        </Grid.RowDefinitions>
         <Label x:Name="noFolder" Visibility="Visible" Content="Nessuna cartella salvata!"  HorizontalAlignment="Left" Margin="60,75,0,0" VerticalAlignment="Top" Height="47" Width="299" BorderThickness="0" FontSize="24" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold" Foreground="Red" />
 
-        <Button x:Name="FolderSelected" Content="Seleziona cartella" HorizontalAlignment="Center" Margin="253,330,0,-17.6" VerticalAlignment="Top" Width="147" Height="38" FontFamily="Yu Gothic UI Semibold" FontSize="13" Opacity="0.9" Background="#F5FFFA" IsEnabled="False" MouseEnter="FolderSelected_MouseEnter" MouseLeave="FolderSelected_MouseLeave" Click="FolderSelected_Click">
+        <Button x:Name="ConfirmButton" Content="Ripristina File" HorizontalAlignment="Center" Margin="253,5,0,0" VerticalAlignment="Top" Width="147" Height="38" FontFamily="Yu Gothic UI Semibold" FontSize="13" Opacity="0.9" Background="#F5FFFA" IsEnabled="False" MouseEnter="ConfirmButton_MouseEnter" MouseLeave="ConfirmButton_MouseLeave" Click="ConfirmButton_Click" Grid.Row="1">
             <Button.Resources>
                 <Style TargetType="{x:Type Border}">
                     <Setter Property="CornerRadius" Value="10"/>
@@ -53,10 +56,10 @@
                 </Style>
             </Button.Style>
         </Button>
-        <TreeView x:Name="foldersItem"
+        <TreeView x:Name="foldersTree"
           SelectedItemChanged="foldersItem_SelectedItemChanged" Background="#FFFFFFFF"
           BorderBrush="#FFFFFFFF"
-          Foreground="#FFFFFFFF" Height="171" VerticalAlignment="Bottom" Margin="26,0,41,52">
+          Foreground="#FFFFFFFF" Margin="10" RenderTransformOrigin="0.5,0.5">
             <TreeView.Resources>
                 <Style TargetType="{x:Type TreeViewItem}">
                     <Setter Property="HeaderTemplate">

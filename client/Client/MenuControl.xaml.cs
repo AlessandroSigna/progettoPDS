@@ -557,15 +557,6 @@ namespace Client
          */
         private void RestoreFile_Click(object sender, RoutedEventArgs e)
         {
-            //FIXME: selezione cartella di restore da collocare meglio
-            //FolderBrowserDialog fbd = new FolderBrowserDialog();
-            //DialogResult result = fbd.ShowDialog();
-            //if (fbd.SelectedPath != "")
-            //{
-            //    //RestoreDir.Text = fbd.SelectedPath;
-            //    pathR = fbd.SelectedPath;
-            //    mw.clientLogic.folderR = pathR;
-            //}
 
             //verifico connessione
             if (mw.clientLogic.clientsocket.Client.Poll(1000, SelectMode.SelectRead))

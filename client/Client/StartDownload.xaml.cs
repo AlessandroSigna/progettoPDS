@@ -37,6 +37,8 @@ namespace Client
         private string completePath;
         private BackgroundWorker workertransaction;
         private string idFile;
+        private RestoreControl restoreControl;
+
         /*
          * costruttore
          */
@@ -53,6 +55,23 @@ namespace Client
             App.Current.MainWindow.Height = 300;
             downloadName.Content = System.IO.Path.GetFileName(file); ;
             idFile = sIdFile;
+            RiceviFile();
+        }
+
+        public StartDownload(ClientLogic client, string file, string versionP, string rootF, MainWindow main, String sIdFile, RestoreControl restoreControl)
+        {
+            InitializeComponent();
+            mw = main;
+            downloading = false;
+            clientLogic = client;
+            fileName = file;
+            versione = versionP;
+            root = rootF;
+            App.Current.MainWindow.Width = 300;
+            App.Current.MainWindow.Height = 300;
+            downloadName.Content = System.IO.Path.GetFileName(file); ;
+            idFile = sIdFile;
+            this.restoreControl = restoreControl;       //per ripassargli il controllo
             RiceviFile();
         }
 
@@ -75,7 +94,9 @@ namespace Client
                 //clientLogic.WriteStringOnStream(ClientLogic.EXITDOWNLOAD);
                 //clientLogic.clientsocket.GetStream().Close();
                 //clientLogic.clientsocket.Close();
-                App.Current.MainWindow.Close();
+                
+                //App.Current.MainWindow.Close();
+                App.Current.MainWindow.Content = restoreControl;
             }
             catch
             {

@@ -44,7 +44,18 @@ namespace Client
                 App.Current.MainWindow.Height = 400;
 
                 String[] rootFolders = RetrieveRootFolders();
-                CreateTree(rootFolders);
+                if (rootFolders.Length == 0)
+                {
+                    noFolder.Visibility = Visibility.Visible;
+                    foldersTree.Visibility = Visibility.Hidden;
+                    ConfirmButton.Visibility = Visibility.Hidden;
+                }
+                else
+                {
+                    noFolder.Visibility = Visibility.Hidden;
+                    foldersTree.Visibility = Visibility.Visible;
+                    CreateTree(rootFolders);
+                }
 
             }
             catch
@@ -84,7 +95,7 @@ namespace Client
                     item.FontWeight = FontWeights.Normal;
                     item.Items.Add(dummyNode);
                     item.Expanded += new RoutedEventHandler(folder_Expanded);   //callback per l'espansione
-                    foldersItem.Items.Add(item);
+                    foldersTree.Items.Add(item);
                 }
             }
         }
@@ -154,36 +165,53 @@ namespace Client
 
 
         /*
-         * Callback chiamata in casi di cambio selezione nel TreeView, magari ci serve
+         * Callback chiamata in casi di cambio selezione nel TreeView. Abilita o meno il ConfirmButton
          */
         private void foldersItem_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            return;
+            
             TreeView tree = (TreeView)sender;
-            TreeViewItem temp = ((TreeViewItem)tree.SelectedItem);
-
-            if (temp == null)
-                return;
-            SelectedImagePath = "";
-            string temp1 = "";
-            string temp2 = "";
-            while (true)
+            TreeViewItem item = ((TreeViewItem)tree.SelectedItem);
+            ItemTag tag = (ItemTag)item.Tag;
+            if (tag.tipo == ItemType.FileVersion)
             {
-                temp1 = temp.Header.ToString();
-                if (temp1.Contains(@"\"))
-                {
-                    temp2 = "";
-                }
-                SelectedImagePath = temp1 + temp2 + SelectedImagePath;
-                if (temp.Parent.GetType().Equals(typeof(TreeView)))
-                {
-                    break;
-                }
-                temp = ((TreeViewItem)temp.Parent);
-                temp2 = @"\";
+                ConfirmButton.IsEnabled = true; 
+                BrushConverter bc = new BrushConverter();
+                ConfirmButton.Background = (Brush)bc.ConvertFrom("#FF44E572");
+                
             }
-            //show user selected path
-            // MessageBox.Show(SelectedImagePath);
+            else 
+            {
+                ConfirmButton.IsEnabled = false;
+                BrushConverter bc = new BrushConverter();
+                ConfirmButton.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+            }
+            return;
+
+        }
+
+        private void file_DoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                TreeViewItem src = e.Source as TreeViewItem;
+                richiediFileDownload(src);
+                
+            }
+        }
+
+        private void richiediFileDownload(TreeViewItem file)
+        {
+            ItemTag tag = file.Tag as ItemTag;
+            System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
+            System.Windows.Forms.DialogResult result = fbd.ShowDialog();
+            if (fbd.SelectedPath != "")
+            {
+                clientlogic.folderR = fbd.SelectedPath;      //salvo il riferimento alla folder selezionata per il restore perché serve nella StartDownload
+                StartDownload main = new StartDownload(clientlogic, tag.rootDir + "\\" + tag.fullPath, tag.versione, tag.rootDir, mw, tag.id, this);
+                if (App.Current.MainWindow is Restore)
+                    App.Current.MainWindow.Content = main;
+            }
         }
 
         /*
@@ -202,13 +230,14 @@ namespace Client
                 fileTag.rootDir = parentTag.rootDir;
 
                 //istanzio il TreeViewItem (oggetto visibile nel TreeView) mettendogli come tag l'oggetto ItemTag appena creato
-                TreeViewItem filetem = new TreeViewItem();
-                filetem.Header = fileTag.timeStamp;     //FIXME: decidere cosa mostrare sulla entry con la versione del file
-                filetem.Tag = fileTag;
-                filetem.FontWeight = FontWeights.Normal;
+                TreeViewItem fileItem = new TreeViewItem();
+                fileItem.Header = fileTag.timeStamp;     //FIXME: decidere cosa mostrare sulla entry con la versione del file
+                fileItem.Tag = fileTag;
+                fileItem.FontWeight = FontWeights.Normal;
+                fileItem.MouseDoubleClick += new MouseButtonEventHandler(file_DoubleClick);
                 //filetem.Items.Add(dummyNode);
                 //subItem.Expanded += new RoutedEventHandler(file_Expanded);        //file expanded
-                parentItem.Items.Add(filetem);
+                parentItem.Items.Add(fileItem);
             }
             else
             {
@@ -364,121 +393,51 @@ namespace Client
             }
         }
         #endregion
-        #region ListBox
-        /*
-         * Aggiunge un ListBoxItem relativo alla cartella folderText alla ListBox di RestoreUC.xaml
-         */
-        void addElementToListbox(string folderText)
-        {
-            StackPanel sp = new StackPanel();
-            sp.Orientation = Orientation.Horizontal;
-            Image folderImg = new Image();
-            BitmapImage fld = new BitmapImage();
-            fld.BeginInit();
-            fld.UriSource = new Uri(@"Images/folder.png", UriKind.RelativeOrAbsolute);
-            fld.EndInit();
-            folderImg.Source = fld;
-            folderImg.Width = 40;
-            folderImg.Height = 40;
-            folderImg.Margin = new Thickness(10, 10, 0, 10);
-            sp.Children.Add(folderImg);
-            Label folderName = new Label();
-            folderName.Content = folderText;
-            folderName.Background = Brushes.Transparent;
-            folderName.BorderBrush = Brushes.Transparent;
-            folderName.Margin = new Thickness(30, 15, 0, 15);
-            folderName.FontSize = 14;
-            folderName.FontFamily = new FontFamily("Tahoma");
-            sp.Children.Add(folderName);
-            ListBoxItem item = new ListBoxItem();
-            item.Content = sp;
-            ListBox.Items.Add(item);
-        }
 
-        /*
-         * Callback della ListBox assegnata a SelectionChanged - invocata quando si seleziona un oggetto della ListBox
-         */
-        private void onSelectionChanged(object sender, RoutedEventArgs e)
-        {
-            if (ListBox.SelectedIndex == -1)
-                return;
 
-            ListBoxItem selectedItem = this.ListBox.ItemContainerGenerator.ContainerFromIndex(ListBox.SelectedIndex) as ListBoxItem;
 
-            if (selectedItem == null)
-                return;
-
-            FolderSelected.IsEnabled = true;
-            BrushConverter bc = new BrushConverter();
-            FolderSelected.Background = (Brush)bc.ConvertFrom("#FF44E572");
-            Label nameBox = clientlogic.FindDescendant<Label>(selectedItem);    //ricavo la Laber con il path della cartella selezionata dall ListBox
-            selFolderPath = nameBox.Content.ToString(); //salvo il path
-
-        }
-        #endregion
 
         #region Button
-        private void FolderSelected_Click(object sender, RoutedEventArgs e)
+        private void ConfirmButton_Click(object sender, RoutedEventArgs e)
         {
-            SelectActionUI main = new SelectActionUI(clientlogic, selFolderPath, mw);
-            if (App.Current.MainWindow is Restore)
-                App.Current.MainWindow.Content = main;
-
+            richiediFileDownload((TreeViewItem)foldersTree.SelectedItem);
         }
 
-        private void FolderSelected_MouseEnter(object sender, MouseEventArgs e)
+        private void ConfirmButton_MouseEnter(object sender, MouseEventArgs e)
         {
-            if (FolderSelected.IsEnabled)
+            if (ConfirmButton.IsEnabled)
             {
                 BrushConverter bc = new BrushConverter();
-                FolderSelected.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+                ConfirmButton.Background = (Brush)bc.ConvertFrom("#F5FFFA");
             }
         }
 
-        private void FolderSelected_MouseLeave(object sender, MouseEventArgs e)
+        private void ConfirmButton_MouseLeave(object sender, MouseEventArgs e)
         {
-            if (FolderSelected.IsEnabled)
+            if (ConfirmButton.IsEnabled)
             {
                 BrushConverter bc = new BrushConverter();
-                FolderSelected.Background = (Brush)bc.ConvertFrom("#FF44E572");
+                ConfirmButton.Background = (Brush)bc.ConvertFrom("#FF44E572");
             }
         }
 
 
         #endregion
-
+        /*
+         * Chiede al server i path delle root folder (cartelle backuppate)
+         */
         private String[] RetrieveRootFolders() 
         {
             clientlogic.WriteStringOnStream(ClientLogic.GETFOLDERUSER + clientlogic.username);  //chiedo al server le cartelle backuppate dall'utente
             String retFolders = clientlogic.ReadStringFromStream();
             String[] parametri = retFolders.Split('+'); //splitto la risposta in modo da ottenerne dei comandi
             String comando = parametri[1];
-            String[] folders = null;
+            String[] folders = null;    //conterrà i root folder path
             if (comando.Equals("OK"))
             {
                 folders = parametri[2].Split(';'); //contiene i path delle root dir + un ultima stringa vuota (colpa della split)
                 folders = folders.Where(x => !string.IsNullOrEmpty(x)).ToArray();
-                //vecchia implementazione
-                //
-                int numParametri = folders.Length;
-                if (numParametri > 1)
-                {
-                    noFolder.Visibility = Visibility.Hidden;
-                    for (int i = 0; i < numParametri; i++)
-                    {
-                        if (folders[i] != string.Empty)
-                        {
-                            addElementToListbox(folders[i]);    //popola la ListBox con i nomi delle cartelle ritornati dal server
-                        }
-                    }
-
-                }
-                else
-                {
-                    //se non ci sono cartelle visualizza la stringa di default
-                    noFolder.Visibility = Visibility.Visible;
-                    folders[0] = "Empty";
-                }
+                
             }
             else
             {
@@ -525,12 +484,14 @@ namespace Client
                 }
                 else
                 {
+                    //FIXME: Situazione inattesa - eccezione?!
                     exit = true;
                     fine = true;
                 }
             }
             if (fine)
             {
+                //occorre un messaggio di errore prima di chiudere
                 App.Current.MainWindow.Close();
             }
             //le stringhe qui sono tutti i file contenuti nella rootDir, non vengono ritornate le cartelle

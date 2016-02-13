@@ -105,7 +105,7 @@ download file porta il controllo a FileSelection che gestisce una ListBox naviga
 viene popolata opportunamente con entry relative a cartelle o file e in base al tipo di entry si linka alla ListBoxItem la callback opportuna
 Si consente anche di cercare un file con un dato nome tramite una search bar ma è superfluo imho
 doppiocliccando su una entry di file il controllo passa a DownloadFile che controlla una ListBox
-Si popola la ListBox in base alle info sul file ricevute dal server
+Si popola la ListBox in base alle info sul file ricevute dal server - comando GETVFILE
 - info dim file = 0 -> icona file cancellato + stringa + verisone + timestamp
 - info dim file > 0 -> icona file aggiunto + dim + versione + timestamp
 nel secondo tipo di entry viene settata anche la callback per il doppioclick e se lo si fa si passa il controllo a StartDownload
