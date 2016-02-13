@@ -79,10 +79,25 @@ namespace Client
             //if (string.IsNullOrEmpty(Username.Text) || !sUserNameAllowedRegEx.IsMatch(Username.Text))  
             // controllo da fare alla fine
 
-            // Queste informazioni vanno comunque passate a clientLogic, magari non così
             if (Username.Text == null || Username.Text.Equals("") || Password.Password == null || Password.Password.Equals(""))
             {
                 Esito_Login(false, "Campi username e/o password vuoti.");
+            }
+            else if (Username.Text.Contains("+") || Username.Text.Contains("(") || Username.Text.Contains(")") || Username.Text.Contains("{") || Username.Text.Contains("}") || Username.Text.Contains("'"))
+            {
+                Esito_Login(false, "Lo username contiene uno o piu' caratteri invalidi: + () {} '");
+            }
+            else if (Password.Password.Contains("+") || Password.Password.Contains("(") || Password.Password.Contains(")") || Password.Password.Contains("{") || Password.Password.Contains("}") || Password.Password.Contains("'"))
+            {
+                Esito_Login(false, "La password contiene uno o piu' caratteri invalidi: + () {} '");
+            }
+            else if (Username.Text.Length > 15)
+            {
+                Esito_Login(false, "La lunghezza dello username deve essere inferiore a 15 caratteri.");
+            }
+            else if (Password.Password.Length < 5 || Password.Password.Length > 15)
+            {
+                Esito_Login(false, "La lunghezza della password deve essere compresa tra 5 e 15 caratteri.");
             }
             else
             {

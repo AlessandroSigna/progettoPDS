@@ -705,7 +705,7 @@ namespace Client
                         clientsocket.GetStream().Close();
                         clientsocket.Close();
                     }
-                    mw.restart(true);
+                    mw.restart(true, e.Error.Message);
                 }
                 else
                 {
@@ -717,14 +717,14 @@ namespace Client
                     }
                 }
             }
-            catch
+            catch (Exception exc)
             {
                 if (clientsocket.Connected)
                 {
                     clientsocket.GetStream().Close();
                     clientsocket.Close();
                 }
-                mw.restart(true);
+                mw.restart(true, exc.Message);
             }
         }
 
@@ -1029,8 +1029,6 @@ namespace Client
          */
         private void InviaFile(string Filename, ref bool inviato)
         {
-            try
-            {
                 int bufferSize = 1024;
                 byte[] buffer = null;
                 byte[] header = null;
@@ -1047,6 +1045,7 @@ namespace Client
                 Array.Copy(Encoding.ASCII.GetBytes(headerStr), header, Encoding.ASCII.GetBytes(headerStr).Length);  //FIXME: e se il filename è troppo lungo?!
                 clientsocket.Client.Send(header);   //invio l'header tramite il canale socket
                 string streamReady = ReadStringFromStream();
+
                 if (streamReady.Equals(OK + "File ricevuto correttamente") || streamReady.Equals(INFO + "File non modificato") || streamReady.Equals(ClientLogic.INFO + "file dim 0"))
                 {
                     //chiudo il FileStream visto che non è necessario inviarlo
@@ -1055,35 +1054,21 @@ namespace Client
                     //return false;
                     inviato = false;
                 }
-
-                //invio tanti pezzettini di file quanto necessario
-                for (int i = 0; i < bufferCount; i++)
+                else
                 {
-                    buffer = new byte[bufferSize];
-                    int size = fs.Read(buffer, 0, bufferSize);
-                    clientsocket.Client.SendTimeout = 30000;
-                    clientsocket.Client.Send(buffer, size, SocketFlags.Partial);
+                    //invio tanti pezzettini di file quanto necessario
+                    for (int i = 0; i < bufferCount; i++)
+                    {
+                        buffer = new byte[bufferSize];
+                        int size = fs.Read(buffer, 0, bufferSize);
+                        clientsocket.Client.SendTimeout = 30000;
+                        clientsocket.Client.Send(buffer, size, SocketFlags.Partial);
+                    }
+                    fs.Close();
+                    fs.Dispose();
+                    //return true;   //FIXME: magicnumber
+                    inviato = true;
                 }
-                fs.Close();
-                fs.Dispose();
-                //return true;   //FIXME: magicnumber
-                inviato = true;
-            }
-            catch
-            {
-                //return 2;   //FIXME: magicnumber
-
-                //gestione eccezione chiudo stream e socket
-                if (clientsocket.Connected)
-                {
-                    clientsocket.GetStream().Close();
-                    clientsocket.Close();
-                }
-                //MainControl main = new MainControl(1);
-                //App.Current.MainWindow.Content = main;
-                mw.restart(true);
-                
-            }
         }
         #endregion
 
