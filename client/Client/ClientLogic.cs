@@ -312,7 +312,8 @@ namespace Client
                     //App.Current.MainWindow.Content = main;
                     if (e.Cancelled)
                     {
-                        mw.restart(true, "Username e/o Password Errati");
+                        //mw.restart(true, "Username e/o Password Errati");
+                        MessageBoxResult result = System.Windows.MessageBox.Show("Username e/o Password Errati", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                     else
                     {
@@ -801,15 +802,11 @@ namespace Client
             return 1;   //FIXME: perchè return 1?
         }
 
-
+        // Riscrivere come ReadArrayByte
         public string ReadStringFromStream()
         {
             String responseData = String.Empty;
 
-            if (clientsocket.Connected)
-            {
-
-            }
             try
             {
                 TcpState statoConn = GetState(clientsocket);    //FIXME: istruzione inutile?!  oppure serve solo per lanciare una eccezione?
