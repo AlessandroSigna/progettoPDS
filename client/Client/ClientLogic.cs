@@ -122,11 +122,12 @@ namespace Client
             }
             catch
             {
-                if (clientsocket.Connected)
-                {
-                    clientsocket.GetStream().Close();
-                    clientsocket.Close();
-                }
+                //if (clientsocket.Connected)
+                //{
+                //    clientsocket.GetStream().Close();
+                //    clientsocket.Close();
+                //}
+                DisconnectAndClose();
                 //MainControl main = new MainControl(1);  //FIXME: magicnumber!
                 //App.Current.MainWindow.Content = main;
                 mw.restart(true);
@@ -156,11 +157,12 @@ namespace Client
             } 
             catch
             {
-                if (clientsocket.Connected)
-                {
-                    clientsocket.GetStream().Close();
-                    clientsocket.Close();
-                }
+                //if (clientsocket.Connected)
+                //{
+                //    clientsocket.GetStream().Close();
+                //    clientsocket.Close();
+                //}
+                DisconnectAndClose();
                 //MainControl main = new MainControl(1);
                 //App.Current.MainWindow.Content = main;
                 mc.Esito_Connect(false);
@@ -306,11 +308,12 @@ namespace Client
 
                 if (e.Error != null)
                 {
-                    if (clientsocket.Connected)
-                    {
-                        clientsocket.GetStream().Close();
-                        clientsocket.Close();
-                    }
+                    //if (clientsocket.Connected)
+                    //{
+                    //    clientsocket.GetStream().Close();
+                    //    clientsocket.Close();
+                    //}
+                    DisconnectAndClose();
 
                     mw.restart(true, e.Error.Message);
 
@@ -360,11 +363,12 @@ namespace Client
             }
             catch (Exception exc)
             {
-                if (clientsocket.Connected)
-                {
-                    clientsocket.GetStream().Close();
-                    clientsocket.Close();
-                }
+                //if (clientsocket.Connected)
+                //{
+                //    clientsocket.GetStream().Close();
+                //    clientsocket.Close();
+                //}
+                DisconnectAndClose();
                 //MainControl main = new MainControl(1);
                 //App.Current.MainWindow.Content = main;
                 mw.restart(true, exc.Message);
@@ -472,11 +476,12 @@ namespace Client
                 // Le eccezioni (prevedibili o imprevedibili) generate nella DoWork vengono gestite qui.
                 if (e.Error != null || e.Cancelled)
                 {
-                    if (clientsocket.Connected)
-                    {
-                        clientsocket.GetStream().Close();
-                        clientsocket.Close();
-                    }
+                    //if (clientsocket.Connected)
+                    //{
+                    //    clientsocket.GetStream().Close();
+                    //    clientsocket.Close();
+                    //}
+                    DisconnectAndClose();
                     //MainControl main = new MainControl(1);
                     //App.Current.MainWindow.Content = main;
                     if (e.Cancelled)
@@ -530,11 +535,12 @@ namespace Client
             catch (Exception exc)
             {
                 //Le eccezioni della workCompleted vengono gestite qui.
-                if (clientsocket.Connected)
-                {
-                    clientsocket.GetStream().Close();
-                    clientsocket.Close();
-                }
+                //if (clientsocket.Connected)
+                //{
+                //    clientsocket.GetStream().Close();
+                //    clientsocket.Close();
+                //}
+                DisconnectAndClose();
                 //MainControl main = new MainControl(1);
                 //App.Current.MainWindow.Content = main;
                 mw.restart(true, exc.Message);
@@ -618,12 +624,12 @@ namespace Client
             {
                 if (e.Error != null)
                 {
-                    if (clientsocket.Connected)
-                    {
-                        clientsocket.GetStream().Close();
-                        clientsocket.Close();
-                    }
-
+                    //if (clientsocket.Connected)
+                    //{
+                    //    clientsocket.GetStream().Close();
+                    //    clientsocket.Close();
+                    //}
+                    DisconnectAndClose();
                     mw.restart(true, e.Error.Message);
                 }
                 else
@@ -642,21 +648,23 @@ namespace Client
                         //se il logout non va a buon fine torno alla MainControl e chiudo lo stream
                         menuc.Logout_Esito(false, "Errore nella procedura di logout");
                         mw.restart(false);
-                        if (this.clientsocket.Client.Connected)
-                        {
-                            this.clientsocket.GetStream().Close();
-                            this.clientsocket.Close();
-                        }
+                        //if (this.clientsocket.Client.Connected)
+                        //{
+                        //    this.clientsocket.GetStream().Close();
+                        //    this.clientsocket.Close();
+                        //}
+                        DisconnectAndClose(false, true);
                     }
                 }
             }
             catch (Exception exc)
             {
-                if (clientsocket.Connected)
-                {
-                    clientsocket.GetStream().Close();
-                    clientsocket.Close();
-                }
+                //if (clientsocket.Connected)
+                //{
+                //    clientsocket.GetStream().Close();
+                //    clientsocket.Close();
+                //}
+                DisconnectAndClose();
                 //MainControl main = new MainControl(1);
                 //App.Current.MainWindow.Content = main;
                 mw.restart(true, exc.Message);
@@ -685,11 +693,13 @@ namespace Client
             {
                 WriteStringOnStream(DISCONNETTICLIENT);
             }
+
             if (clientsocket.Connected)
             {
                 clientsocket.GetStream().Close();
                 clientsocket.Close();
             }
+
             UpdateNotifyIconDisconnesso();
             e.Result = e.Argument;
         }
@@ -700,11 +710,7 @@ namespace Client
             {
                 if (e.Error != null)
                 {
-                    if (clientsocket.Connected)
-                    {
-                        clientsocket.GetStream().Close();
-                        clientsocket.Close();
-                    }
+                    DisconnectAndClose(false, true);
                     mw.restart(true, e.Error.Message);
                 }
                 else
@@ -719,11 +725,7 @@ namespace Client
             }
             catch (Exception exc)
             {
-                if (clientsocket.Connected)
-                {
-                    clientsocket.GetStream().Close();
-                    clientsocket.Close();
-                }
+                DisconnectAndClose(false, true);
                 mw.restart(true, exc.Message);
             }
         }
@@ -737,6 +739,24 @@ namespace Client
         {
             MainWindow.MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/connessoicon.ico");
         }
+
+        public void DisconnectAndClose(bool disconnect = true, bool close = true)
+        {
+            if (clientsocket.Connected)
+            {
+                if (disconnect)
+                {
+                    DisconnettiServer(false);
+                }
+
+                if (close)
+                {
+                    clientsocket.GetStream().Close();
+                    clientsocket.Close();
+                }
+            }
+        }
+
         #endregion
 
         #region Accesso allo stream
@@ -941,11 +961,7 @@ namespace Client
 
                 if (e.Error != null)
                 {
-                    if (clientsocket.Connected)
-                    {
-                        clientsocket.GetStream().Close();
-                        clientsocket.Close();
-                    }
+                    DisconnectAndClose();
                     //MainControl main = new MainControl();
                     //App.Current.MainWindow.Content = main;
                     mw.restart(true, e.Error.Message);
@@ -969,11 +985,12 @@ namespace Client
                         mainw.clientLogic.WriteStringOnStream(ClientLogic.DISCONNETTIUTENTE + username + "+" + mac);
                         connesso = false;
                         ClientLogic.UpdateNotifyIconDisconnesso();
-                        if (mainw.clientLogic.clientsocket.Client.Connected)
-                        {
-                            mainw.clientLogic.clientsocket.GetStream().Close();
-                            mainw.clientLogic.clientsocket.Close();
-                        }
+                        //if (mainw.clientLogic.clientsocket.Client.Connected)
+                        //{
+                        //    mainw.clientLogic.clientsocket.GetStream().Close();
+                        //    mainw.clientLogic.clientsocket.Close();
+                        //}
+                        DisconnectAndClose();
                         //MainControl main = new MainControl();
                         //App.Current.MainWindow.Content = main;
                         mw.restart(false);
@@ -999,11 +1016,12 @@ namespace Client
             catch
             {
                 //gestione eccezione chiudo stream e socket
-                if (clientsocket.Connected)
-                {
-                    clientsocket.GetStream().Close();
-                    clientsocket.Close();
-                }
+                //if (clientsocket.Connected)
+                //{
+                //    clientsocket.GetStream().Close();
+                //    clientsocket.Close();
+                //}
+                DisconnectAndClose();
                 //MainControl main = new MainControl(1);
                 //App.Current.MainWindow.Content = main;
                 mw.restart(true);

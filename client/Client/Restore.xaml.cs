@@ -81,7 +81,7 @@ namespace Client
                 clientlogic.clientsocket.Close();
             }
             catch
-            {
+            {   // ?
                 if (clientlogic.clientsocket.Client.Connected)
                 {
                     clientlogic.clientsocket.GetStream().Close();

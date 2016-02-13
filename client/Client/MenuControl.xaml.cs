@@ -523,14 +523,15 @@ namespace Client
                     mainw.clientLogic.WriteStringOnStream(ClientLogic.DISCONNETTIUTENTE + mainw.clientLogic.username + "+" + mainw.clientLogic.mac);
                     mainw.clientLogic.connesso = false;
                     ClientLogic.UpdateNotifyIconDisconnesso();
-                    if (mw.clientLogic.clientsocket.Client.Connected)
-                    {
-                        mw.clientLogic.clientsocket.GetStream().Close();
-                        mw.clientLogic.clientsocket.Close();
-                    }
+                    //if (mw.clientLogic.clientsocket.Client.Connected)
+                    //{
+                    //    mw.clientLogic.clientsocket.GetStream().Close();
+                    //    mw.clientLogic.clientsocket.Close();
+                    //}
+                    mainw.clientLogic.DisconnectAndClose();
                     //MainControl main = new MainControl();
                     //App.Current.MainWindow.Content = main;
-                    mw.restart(false);
+                    mainw.restart(false);
                 }
             }
             catch
@@ -593,17 +594,19 @@ namespace Client
             catch (Exception)
             {
                 //rilascio risorse il caso di eccezione
-                if (clRestore.clientsocket.Client.Connected)
-                {
-                    clRestore.clientsocket.GetStream().Close();
-                    clRestore.clientsocket.Client.Close();
-                }
+                //if (clRestore.clientsocket.Client.Connected)
+                //{
+                //    clRestore.clientsocket.GetStream().Close();
+                //    clRestore.clientsocket.Client.Close();
+                //}
+                clRestore.DisconnectAndClose();
 
-                if (mw.clientLogic.clientsocket.Client.Connected)
-                {
-                    mw.clientLogic.clientsocket.GetStream().Close();
-                    mw.clientLogic.clientsocket.Close();
-                }
+                //if (mw.clientLogic.clientsocket.Client.Connected)
+                //{
+                //    mw.clientLogic.clientsocket.GetStream().Close();
+                //    mw.clientLogic.clientsocket.Close();
+                //}
+                mw.clientLogic.DisconnectAndClose();
 
                 if (App.Current.MainWindow is Restore)
                     App.Current.MainWindow.Close();
@@ -778,12 +781,13 @@ namespace Client
         {
             if (App.Current.MainWindow is Restore)
                 App.Current.MainWindow.Close();
-            if (obj.clientLogic.clientsocket.Connected)
-            {
-                Console.WriteLine("socket CHIUSO");
-                obj.clientLogic.clientsocket.GetStream().Close();
-                obj.clientLogic.clientsocket.Close();
-            }
+            //if (obj.clientLogic.clientsocket.Connected)
+            //{
+            //    Console.WriteLine("socket CHIUSO");
+            //    obj.clientLogic.clientsocket.GetStream().Close();
+            //    obj.clientLogic.clientsocket.Close();
+            //}
+            obj.clientLogic.DisconnectAndClose();
 
             App.Current.MainWindow = obj;
             updating = false;
