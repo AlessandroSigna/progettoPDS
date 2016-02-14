@@ -1,0 +1,23 @@
+- Backup del file system automatico.
+- Server aspetta connessioni di rete, si scambiano frasi di convenevoli, segreto e azione da compiere.
+- Client chiede di archiviare.
+- Server salva da qualche parte.
+- Client monitora ogni tot nella cartella se qualcosa è cambiato.
+- Se qualcosa è cambiato lo comunica al server (si segna che è sparita).
+- Mi accorgo che è cambiata con uno SHA, che controlla il CHECKSUM.
+- Il file conserva la versione vecchia del file e crea quella nuova.
+- Il server per ogni utente ha una struttura dati (info generiche su utente).
+- Tabella con risultato finale per far prendere al client direttamente l'ultima versione.
+- Oppure restore selettivo.
+
+1. Monitorare cartella (grep)
+2. Macinare contenuto del file
+3. Parlare col server tramite socket (con due thread uno che scrive uno che legge)
+4. Thread lato server con processo in background che aspetta che qualcuno si connette
+5. Thread lato server che si crea per parlare con chi si è connesso e scambiare dati e aggiornare strutture dati
+6. Il server invece di salvare sul file system e fare casino usa un DB embedded SQLite
+7. Transazioni server con commit e rollback
+
+Note Edd:
+Sembra non dire niente sulla password in chiaro sul server.
+Ma parla di restore di uno snapshot di tutto il backup e restore selettiva di file.
