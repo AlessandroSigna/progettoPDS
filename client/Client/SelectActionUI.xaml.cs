@@ -42,9 +42,9 @@ namespace Client
         private void Folder_Click(object sender, RoutedEventArgs e)
         {
 
-            DownloadFolder fs = new DownloadFolder(clientLogic, folderRoot, ((Restore)App.Current.MainWindow).mw);
-            if (App.Current.MainWindow is Restore)
-                App.Current.MainWindow.Content = fs;
+            //DownloadFolder fs = new DownloadFolder(clientLogic, folderRoot, ((Restore)App.Current.MainWindow).mw);
+            //if (App.Current.MainWindow is Restore)
+            //    App.Current.MainWindow.Content = fs;
 
         }
 

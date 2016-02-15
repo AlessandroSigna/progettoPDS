@@ -1954,7 +1954,7 @@ namespace BackupServer
                 int numParametri = parametri.Length;
                 string listaFiles = string.Empty;
 
-                if (numParametri > 6 || numParametri < 6)
+                if (numParametri != 7)
                 {
                     //transazioneRestore.Rollback();
                     //transazioneRestore.Dispose();
@@ -1963,9 +1963,10 @@ namespace BackupServer
 
                 String comando = parametri[1];
                 String user = parametri[2].ToUpper();
-                String folderRoot = parametri[3];
-                String newFolderRoot = parametri[4];
+                String folderRoot = parametri[3];   //path della rootDirectory backuppata
+                String newFolderRoot = parametri[4];    //cartella dove il client salverà i file ripristinati
                 String fileCanc = parametri[5];
+                String folderToBeRestored = parametri[6];   //(sub)directory di cui effettuare il restore
 
                 if (comando == null || !comando.Equals(RESTORE.Replace('+', ' ').Trim()))
                 {
@@ -1996,6 +1997,10 @@ namespace BackupServer
                     //transazioneRestore.Rollback();
                     //transazioneRestore.Dispose();
                     return ERRORE + "fileCanc non valida";
+                }
+                if (!folderToBeRestored.Contains(folderRoot))
+                {
+                    return ERRORE + "sotto cartella non valida";
                 }
 
                 SQLiteCommand comando2 = new SQLiteCommand(mainWindow.m_dbConnection);
@@ -2028,37 +2033,43 @@ namespace BackupServer
                             file = (Byte[])dr["file"];
                         dimFile = Convert.ToInt32(dr["dimFile"]);
 
+                        //se il nome del file correntemente del reader non contiene il nome della cartella da ripristinare lo salto
+                        if (!fileName.Contains(folderToBeRestored + "\\"))
+                        {
+                            continue;
+                        }
+
                         if (isDelete.Equals("S") && fileCanc.Equals("N"))
                             continue;
-                        else if (isDelete.Equals("S") && fileCanc.Equals("Y"))
-                        {
-                            // Questo è il caso in cui è flaggata l'opzione di avere file cancellati
-                            // è implementato ma non sembra funzionare.
+                        //else if (isDelete.Equals("S") && fileCanc.Equals("Y"))
+                        //{
+                        //    // Questo è il caso in cui è flaggata l'opzione di avere file cancellati
+                        //    // è implementato ma non sembra funzionare.
 
-                            SQLiteCommand comando3 = new SQLiteCommand(mainWindow.m_dbConnection);
-                            comando3.CommandText = "SELECT file,dimFile,checksum,idfile FROM BACKUPHISTORY bh1 WHERE username=@username AND folderBackup=@folderBackup AND percorsoFile=@percorsoFile AND dimFile>0 and isDelete='N' and versione=(select max(bh2.versione) from backuphistory bh2 where bh1.username=bh2.username and bh1.folderBackup=bh2.folderBackup and bh1.percorsoFile=bh2.percorsoFile and bh1.idfile=bh2.idfile and bh2.dimFile>0) and idfile=@idfile";
-                            comando3.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                            comando3.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
-                            comando3.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName;
-                            comando3.Parameters.Add("@idfile", System.Data.DbType.Int32,10).Value=Int32.Parse(idfile);
-                            //comando3.Transaction = transazioneRestore;
-                            SQLiteDataReader dr2;
+                        //    SQLiteCommand comando3 = new SQLiteCommand(mainWindow.m_dbConnection);
+                        //    comando3.CommandText = "SELECT file,dimFile,checksum,idfile FROM BACKUPHISTORY bh1 WHERE username=@username AND folderBackup=@folderBackup AND percorsoFile=@percorsoFile AND dimFile>0 and isDelete='N' and versione=(select max(bh2.versione) from backuphistory bh2 where bh1.username=bh2.username and bh1.folderBackup=bh2.folderBackup and bh1.percorsoFile=bh2.percorsoFile and bh1.idfile=bh2.idfile and bh2.dimFile>0) and idfile=@idfile";
+                        //    comando3.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
+                        //    comando3.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
+                        //    comando3.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName;
+                        //    comando3.Parameters.Add("@idfile", System.Data.DbType.Int32,10).Value=Int32.Parse(idfile);
+                        //    //comando3.Transaction = transazioneRestore;
+                        //    SQLiteDataReader dr2;
 
-                            dr2 = comando3.ExecuteReader();
+                        //    dr2 = comando3.ExecuteReader();
 
-                            if (dr2.Read())
-                            {
+                        //    if (dr2.Read())
+                        //    {
 
-                                if (DBNull.Value.Equals(dr["file"]))
-                                    file = null;
-                                else
-                                    file = (Byte[])dr["file"];
-                                dimFile2 = Convert.ToInt32(dr["dimFile"]);
-                                checksum = Convert.ToString(dr["checksum"]);
-                                idfile = Convert.ToString(dr["idfile"]);
-                            }
+                        //        if (DBNull.Value.Equals(dr["file"]))
+                        //            file = null;
+                        //        else
+                        //            file = (Byte[])dr["file"];
+                        //        dimFile2 = Convert.ToInt32(dr["dimFile"]);
+                        //        checksum = Convert.ToString(dr["checksum"]);
+                        //        idfile = Convert.ToString(dr["idfile"]);
+                        //    }
                             
-                        }
+                        //}
                         idfile = idfile + RandomString(30); //??
 
                         Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\tmp");
@@ -2077,7 +2088,7 @@ namespace BackupServer
 
                         if (!folderRoot.Equals(newFolderRoot))
                         {
-                            string nomefileSenzaRoot = fileName.Substring(folderRoot.Length + 1);
+                            string nomefileSenzaRoot = fileName.Substring(folderToBeRestored.Length + 1);
                             fileName = newFolderRoot + "\\" + nomefileSenzaRoot;
                         }
                         int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));

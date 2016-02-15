@@ -33,38 +33,30 @@ namespace Client
         private MainWindow mw;
         private BackgroundWorker workertransaction;
         private RestoreControl restoreControl;
+        private string folderToBeRestored;
         /*
-         * Costruttore. fold è il path della cartella di cui si deve fare la restore
+         * Costruttore. 
+         * rootFolder è il path della rootDirectory che è stata backuppata
+         * folderToBeRestored è il path della cartella di cui si deve fare la restore
          */
-        public DownloadFolder(ClientLogic clientlogic, string fold, MainWindow main)
-        {
-            InitializeComponent();
-            downloading = false;
-            mw = main;
-            folderRoot = fold;
-            clientLogic = clientlogic;
-            App.Current.MainWindow.Width = 500;
-            App.Current.MainWindow.Height = 215;
-            string folderCreated = folderRoot.Substring(folderRoot.LastIndexOf((@"\")) + 1);
-            pathRoot = clientlogic.folderR + @"\" + folderCreated;
-            System.IO.Directory.CreateDirectory(pathRoot);
-        }
-
-        public DownloadFolder(ClientLogic clientlogic, string fold, MainWindow main, RestoreControl restoreControl)
+        public DownloadFolder(ClientLogic clientlogic, string rootFolder, string folderToBeRestored, MainWindow main, RestoreControl restoreControl)
         {
             InitializeComponent();
             downloading = true;
             mw = main;
-            folderRoot = fold;
+            folderRoot = rootFolder;
             clientLogic = clientlogic;
+            this.folderToBeRestored = folderToBeRestored;
             this.restoreControl = restoreControl;
             App.Current.MainWindow.Width = 500;
             App.Current.MainWindow.Height = 215;
-            string folderCreated = folderRoot.Substring(folderRoot.LastIndexOf((@"\")) + 1);
-            pathRoot = clientlogic.folderR + @"\" + folderCreated;
+            //creo una cartella dentro la cartella scelta dall'utente dove collezionare i file che verranno ripristinati
+            //questa nuova cartella avrà lo stesso nome della (sotto)cartella che si vuole ripristinare
+            string folderCreated = folderToBeRestored.Substring(folderToBeRestored.LastIndexOf((@"\")) + 1);
+            pathRoot = clientlogic.folderR + @"\" + folderCreated; 
             System.IO.Directory.CreateDirectory(pathRoot);
 
-            RiceviRestore(false);
+            RiceviRestore();
         }
 
         #region Stop Button
@@ -115,20 +107,14 @@ namespace Client
          * Comunica al server di iniziare il restore della cartella con eventualmente i file cancellati
          * delega la gestione del restore a delle opportune callback assegnate a workertransaction
          */
-        private void RiceviRestore(bool p)
+        private void RiceviRestore()
         {
             try
             {
-                //comunico al server RESTORE + parametri opportuni
-                if (p)
-                {
-                    //RESTORE + username + fullPath della root directory backuppata + fullPath della cartella creata per accogliere il restore + char per file cancellati
-                    clientLogic.WriteStringOnStream(ClientLogic.RESTORE + clientLogic.username + "+" + folderRoot + "+" + pathRoot + "+" + "Y");
-                }
-                else
-                {
-                    clientLogic.WriteStringOnStream(ClientLogic.RESTORE + clientLogic.username + "+" + folderRoot + "+" + pathRoot + "+" + "N");
-                }
+
+                //RESTORE + username + fullPath della root directory backuppata + fullPath della cartella creata per accogliere il restore + char per file cancellati + fullPath della subdir da ripristinare
+                clientLogic.WriteStringOnStream(ClientLogic.RESTORE + clientLogic.username + "+" + folderRoot + "+" + pathRoot + "+" + "N" + "+" + folderToBeRestored);
+
             }
             catch
             {

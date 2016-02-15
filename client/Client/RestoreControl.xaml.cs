@@ -176,8 +176,15 @@ namespace Client
             TreeView tree = (TreeView)sender;
             TreeViewItem item = ((TreeViewItem)tree.SelectedItem);
             ItemTag tag = (ItemTag)item.Tag;
-            if (tag.tipo == ItemType.FileVersion || tag.tipo == ItemType.RootFolder || tag.tipo == ItemType.Folder)
+            if (tag.tipo == ItemType.FileVersion && tag.dimFile == 0)    //caso file cancellato
             {
+                ConfirmButton.IsEnabled = false;
+                BrushConverter bc = new BrushConverter();
+                ConfirmButton.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+            }
+            else if (tag.tipo == ItemType.FileVersion || tag.tipo == ItemType.RootFolder || tag.tipo == ItemType.Folder)
+            {
+
                 ConfirmButton.IsEnabled = true; 
                 BrushConverter bc = new BrushConverter();
                 ConfirmButton.Background = (Brush)bc.ConvertFrom("#FF44E572");
@@ -225,7 +232,7 @@ namespace Client
             if (fbd.SelectedPath != "")
             {
                 clientlogic.folderR = fbd.SelectedPath;      //salvo il riferimento alla folder selezionata per il restore perché serve nella DownloadFolder
-                DownloadFolder main = new DownloadFolder(clientlogic, tag.fullPath, mw, this);
+                DownloadFolder main = new DownloadFolder(clientlogic, tag.rootDir, tag.fullPath, mw, this);
                 if (App.Current.MainWindow is Restore)
                     App.Current.MainWindow.Content = main;
             }
