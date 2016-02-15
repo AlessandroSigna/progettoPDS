@@ -459,7 +459,7 @@ namespace BackupServer
         private string comandoLogin(string responseData, TcpClient clientsocket)
         {
 
-            //SQLiteTransaction transazioneLogin = mainWindow.m_dbConnection.BeginTransaction();
+            SQLiteTransaction transazioneLogin = mainWindow.m_dbConnection.BeginTransaction();
 
             try
             {
@@ -496,7 +496,7 @@ namespace BackupServer
                 SQLiteCommand comandoP0= new SQLiteCommand(mainWindow.m_dbConnection);
                 comandoP0.CommandText = "SELECT * FROM UTENTI WHERE username=@username";
                 comandoP0.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                //comandoP3.Transaction = transazioneLogin;
+                comandoP0.Transaction = transazioneLogin;
 
 
                 try
@@ -552,7 +552,14 @@ namespace BackupServer
                 Console.WriteLine("RispostaServer: " + BitConverter.ToString(challengeResponseCorrect));
                 if (!BitConverter.ToString(challengeResponseCorrect).Equals(BitConverter.ToString(challengeResponse))) 
                 {
+                    transazioneLogin.Rollback();
+                    transazioneLogin.Dispose();
                     return ERRORE + "Username e/o Password Errati";
+                }
+                else
+                {
+                    transazioneLogin.Commit();
+                    transazioneLogin.Dispose();
                 }
                 
                 SQLiteCommand comandoP3 = new SQLiteCommand(mainWindow.m_dbConnection);
@@ -620,10 +627,12 @@ namespace BackupServer
                 return OK + "Login effettuato correttamente";
 
             }
-            catch
+            catch (Exception exc)
             {
                 //transazioneLogin.Rollback();
                 //transazioneLogin.Dispose();
+                Console.WriteLine(exc.Message);
+                Console.WriteLine(exc.StackTrace);
                 return ERRORE + "Eccezione durante il login";
             }
         }
