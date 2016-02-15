@@ -98,6 +98,8 @@ namespace Client
                 if (restoreControl != null)
                 {
                     App.Current.MainWindow.Content = restoreControl;
+                    App.Current.MainWindow.Width = 400;
+                    App.Current.MainWindow.Height = 400;
                 }
                 else
                 {

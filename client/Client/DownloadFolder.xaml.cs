@@ -64,46 +64,21 @@ namespace Client
             pathRoot = clientlogic.folderR + @"\" + folderCreated;
             System.IO.Directory.CreateDirectory(pathRoot);
 
-            checkCanc.Visibility = Visibility.Hidden;
-            label.Content = "Downloading...";
-            Start.Content = "Stop";
             RiceviRestore(false);
         }
 
-        #region Start Button
+        #region Stop Button
         /*
-         * Callback del click sul Button Start
-         * Verifica la CheckBox e invoca la RiceviRestore
+         * Callback del click sul Button Stop
+         * Setta il boolean downloading a false. 
+         * Questo booleano viene verificato nella RiceviFive per capire se l'utente vuole interrompere il download
          */
-        private void Start_Click(object sender, RoutedEventArgs e)
+        private void Stop_Click(object sender, RoutedEventArgs e)
         {
-            if (!downloading)
-            {
-                downloading = true;
-                checkCanc.Visibility = Visibility.Hidden;
-                label.Content = "Downloading...";
-                Start.Content = "Stop";
-                BrushConverter bc = new BrushConverter();
-                Start.Background = (Brush)bc.ConvertFrom("#FA5858");
-
-                if (checkCanc.IsChecked == true)
-                {
-                    RiceviRestore(true);
-
-                }
-                else
-                {
-                    RiceviRestore(false);
-                }
-            }
-            else
-            {
                 downloading = false;
                 Start.IsEnabled = false;
                 Start.Visibility = Visibility.Hidden;
                 WaitFol.Visibility = Visibility.Visible;
-
-            }
         }
 
         private void File_MouseEnter(object sender, MouseEventArgs e)
@@ -184,6 +159,8 @@ namespace Client
             if(restoreControl != null)
             {
                 App.Current.MainWindow.Content = restoreControl;
+                App.Current.MainWindow.Width = 400;
+                App.Current.MainWindow.Height = 400;
             }
             else
             {

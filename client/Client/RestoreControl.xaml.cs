@@ -153,7 +153,9 @@ namespace Client
                     //clientLogic.WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + "+" + folder + "+" + completePath + "+" + idFile);
                     //vedi DownloadFile.DownloadFile
                     ItemTag tag = (ItemTag)item.Tag;
-                    List<String> fileVersions = RetrieveFileVersions(tag);   //lista di stringhe contenenti fileinfo
+                    //lista di stringhe contenenti fileinfo 
+                    //NB: questa volta il primo campo della stringa è il nome del file e non il fullPath
+                    List<String> fileVersions = RetrieveFileVersions(tag);
                     foreach (String s in fileVersions)
                     {
 
@@ -209,7 +211,7 @@ namespace Client
             if (fbd.SelectedPath != "")
             {
                 clientlogic.folderR = fbd.SelectedPath;      //salvo il riferimento alla folder selezionata per il restore perché serve nella StartDownload
-                StartDownload main = new StartDownload(clientlogic, tag.rootDir + "\\" + tag.fullPath, tag.versione, tag.rootDir, mw, tag.id, this);
+                StartDownload main = new StartDownload(clientlogic, tag.fullPath, tag.versione, tag.rootDir, mw, tag.id, this);
                 if (App.Current.MainWindow is Restore)
                     App.Current.MainWindow.Content = main;
             }
@@ -223,7 +225,7 @@ namespace Client
             if (fbd.SelectedPath != "")
             {
                 clientlogic.folderR = fbd.SelectedPath;      //salvo il riferimento alla folder selezionata per il restore perché serve nella DownloadFolder
-                DownloadFolder main = new DownloadFolder(clientlogic, tag.rootDir, mw, this);
+                DownloadFolder main = new DownloadFolder(clientlogic, tag.fullPath, mw, this);
                 if (App.Current.MainWindow is Restore)
                     App.Current.MainWindow.Content = main;
             }
@@ -238,10 +240,11 @@ namespace Client
             if (parentTag.tipo == ItemType.File)
             {
                 //istanzio un ItemTag con le info contenute in subFileInfo
-                ItemTag fileTag = new ItemTag(subFileInfo, ItemType.FileVersion);
+                ItemTag fileTag = new ItemTag(subFileInfo, ItemType.FileVersion);   //in questo caso il primo campo di subFileInfo contiene solo in nome non il fullPath
                 fileTag.relativePath = parentTag.relativePath;
                 fileTag.nome = parentTag.nome;
                 fileTag.rootDir = parentTag.rootDir;
+                fileTag.fullPath = parentTag.fullPath;
 
                 //istanzio il TreeViewItem (oggetto visibile nel TreeView) mettendogli come tag l'oggetto ItemTag appena creato
                 TreeViewItem fileItem = new TreeViewItem();
