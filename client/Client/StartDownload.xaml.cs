@@ -94,9 +94,15 @@ namespace Client
                 //clientLogic.WriteStringOnStream(ClientLogic.EXITDOWNLOAD);
                 //clientLogic.clientsocket.GetStream().Close();
                 //clientLogic.clientsocket.Close();
-                
-                //App.Current.MainWindow.Close();
-                App.Current.MainWindow.Content = restoreControl;
+
+                if (restoreControl != null)
+                {
+                    App.Current.MainWindow.Content = restoreControl;
+                }
+                else
+                {
+                    App.Current.MainWindow.Close();
+                }
             }
             catch
             {

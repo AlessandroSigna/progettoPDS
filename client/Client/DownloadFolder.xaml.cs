@@ -32,8 +32,9 @@ namespace Client
         public volatile bool downloading;
         private MainWindow mw;
         private BackgroundWorker workertransaction;
+        private RestoreControl restoreControl;
         /*
-         * Costruttore
+         * Costruttore. fold è il path della cartella di cui si deve fare la restore
          */
         public DownloadFolder(ClientLogic clientlogic, string fold, MainWindow main)
         {
@@ -49,7 +50,25 @@ namespace Client
             System.IO.Directory.CreateDirectory(pathRoot);
         }
 
+        public DownloadFolder(ClientLogic clientlogic, string fold, MainWindow main, RestoreControl restoreControl)
+        {
+            InitializeComponent();
+            downloading = true;
+            mw = main;
+            folderRoot = fold;
+            clientLogic = clientlogic;
+            this.restoreControl = restoreControl;
+            App.Current.MainWindow.Width = 500;
+            App.Current.MainWindow.Height = 215;
+            string folderCreated = folderRoot.Substring(folderRoot.LastIndexOf((@"\")) + 1);
+            pathRoot = clientlogic.folderR + @"\" + folderCreated;
+            System.IO.Directory.CreateDirectory(pathRoot);
 
+            checkCanc.Visibility = Visibility.Hidden;
+            label.Content = "Downloading...";
+            Start.Content = "Stop";
+            RiceviRestore(false);
+        }
 
         #region Start Button
         /*
@@ -128,6 +147,7 @@ namespace Client
                 //comunico al server RESTORE + parametri opportuni
                 if (p)
                 {
+                    //RESTORE + username + fullPath della root directory backuppata + fullPath della cartella creata per accogliere il restore + char per file cancellati
                     clientLogic.WriteStringOnStream(ClientLogic.RESTORE + clientLogic.username + "+" + folderRoot + "+" + pathRoot + "+" + "Y");
                 }
                 else
@@ -160,14 +180,21 @@ namespace Client
         {
             downloading = false;
             System.Diagnostics.Process.Start("explorer.exe", clientLogic.folderR);
-            App.Current.MainWindow.Close();
+            if(restoreControl != null)
+            {
+                App.Current.MainWindow.Content = restoreControl;
+            }
+            else
+            {
+                App.Current.MainWindow.Close();
+            }
         }
 
         private void Workertransaction_RiceviRestore(object sender, DoWorkEventArgs e)
         {
             try
             {
-                //loop che itera per ogni contenuto della rootdir
+                //loop che itera leggendo di volta in volta la risposta del server e ricevendo eventualmente i file
                 while (true)
                 {
                     int bufferSize = 1024;
@@ -193,6 +220,7 @@ namespace Client
                     fileName = MakeRelativePath2(pathRoot.Substring(0, pathRoot.LastIndexOf(@"\") - 1), fileName);
                     string localpath = clientLogic.folderR + @"\" + fileName;
 
+                    //creo la directory che conterrà il file se già non esiste. si ricava il nome della directory esaminando il filename
                     localpath = localpath.Substring(0, localpath.LastIndexOf(@"\"));
                     if (!Directory.Exists(localpath))
                     {
@@ -206,6 +234,7 @@ namespace Client
                         if (check.Equals(checksum))
                         {
                             exist = true;
+                            //thread per la progress bar
                             Thread t3 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, System.Windows.Controls.Label, string>(SetProgressBar), pbStatus, downloadName, fileName + " già esistente"); }));
                             t3.Start();
                         }
@@ -230,7 +259,7 @@ namespace Client
                     int sizetot = 0;
                     int original = filesize;
                     Thread t1 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int, System.Windows.Controls.Label, string>(SetProgressBar), pbStatus, original, downloadName, fileName); }));
-                    t1.Start();
+                    t1.Start(); //progressbar
                     int bufferCount = Convert.ToInt32(Math.Ceiling((double)original / (double)bufferSize));
                     int i = 0;
                     while (filesize > 0)

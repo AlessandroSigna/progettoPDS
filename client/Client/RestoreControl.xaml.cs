@@ -173,7 +173,7 @@ namespace Client
             TreeView tree = (TreeView)sender;
             TreeViewItem item = ((TreeViewItem)tree.SelectedItem);
             ItemTag tag = (ItemTag)item.Tag;
-            if (tag.tipo == ItemType.FileVersion)
+            if (tag.tipo == ItemType.FileVersion || tag.tipo == ItemType.RootFolder || tag.tipo == ItemType.Folder)
             {
                 ConfirmButton.IsEnabled = true; 
                 BrushConverter bc = new BrushConverter();
@@ -195,12 +195,12 @@ namespace Client
             if (e.ChangedButton == MouseButton.Left)
             {
                 TreeViewItem src = e.Source as TreeViewItem;
-                richiediFileDownload(src);
+                richiediDownloadFile(src);
                 
             }
         }
 
-        private void richiediFileDownload(TreeViewItem file)
+        private void richiediDownloadFile(TreeViewItem file)
         {
             ItemTag tag = file.Tag as ItemTag;
             System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
@@ -214,6 +214,19 @@ namespace Client
             }
         }
 
+        private void richiediDownloadCartella(TreeViewItem folder)
+        {
+            ItemTag tag = folder.Tag as ItemTag;
+            System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
+            System.Windows.Forms.DialogResult result = fbd.ShowDialog();
+            if (fbd.SelectedPath != "")
+            {
+                clientlogic.folderR = fbd.SelectedPath;      //salvo il riferimento alla folder selezionata per il restore perché serve nella DownloadFolder
+                DownloadFolder main = new DownloadFolder(clientlogic, tag.rootDir, mw, this);
+                if (App.Current.MainWindow is Restore)
+                    App.Current.MainWindow.Content = main;
+            }
+        }
         /*
          * Analizza la stringa di subFileInfo e aggiunge folder e/o file come subitem al parentItem
          * 
@@ -400,7 +413,17 @@ namespace Client
         #region Button
         private void ConfirmButton_Click(object sender, RoutedEventArgs e)
         {
-            richiediFileDownload((TreeViewItem)foldersTree.SelectedItem);
+            
+            TreeViewItem item = (TreeViewItem)foldersTree.SelectedItem;
+            ItemTag tag = (ItemTag)item.Tag;
+            if (tag.tipo == ItemType.FileVersion)
+            {
+                richiediDownloadFile((TreeViewItem)foldersTree.SelectedItem);
+            }
+            else if (tag.tipo == ItemType.RootFolder || tag.tipo == ItemType.Folder)
+            {
+                richiediDownloadCartella((TreeViewItem)foldersTree.SelectedItem);
+            }
         }
 
         private void ConfirmButton_MouseEnter(object sender, MouseEventArgs e)
