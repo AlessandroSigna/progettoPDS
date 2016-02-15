@@ -68,11 +68,12 @@ namespace Client
                     //se il server non da OK si chiudono le risorse e si torna a MainControl
                     if (App.Current.MainWindow is Restore)
                         App.Current.MainWindow.Close();
-                    if (clientLogic.clientsocket.Client.Connected)
-                    {
-                        clientLogic.clientsocket.GetStream().Close();
-                        clientLogic.clientsocket.Close();
-                    }
+                    //if (clientLogic.clientsocket.Client.Connected)
+                    //{
+                    //    clientLogic.clientsocket.GetStream().Close();
+                    //    clientLogic.clientsocket.Close();
+                    //}
+                    clientLogic.DisconnectAndClose();
                     //App.Current.MainWindow = mainw;
                     //MainControl main = new MainControl();
                     //App.Current.MainWindow.Content = main;
@@ -86,11 +87,12 @@ namespace Client
                 //in caso di eccezione rilascio le risorse
                 if (App.Current.MainWindow is Restore)
                     App.Current.MainWindow.Close();
-                if (clientLogic.clientsocket.Client.Connected)
-                {
-                    clientLogic.clientsocket.GetStream().Close();
-                    clientLogic.clientsocket.Close();
-                }
+                //if (clientLogic.clientsocket.Client.Connected)
+                //{
+                //    clientLogic.clientsocket.GetStream().Close();
+                //    clientLogic.clientsocket.Close();
+                //}
+                clientLogic.DisconnectAndClose();
                 //App.Current.MainWindow = mainw;
                 //MainControl main = new MainControl();
                 //App.Current.MainWindow.Content = main;

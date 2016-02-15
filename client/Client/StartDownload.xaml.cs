@@ -135,11 +135,12 @@ namespace Client
                 if (headerStr.Contains(ClientLogic.ERRORE))
                 {
                     //in caso di erroe rilascio e ritorno
-                    if (clientLogic.clientsocket.Client.Connected)
-                    {
-                        clientLogic.clientsocket.GetStream().Close();
-                        clientLogic.clientsocket.Close();
-                    }
+                    //if (clientLogic.clientsocket.Client.Connected)
+                    //{
+                    //    clientLogic.clientsocket.GetStream().Close();
+                    //    clientLogic.clientsocket.Close();
+                    //}
+                    clientLogic.DisconnectAndClose();
                     return;
                 }
                 string[] splitted = headerStr.Split(new string[] { "\r\n" }, StringSplitOptions.None);
@@ -197,11 +198,12 @@ namespace Client
         {
             if (App.Current.MainWindow is Restore)
                 App.Current.MainWindow.Close();
-            if (clientLogic.clientsocket.Client.Connected)
-            {
-                clientLogic.clientsocket.GetStream().Close();
-                clientLogic.clientsocket.Close();
-            }
+            //if (clientLogic.clientsocket.Client.Connected)
+            //{
+            //    clientLogic.clientsocket.GetStream().Close();
+            //    clientLogic.clientsocket.Close();
+            //}
+            clientLogic.DisconnectAndClose();
             //App.Current.MainWindow = mw;
             //MainControl main = new MainControl();
             //mw.Content = main;

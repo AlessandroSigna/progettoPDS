@@ -113,6 +113,7 @@ namespace Client
             }
             else if ((App.Current.MainWindow.Content is MenuControl))
             {
+                // Non arriviamo più qui
                 menuContr = (MenuControl)App.Current.MainWindow.Content;
                 e.Cancel = true;
                 DialogDisconnetti();
@@ -140,13 +141,13 @@ namespace Client
             //await this.ShowMetroDialogAsync(_customDialog);
         }
 
-        public void restart(bool error)
+        public void restart(bool error, string messaggio = null)
         {
             MainControl main = new MainControl();
             App.Current.MainWindow.Content = main;
 
             if (error)
-                main.messaggioErrore();
+                main.messaggioErrore(messaggio);
         }
 
         private void ButtonOkOnClick(object sender, RoutedEventArgs e)
@@ -165,6 +166,7 @@ namespace Client
             this.Hide();
         }
 
+        // Non viene più utilizzato
         public /*async*/ void DialogDisconnetti()
         {
             Console.Out.WriteLine("MainWindow: DialogDisconnetti");
@@ -177,6 +179,8 @@ namespace Client
             //await mw.ShowMetroDialogAsync(customDialog);
         }
 
+
+        // Non viene più utilizzato
         private void ButtonServerOnClick(object sender, RoutedEventArgs e)
         {
             Console.Out.WriteLine("MainWindow: ButtonServerOnClick");

@@ -1,0 +1,25 @@
+﻿doWork{
+    if(problema)
+        e.cancel e return
+    
+    problema ingestibile = new exception
+
+    e.result alla fine di tutte le operazioni
+}
+
+workCompleted{
+    try{
+        if(e.error != null) {problema ingestibile nella doWork - errore}
+        
+        if(e.cancel != null) {c'è stato un return precoce nella doWork  - work cancellato}
+        
+        quindi
+        
+        if(e.error != null || e.cancel == true) {disconnetti e restart}
+        
+        accedo a e.result
+    } catch {
+        c'è stato un problema ingestibile nella work completed
+        disconnetti e restart
+    }
+}

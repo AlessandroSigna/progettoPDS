@@ -47,12 +47,20 @@ namespace Client
         }
 
         #region Altri Metodi
-        public void messaggioErrore()
+        public void messaggioErrore(string errore = null)
         {
             ClientLogic.UpdateNotifyIconDisconnesso();
             //Window mw = (Window)App.Current.MainWindow;
             //await mw.ShowMessageAsync("Errore", "Impossibile raggiungere il server");
-            MessageBoxResult result = System.Windows.MessageBox.Show("Errore durante la comunicazione con il server.", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+            if(errore != null)
+            {
+                MessageBoxResult result = System.Windows.MessageBox.Show(errore, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            else
+            {
+                MessageBoxResult result = System.Windows.MessageBox.Show("Errore durante la comunicazione con il server.", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            
         }
 
         private void showHideWaitBar(bool show)

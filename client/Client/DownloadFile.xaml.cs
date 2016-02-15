@@ -75,11 +75,12 @@ namespace Client
             {
                 if (App.Current.MainWindow is Restore)
                     App.Current.MainWindow.Close();
-                if (clientLogic.clientsocket.Client.Connected)
-                {
-                    clientLogic.clientsocket.GetStream().Close();
-                    clientLogic.clientsocket.Close();
-                }
+                //if (clientLogic.clientsocket.Client.Connected)
+                //{
+                //    clientLogic.clientsocket.GetStream().Close();
+                //    clientLogic.clientsocket.Close();
+                //}
+                clientLogic.DisconnectAndClose();
                 //App.Current.MainWindow = mainw;
                 //MainControl main = new MainControl();
                 //App.Current.MainWindow.Content = main;

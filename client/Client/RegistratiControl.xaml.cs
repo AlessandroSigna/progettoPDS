@@ -59,13 +59,17 @@ namespace Client
             {
                 Registrati_Esito(false, "Campi username e/o password vuoti.");
             }
-            else if (Username.Text.Contains("+"))
+            else if (Username.Text.Contains("+") || Username.Text.Contains("(") || Username.Text.Contains(")") || Username.Text.Contains("{") || Username.Text.Contains("}") || Username.Text.Contains("'"))
             {
-                Registrati_Esito(false, "Lo username contiene uno o piu' caratteri invalidi.");
+                Registrati_Esito(false, "Lo username contiene uno o piu' caratteri invalidi: + () {} '");
             }
             else if (Password.Password.Contains("+") || Password.Password.Contains("(") || Password.Password.Contains(")") || Password.Password.Contains("{") || Password.Password.Contains("}") || Password.Password.Contains("'"))
             {
-                Registrati_Esito(false, "La password contiene uno o piu' caratteri invalidi.");
+                Registrati_Esito(false, "La password contiene uno o piu' caratteri invalidi: + () {} '");
+            }
+            else if (Username.Text.Length > 15)
+            {
+                Registrati_Esito(false, "La lunghezza dello username deve essere inferiore a 15 caratteri.");
             }
             else if (Password.Password.Length < 5 || Password.Password.Length > 15)
             {
