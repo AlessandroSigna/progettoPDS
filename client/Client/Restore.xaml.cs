@@ -33,8 +33,7 @@ namespace Client
         {
             InitializeComponent();
             clientlogic = client;
-            mw = mainw;
-            //RestoreUC main = new RestoreUC(clientlogic, mw);
+            mw = mainw;            
             RestoreControl main = new RestoreControl(clientlogic, mw);
             App.Current.MainWindow = this;
             App.Current.MainWindow.Content = main;
@@ -46,6 +45,8 @@ namespace Client
          */
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            //this.DialogResult = true;
+            Console.WriteLine("RestoreWindow: Closing");
             //riallineo la MainWindow
             App.Current.MainWindow = mw;
             return;

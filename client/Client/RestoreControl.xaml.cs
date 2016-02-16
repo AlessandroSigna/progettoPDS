@@ -42,7 +42,6 @@ namespace Client
                 mw = mainw;
                 App.Current.MainWindow.Width = 400;
                 App.Current.MainWindow.Height = 400;
-
                 String[] rootFolders = RetrieveRootFolders();
                 if (rootFolders.Length == 0)
                 {
@@ -62,7 +61,11 @@ namespace Client
             {
                 //in caso di eccezione rilascio le risorse
                 if (App.Current.MainWindow is Restore)
+                {
+                    App.Current.MainWindow.DialogResult = false;
                     App.Current.MainWindow.Close();
+
+                }
                 //if (clientLogic.clientsocket.Client.Connected)
                 //{
                 //    clientLogic.clientsocket.GetStream().Close();
@@ -106,7 +109,8 @@ namespace Client
          */
         void folder_Expanded(object sender, RoutedEventArgs e)
         {
-
+            //il DialogResult viene esaminato da MenuControl alla chiusura di questa finestra - verrà messo a false in caso di eccezione
+            App.Current.MainWindow.DialogResult = false;
             //la stessa chiamata verrà fatta sulle eventuali sottocartelle
             //ma non avranno dummynode quindi forse meglio non legare proprio la callback alle sottocartelle
             TreeViewItem item = (TreeViewItem)sender;
@@ -255,12 +259,13 @@ namespace Client
 
                 //istanzio il TreeViewItem (oggetto visibile nel TreeView) mettendogli come tag l'oggetto ItemTag appena creato
                 TreeViewItem fileItem = new TreeViewItem();
-                fileItem.Header = fileTag.timeStamp;     //FIXME: decidere cosa mostrare sulla entry con la versione del file
+                fileItem.Header = fileTag.timeStamp + SizeSuffix(fileTag.dimFile);     //FIXME: decidere cosa mostrare sulla entry con la versione del file
                 fileItem.Tag = fileTag;
                 fileItem.FontWeight = FontWeights.Normal;
-                fileItem.MouseDoubleClick += new MouseButtonEventHandler(file_DoubleClick);
-                //filetem.Items.Add(dummyNode);
-                //subItem.Expanded += new RoutedEventHandler(file_Expanded);        //file expanded
+                if (fileTag.dimFile != 0)   //se il FileVersion non è relativo ad una cancellazione
+                {
+                    fileItem.MouseDoubleClick += new MouseButtonEventHandler(file_DoubleClick); //callback per il doppio click - avvia restore file
+                }
                 parentItem.Items.Add(fileItem);
             }
             else
@@ -283,7 +288,7 @@ namespace Client
                     subItem.Tag = subItemTag;
                     subItem.FontWeight = FontWeights.Normal;
                     subItem.Items.Add(dummyNode);
-                    subItem.Expanded += new RoutedEventHandler(file_Expanded);        //file expanded
+                    subItem.Expanded += new RoutedEventHandler(file_Expanded);        //callback per l'espansione del file
                     parentItem.Items.Add(subItem);
 
                 }
@@ -575,6 +580,21 @@ namespace Client
             //le cartelle si devono creare logicamente esaminando le varie stringhe
             retFiles.RemoveAll(str => String.IsNullOrEmpty(str));
             return retFiles;
+        }
+
+        /*
+         * convertitore da int a string per rappresentare in string la dimensione del file
+         */
+        static readonly string[] SizeSuffixes = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+        static string SizeSuffix(Int64 value)
+        {
+            //if (value < 0) { return "-" + SizeSuffix(-value); }
+            if (value == 0) { return "\tFile Cancellato"; }
+
+            int mag = (int)Math.Log(value, 1024);
+            decimal adjustedSize = (decimal)value / (1L << (mag * 10));
+
+            return "\t" + string.Format("{0:n1} {1}", adjustedSize, SizeSuffixes[mag]);
         }
     }
 }

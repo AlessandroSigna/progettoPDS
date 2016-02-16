@@ -119,7 +119,7 @@ terminata la ricezione si manda OK e si chiude
 Alla fine del task viene eseguita la workertranaction_RiceviFileCompleted che apre l'explorer mostrando la cartella creata
 RESTORE CARTELLA
 Il controllo passa a DownloadFolder che da la possibilità di includere i file cancellati (CheckBox) e di iniziare il restore (Button)
-la RiceviRestore comunica al RESTORE al server specificando tra i parametri se voglio o meno i file cancellati
+la RiceviRestore comunica RESTORE al server specificando tra i parametri se voglio o meno i file cancellati
 FIXME: pur inviando i parametri al server questo non manda indietro i file cancellati
 il workertransaction gestisce il lavoro come al solito
 il task principale si occupa di loopare sulle risposte del server per ogni file che ha intenzione di mandare 

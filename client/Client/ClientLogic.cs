@@ -653,7 +653,7 @@ namespace Client
                         //    this.clientsocket.GetStream().Close();
                         //    this.clientsocket.Close();
                         //}
-                        DisconnectAndClose(false, true);
+                        DisconnectAndClose(false);
                     }
                 }
             }
@@ -710,7 +710,7 @@ namespace Client
             {
                 if (e.Error != null)
                 {
-                    DisconnectAndClose(false, true);
+                    DisconnectAndClose(false);
                     mw.restart(true, e.Error.Message);
                 }
                 else
@@ -725,7 +725,7 @@ namespace Client
             }
             catch (Exception exc)
             {
-                DisconnectAndClose(false, true);
+                DisconnectAndClose(false);
                 mw.restart(true, exc.Message);
             }
         }
@@ -740,7 +740,13 @@ namespace Client
             MainWindow.MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/connessoicon.ico");
         }
 
-        public void DisconnectAndClose(bool disconnect = true, bool close = true)
+        /*
+         * Se disconnect è true comunica al server la disconnessione del client, eventualmente effettua il logout
+         * e chiude il socket - tutto gestito nel worker della DisconnettiServer
+         * Se disconnect è false chiude solo il socket senza comunicare col server - utile per situazioni delicate
+         * come errori durante il logout
+         */
+        public void DisconnectAndClose(bool disconnect = true)
         {
             if (clientsocket.Connected)
             {
@@ -748,8 +754,7 @@ namespace Client
                 {
                     DisconnettiServer(false);
                 }
-
-                if (close)
+                else
                 {
                     clientsocket.GetStream().Close();
                     clientsocket.Close();

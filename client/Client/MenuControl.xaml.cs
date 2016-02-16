@@ -558,52 +558,42 @@ namespace Client
          */
         private void RestoreFile_Click(object sender, RoutedEventArgs e)
         {
-
-            //verifico connessione
-            if (mw.clientLogic.clientsocket.Client.Poll(1000, SelectMode.SelectRead))
-            {
-                //MainControl main = new MainControl(1);
-                //App.Current.MainWindow.Content = main;
-                //messaggioErrore("Connessione Persa");
-                mw.restart(true, "Connessione persa.");
-                return;
-
-            }
-
-            //istanzio un nuovo ClientSocket in cui aprirò un socket - perché non usare quello che già c'è? riservato al backup?
-            ClientLogic clRestore = new ClientLogic(mw.clientLogic.ip, mw.clientLogic.porta, mw.clientLogic.folder, mw.clientLogic.username, mw.clientLogic.folderR);
-            Window w = null;
-            //Questo meccanismo crea non pochi problemi quando bisogna generare un errore o tornare alle finestre principali.
+            ClientLogic clRestore = null;
             try
             {
-                //istanzio Restore e la mostro come finestra di dialogo - NO Metro!
+                //verifico connessione
+                if (mw.clientLogic.clientsocket.Client.Poll(1000, SelectMode.SelectRead))
+                {
+                    //MainControl main = new MainControl(1);
+                    //App.Current.MainWindow.Content = main;
+                    //messaggioErrore("Connessione Persa");
+                    mw.restart(true, "Connessione persa.");
+                    return;
+
+                }
+                //istanzio un nuovo ClientSocket in cui aprirò un socket - quello che già c'è è riservato a backup e accounting
+                clRestore = new ClientLogic(mw.clientLogic.ip, mw.clientLogic.porta, mw.clientLogic.folder, mw.clientLogic.username, mw.clientLogic.folderR);
+                Window w = null;
                 w = new Restore(clRestore, mw);
-                w.ShowDialog();
+
+                //il pattern che seguo per gestire problemi nella nuova window è: una volta chiusa la window checkare il valore dei DialogResult
+                //se è true è andato tutto bene altrimenti si è chiusa con un eccezione e MenuControl deve capire che è successo
+                //se un'eccezione occorre in Restore si deve chiudere il nuovo socket aperto e chiudere la nuova window - è compito di Restore stessa
+                if (w.ShowDialog() == false) {  //istanzio Restore e la mostro come finestra di dialogo
+                    Console.WriteLine("chiusura inattesa");
+                    //fai altro per verificare connessione
+                }
                 //da qui in poi App.Current.MainWindow è null - occorre risettarla
                 //App.Current.MainWindow = mw;  //fatto nella Restore:Window_Closing
             }
             catch (Exception)
             {
                 //rilascio risorse il caso di eccezione
-                //if (clRestore.clientsocket.Client.Connected)
-                //{
-                //    clRestore.clientsocket.GetStream().Close();
-                //    clRestore.clientsocket.Client.Close();
-                //}
-                clRestore.DisconnectAndClose();
-
-                //if (mw.clientLogic.clientsocket.Client.Connected)
-                //{
-                //    mw.clientLogic.clientsocket.GetStream().Close();
-                //    mw.clientLogic.clientsocket.Close();
-                //}
                 mw.clientLogic.DisconnectAndClose();
 
                 if (App.Current.MainWindow is Restore)
                     App.Current.MainWindow.Close();
                 mw.restart(true, "Connessione persa.");
-                //messaggioErrore("Connessione Persa");
-                //return;
             }
 
             //App.Current.MainWindow = mw;
