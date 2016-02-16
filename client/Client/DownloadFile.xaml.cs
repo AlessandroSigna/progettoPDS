@@ -220,10 +220,10 @@ namespace Client
 
             if (ListBox.SelectedItem != null)
             {
-                TextBox ver = clientlogic.FindDescendant<TextBox>(selectedItem);
-                StartDownload main = new StartDownload(clientlogic, completePath, ver.Text.ToString(), folder, mw, idfile);
-                if (App.Current.MainWindow is Restore)
-                    App.Current.MainWindow.Content = main;
+            //    TextBox ver = clientlogic.FindDescendant<TextBox>(selectedItem);
+            //    StartDownload main = new StartDownload(clientlogic, completePath, ver.Text.ToString(), folder, mw, idfile);
+            //    if (App.Current.MainWindow is Restore)
+            //        App.Current.MainWindow.Content = main;
             }
         }
 

@@ -564,27 +564,40 @@ namespace Client
                 //verifico connessione
                 if (mw.clientLogic.clientsocket.Client.Poll(1000, SelectMode.SelectRead))
                 {
-                    //MainControl main = new MainControl(1);
-                    //App.Current.MainWindow.Content = main;
-                    //messaggioErrore("Connessione Persa");
+                    mw.clientLogic.DisconnectAndClose();
                     mw.restart(true, "Connessione persa.");
                     return;
 
                 }
                 //istanzio un nuovo ClientSocket in cui aprirò un socket - quello che già c'è è riservato a backup e accounting
                 clRestore = new ClientLogic(mw.clientLogic.ip, mw.clientLogic.porta, mw.clientLogic.folder, mw.clientLogic.username, mw.clientLogic.folderR);
-                Window w = null;
-                w = new Restore(clRestore, mw);
-
+                Restore windowRestore = null;
+                windowRestore = new Restore(clRestore, mw);
+                if (windowRestore.chiusuraInattesa == true) //intercetto errori nella costruzione della Restore e RestoreControl
+                {
+                    mw.clientLogic.DisconnectAndClose();
+                    mw.restart(true, "Connessione persa. Impossibile effettuare il restore.");
+                    return;
+                }
                 //il pattern che seguo per gestire problemi nella nuova window è: una volta chiusa la window checkare il valore dei DialogResult
                 //se è true è andato tutto bene altrimenti si è chiusa con un eccezione e MenuControl deve capire che è successo
                 //se un'eccezione occorre in Restore si deve chiudere il nuovo socket aperto e chiudere la nuova window - è compito di Restore stessa
-                if (w.ShowDialog() == false) {  //istanzio Restore e la mostro come finestra di dialogo
+                if (windowRestore.ShowDialog() == false) {  //istanzio Restore e la mostro come finestra di dialogo
                     Console.WriteLine("chiusura inattesa");
                     //fai altro per verificare connessione
+                    //verifico connessione
+                    if (mw.clientLogic.clientsocket.Client.Poll(1000, SelectMode.SelectRead))
+                    {
+                        mw.clientLogic.DisconnectAndClose();
+                        mw.restart(true, "Connessione persa.");
+                        return;
+
+                    }
+                    else
+                    {
+                        MessageBoxResult result = System.Windows.MessageBox.Show("Errore durante durante la fase di restore.\nRiprovare.", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
-                //da qui in poi App.Current.MainWindow è null - occorre risettarla
-                //App.Current.MainWindow = mw;  //fatto nella Restore:Window_Closing
             }
             catch (Exception)
             {

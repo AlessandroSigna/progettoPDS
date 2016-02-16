@@ -30,7 +30,7 @@ namespace Client
         private string folderRoot;
         private string pathRoot;
         public volatile bool downloading;
-        private MainWindow mw;
+        private Restore restoreWindow;
         private BackgroundWorker workertransaction;
         private RestoreControl restoreControl;
         private string folderToBeRestored;
@@ -39,11 +39,11 @@ namespace Client
          * rootFolder è il path della rootDirectory che è stata backuppata
          * folderToBeRestored è il path della cartella di cui si deve fare la restore
          */
-        public DownloadFolder(ClientLogic clientlogic, string rootFolder, string folderToBeRestored, MainWindow main, RestoreControl restoreControl)
+        public DownloadFolder(ClientLogic clientlogic, string rootFolder, string folderToBeRestored, Restore main, RestoreControl restoreControl)
         {
             InitializeComponent();
             downloading = true;
-            mw = main;
+            restoreWindow = main;
             folderRoot = rootFolder;
             clientLogic = clientlogic;
             this.folderToBeRestored = folderToBeRestored;
@@ -67,10 +67,7 @@ namespace Client
          */
         private void Stop_Click(object sender, RoutedEventArgs e)
         {
-                downloading = false;
-                Start.IsEnabled = false;
-                Start.Visibility = Visibility.Hidden;
-                WaitFol.Visibility = Visibility.Visible;
+            StopRestore();
         }
 
         private void File_MouseEnter(object sender, MouseEventArgs e)
@@ -99,6 +96,14 @@ namespace Client
                 BrushConverter bc = new BrushConverter();
                 Start.Background = (Brush)bc.ConvertFrom("#FA5858");
             }
+        }
+
+        public void StopRestore()
+        {
+            downloading = false;
+            Start.IsEnabled = false;
+            Start.Visibility = Visibility.Hidden;
+            WaitFol.Visibility = Visibility.Visible;
         }
         #endregion
 
@@ -278,7 +283,7 @@ namespace Client
             //MainControl main = new MainControl();
             //mw.Content = main;
             //main.messaggioErrore();
-            mw.restart(true);
+            //********mw.restart(true);
             return;
 
         }

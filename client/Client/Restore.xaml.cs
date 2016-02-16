@@ -24,6 +24,7 @@ namespace Client
     {
         private ClientLogic clientlogic;
         public MainWindow mw;
+        public bool chiusuraInattesa = false;
         /*
          * Costruttore
          * Si salvano i riferimenti al nuovo ClientLogic - quello istanziato appositamente per il restore - e alla MainWindow
@@ -33,9 +34,9 @@ namespace Client
         {
             InitializeComponent();
             clientlogic = client;
-            mw = mainw;            
-            RestoreControl main = new RestoreControl(clientlogic, mw);
+            mw = mainw;
             App.Current.MainWindow = this;
+            RestoreControl main = new RestoreControl(clientlogic, this);
             App.Current.MainWindow.Content = main;
         }
 
@@ -45,44 +46,50 @@ namespace Client
          */
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            //this.DialogResult = true;
             Console.WriteLine("RestoreWindow: Closing");
-            //riallineo la MainWindow
-            App.Current.MainWindow = mw;
-            return;
-            
-            //vecchia implementazione - con attesa
-            if (App.Current.MainWindow.Content is DownloadFolder)
-            {
-                DownloadFolder df = (DownloadFolder)App.Current.MainWindow.Content;
-                if (df.downloading)
-                {
-                    messaggioAttendi("Ancora un istante...");
-                    e.Cancel = true;
-                    df.Start.IsEnabled = false;
-                    df.Start.Visibility = Visibility.Hidden;
-                    df.WaitFol.Visibility = Visibility.Visible;
-                    return;
-                }
-            }
-            else if (App.Current.MainWindow.Content is StartDownload)
-            {
-                StartDownload df = (StartDownload)App.Current.MainWindow.Content;
-                if (df.downloading)
-                {
-                    messaggioAttendi("Ancora un istante...");
-                    e.Cancel = true;
-                    return;
-                }
-            }
+
             try
             {
+                if(!chiusuraInattesa)
+                {//implementazione con attesa sia che sto scaricando una cartella che un file
+                    if (App.Current.MainWindow.Content is DownloadFolder)
+                    {
+                        DownloadFolder df = (DownloadFolder)App.Current.MainWindow.Content;
+                        if (df.downloading)
+                        {
+                            //avverto l'utente
+                            MessageBoxResult result = System.Windows.MessageBox.Show("Il ripristino dei file verrà interrotto.\nProcedere?", "Disconnessione", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
+                            if (result == MessageBoxResult.OK)
+                            {
+                                df.StopRestore();
+                            }
+                            e.Cancel = true;
+                            return;
+                        }
+                    }
+                    else if (App.Current.MainWindow.Content is StartDownload)
+                    {
+                        StartDownload df = (StartDownload)App.Current.MainWindow.Content;
+                        if (df.downloading)
+                        {
+                            MessageBoxResult result = System.Windows.MessageBox.Show("Ancora un istante...", "Attendi", MessageBoxButton.OK, MessageBoxImage.Stop);
+                            e.Cancel = true;
+                            return;
+                        }
+                    }
+                    DialogResult = true;
+                }
+                //comunico al server che può chiudere il socket che avevamo aperto per la restore
                 clientlogic.WriteStringOnStream(ClientLogic.EXITDOWNLOAD);
+                //riallineo la MainWindow
+                App.Current.MainWindow = mw;
                 clientlogic.clientsocket.GetStream().Close();
                 clientlogic.clientsocket.Close();
             }
             catch
-            {   // ?
+            {
+                //riallineo la MainWindow
+                App.Current.MainWindow = mw;
                 if (clientlogic.clientsocket.Client.Connected)
                 {
                     clientlogic.clientsocket.GetStream().Close();
@@ -90,14 +97,5 @@ namespace Client
                 }
             }
         }
-
-        private /*async*/ void messaggioAttendi(string mess)
-        {
-            //MetroWindow mw = (MetroWindow)this;
-            //await mw.ShowMessageAsync("Attendi", mess);
-
-            MessageBoxResult result = System.Windows.MessageBox.Show("Errore durante la comunicazione con il server.", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-
     }
 }
