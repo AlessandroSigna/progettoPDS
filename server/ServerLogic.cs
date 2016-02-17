@@ -1753,7 +1753,7 @@ namespace BackupServer
                             return ERRORE + "impossibile cancellare il file";
                         }
                     }
-
+                    throw new Exception("Eccezione generata manualmente.");
                     return OK + "File cancellatti correttamente";
                 }
                 else
@@ -1765,6 +1765,7 @@ namespace BackupServer
                     {
                         //transazioneDelete.Commit();
                         //transazioneDelete.Dispose();
+                        throw new Exception("Eccezione generata manualmente.");
                         return OK + "File cancellatto correttamente";
                     }
                     else

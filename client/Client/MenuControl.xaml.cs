@@ -203,7 +203,13 @@ namespace Client
                     updating = true;
                     //segnalo la cancellazione al server
                     mw.clientLogic.WriteStringOnStream(ClientLogic.CANC + mw.clientLogic.username + "+" + e.FullPath);
-                    mw.clientLogic.ReadStringFromStream();  //consumo la risposta senza analizzarla?
+                    String risposta = mw.clientLogic.ReadStringFromStream();  //consumo la risposta senza analizzarla?
+                    if (risposta.Contains("ERR"))
+                    {
+                        String tmp = risposta.Substring(1, risposta.Length - 1);
+                        String messaggioErrore = risposta.Substring(tmp.IndexOf('+') + 2, tmp.Length - tmp.IndexOf('+') - 1);
+                        MessageBoxResult result = System.Windows.MessageBox.Show(messaggioErrore, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
                     updating = false;
                     mw.clientLogic.event_1.Set();   //segnalo l'evento
                 }
