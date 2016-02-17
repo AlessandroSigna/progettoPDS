@@ -146,7 +146,7 @@ namespace BackupServer
         {
             // Tutti i comandi relativi alla gestione della transazione sono commentati e per questo anche il rollback è scritto
             // ma commentato.
-            //SQLiteTransaction transazioneReg = mainWindow.m_dbConnection.BeginTransaction();
+            
             Console.WriteLine(responseData);
             try
             {
@@ -155,8 +155,6 @@ namespace BackupServer
                 int numParametri = parametri.Length;
                 if (numParametri != 3)  //parametri[0] è sempre vuoto perché responseData inizia con +
                 {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
                     return ERRORE + "Numero di paramentri passati per ECDH errato: " + numParametri;
                 }
 
@@ -190,9 +188,6 @@ namespace BackupServer
             }
             catch
             {
-                //transazioneReg.Rollback();
-                //transazioneReg.Dispose();
-
                 return ERRORE + "Errore durante DH";
             }
         }
@@ -200,8 +195,11 @@ namespace BackupServer
         private string registrazioneSicura(byte[] simmetricKey, TcpClient clientsocket)
         {
 
+            SQLiteTransaction transazioneReg = mainWindow.m_dbConnection.BeginTransaction();
+
             try
             {
+
                 //devo ricevere dal client REG + IV + {username + password}chiave simmetrica
                 String responseData = ReadStringFromStream(clientsocket);
                 Console.WriteLine("messaggio: " + responseData);
@@ -210,8 +208,8 @@ namespace BackupServer
                 int numParametri = parametri.Length;
                 if (numParametri != 4)
                 {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
+                    transazioneReg.Rollback();
+                    transazioneReg.Dispose();
                     return ERRORE + "Numero di paramentri passati per la registrazione sicura errato";
                 }
 
@@ -221,8 +219,8 @@ namespace BackupServer
 
                 if (comando == null || !comando.Equals(REGISTRAZIONE.Replace('+', ' ').Trim()))
                 {
-                    //transazioneReg.Rollback();
-                    //transazioneReg.Dispose();
+                    transazioneReg.Rollback();
+                    transazioneReg.Dispose();
                     return ERRORE + "Comando errato";
                 }
 
@@ -253,20 +251,18 @@ namespace BackupServer
 
 
                 SQLiteCommand comandoP = new SQLiteCommand(mainWindow.m_dbConnection);
-                // Perché queste SELECT non sono protette dal lock?
                 comandoP.CommandText = "SELECT * FROM UTENTI WHERE username=@username";
                 comandoP.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                //comandoP.Transaction = transazioneReg;
+                comandoP.Transaction = transazioneReg;
 
                 try
                 {
-                    // L'ACID della transazione è garantita da questo lock. Ma forse i metodi transaction gestiscono tutto automaticamente?
-                    _readerWriterLock.EnterReadLock();
+                     _readerWriterLock.EnterReadLock();
             
                     if (comandoP.ExecuteScalar() != null)
                     {
-                        //transazioneReg.Rollback();
-                        //transazioneReg.Dispose();
+                        transazioneReg.Rollback();
+                        transazioneReg.Dispose();
                         return ERRORE + "Utente gia' registrato";
                     }
                 }
@@ -279,7 +275,7 @@ namespace BackupServer
                 comandoP2.CommandText = "INSERT INTO UTENTI (username,password) VALUES(@username,@password)";
                 comandoP2.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                 comandoP2.Parameters.Add("@password", System.Data.DbType.String, pass.Length).Value = pass;
-                //comandoP2.Transaction = transazioneReg;
+                comandoP2.Transaction = transazioneReg;
 
                 bool isBroken = false;
                 do
@@ -295,8 +291,8 @@ namespace BackupServer
                         {
                             if (comandoP2.ExecuteNonQuery().Equals(0))
                             {
-                                //transazioneReg.Rollback();
-                                //transazioneReg.Dispose();
+                                transazioneReg.Rollback();
+                                transazioneReg.Dispose();
                                 return ERRORE + "Errore durante la registrazione";
                             }
                         }
@@ -317,8 +313,8 @@ namespace BackupServer
                 comandoP4.CommandText = "INSERT INTO UTENTILOGGATI (username,lastUpdate) VALUES (@username,@lastUpdate)";
                 comandoP4.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                 comandoP4.Parameters.Add("@lastUpdate", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
+                comandoP4.Transaction = transazioneReg;
 
-                //comandoP4.Transaction = transazioneReg;
                 bool isBroken2 = false;
                 do
                 {
@@ -333,8 +329,8 @@ namespace BackupServer
                         {
                             if (comandoP4.ExecuteNonQuery() != 1)
                             {
-                                //transazioneReg.Rollback();
-                                //transazioneReg.Dispose();
+                                transazioneReg.Rollback();
+                                transazioneReg.Dispose();
                                 return ERRORE + "Errore durante la registrazione";
                             }
                         }
@@ -351,16 +347,16 @@ namespace BackupServer
                         isBroken2 = false;
                 } while (isBroken2);
 
-
-                //transazioneReg.Commit();
-                //transazioneReg.Dispose();
+                //throw new Exception("Eccezione generata manualmente.");
+                transazioneReg.Commit();
+                transazioneReg.Dispose();
 
                 return OK + "Registrazione avvenuta correttamente!";
             }
             catch
             {
-                //transazioneReg.Rollback();
-                //transazioneReg.Dispose();
+                transazioneReg.Rollback();
+                transazioneReg.Dispose();
 
                 return ERRORE + "Errore durante la registrazione";
             }
@@ -459,7 +455,7 @@ namespace BackupServer
         private string comandoLogin(string responseData, TcpClient clientsocket)
         {
 
-            //SQLiteTransaction transazioneLogin = mainWindow.m_dbConnection.BeginTransaction();
+            SQLiteTransaction transazioneLogin = mainWindow.m_dbConnection.BeginTransaction();
 
             try
             {
@@ -469,8 +465,8 @@ namespace BackupServer
 
                 if (numParametri != 3)
                 {
-                    //transazioneLogin.Rollback();
-                    //transazioneLogin.Dispose();
+                    transazioneLogin.Rollback();
+                    transazioneLogin.Dispose();
                     return ERRORE + "Numero di paramentri passati per il login errato";
                 }
 
@@ -480,15 +476,15 @@ namespace BackupServer
 
                 if (comando == null || !comando.Equals(LOGIN.Replace('+', ' ').Trim()))
                 {
-                    //transazioneLogin.Rollback();
-                    //transazioneLogin.Dispose();
+                    transazioneLogin.Rollback();
+                    transazioneLogin.Dispose();
                     return ERRORE + "Comando errato";
                 }
 
                 if (user == null || user.Equals(""))
                 {
-                    //transazioneLogin.Rollback();
-                    //transazioneLogin.Dispose();
+                    transazioneLogin.Rollback();
+                    transazioneLogin.Dispose();
                     return ERRORE + "User non valido";
                 }
                 
@@ -496,7 +492,7 @@ namespace BackupServer
                 SQLiteCommand comandoP0= new SQLiteCommand(mainWindow.m_dbConnection);
                 comandoP0.CommandText = "SELECT * FROM UTENTI WHERE username=@username";
                 comandoP0.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                //comandoP0.Transaction = transazioneLogin;
+                comandoP0.Transaction = transazioneLogin;
 
 
                 try
@@ -507,6 +503,7 @@ namespace BackupServer
                     {
                         pass = reader["password"].ToString();
                     }
+                    reader.Close();
                 }
                 finally
                 {
@@ -515,8 +512,8 @@ namespace BackupServer
 
                 if (pass == String.Empty)
                 {
-                    //transazioneLogin.Rollback();
-                    //transazioneLogin.Dispose();
+                    transazioneLogin.Rollback();
+                    transazioneLogin.Dispose();
 
                     //utente non presente nel DB da gestire
                     return ERRORE + "Username e/o Password Errati ";
@@ -528,6 +525,8 @@ namespace BackupServer
                 string chk = ReadStringFromStream(clientsocket);
                 if (!chk.Equals(OK))
                 {
+                    transazioneLogin.Rollback();
+                    transazioneLogin.Dispose();
                     return ERRORE + "Problema nella connesione durante il login";
                 }
 
@@ -552,20 +551,15 @@ namespace BackupServer
                 Console.WriteLine("RispostaServer: " + BitConverter.ToString(challengeResponseCorrect));
                 if (!BitConverter.ToString(challengeResponseCorrect).Equals(BitConverter.ToString(challengeResponse))) 
                 {
-                    //transazioneLogin.Rollback();
-                    //transazioneLogin.Dispose();
+                    transazioneLogin.Rollback();
+                    transazioneLogin.Dispose();
                     return ERRORE + "Username e/o Password Errati";
-                }
-                else
-                {
-                    //transazioneLogin.Commit();
-                    //transazioneLogin.Dispose();
                 }
                 
                 SQLiteCommand comandoP3 = new SQLiteCommand(mainWindow.m_dbConnection);
                 comandoP3.CommandText = "SELECT * FROM UTENTILOGGATI WHERE username=@username";
                 comandoP3.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                //comandoP3.Transaction = transazioneLogin;
+                comandoP3.Transaction = transazioneLogin;
                 string utenteLog = String.Empty;
                 try
                 {
@@ -579,8 +573,8 @@ namespace BackupServer
 
                 if (utenteLog != null)
                 {
-                    //transazioneLogin.Rollback();
-                    //transazioneLogin.Dispose();
+                    transazioneLogin.Rollback();
+                    transazioneLogin.Dispose();
                     return ERRORE + "Utente gia' loggato";  //dove si elimina l'utente al logout?
                 }
 
@@ -588,7 +582,7 @@ namespace BackupServer
                 comandoP4.CommandText = "INSERT INTO UTENTILOGGATI (username,lastUpdate) VALUES (@username,@lastUpdate)";
                 comandoP4.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                 comandoP4.Parameters.Add("@lastUpdate", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
-                //comandoP4.Transaction = transazioneLogin;
+                comandoP4.Transaction = transazioneLogin;
                 bool isBroken = false;
                 do
                 {
@@ -603,8 +597,8 @@ namespace BackupServer
                         {
                             if (comandoP4.ExecuteNonQuery() != 1)
                             {
-                                //transazioneLogin.Rollback();
-                                //transazioneLogin.Dispose();
+                                transazioneLogin.Rollback();
+                                transazioneLogin.Dispose();
                                 return ERRORE + "Errore durante il login";
                             }
                         }
@@ -621,16 +615,17 @@ namespace BackupServer
                     //    isBroken = false;
                 } while (isBroken);
 
-                //transazioneLogin.Commit();
-                //transazioneLogin.Dispose();
+                //throw new Exception("Eccezione generata manualmente.");
+                transazioneLogin.Commit();
+                transazioneLogin.Dispose();
 
                 return OK + "Login effettuato correttamente";
 
             }
             catch (Exception exc)
             {
-                //transazioneLogin.Rollback();
-                //transazioneLogin.Dispose();
+                transazioneLogin.Rollback();
+                transazioneLogin.Dispose();
                 Console.WriteLine(exc.Message);
                 Console.WriteLine(exc.StackTrace);
                 return ERRORE + "Eccezione durante il login";
