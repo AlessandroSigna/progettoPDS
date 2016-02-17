@@ -387,7 +387,7 @@ namespace BackupServer
         // Chiamato anche da comando disconnetti.
         private string comandoLogout(string responseData)
         {
-            //SQLiteTransaction transazioneLogout = mainWindow.m_dbConnection.BeginTransaction();
+            SQLiteTransaction transazioneLogout = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
                 //mi aspetto LOGOUT + username
@@ -395,8 +395,8 @@ namespace BackupServer
                 int numParametri = parametri.Length;
                 if (numParametri != 3)
                 {
-                    //transazioneLogout.Commit();
-                    //transazioneLogout.Dispose();
+                    transazioneLogout.Commit();
+                    transazioneLogout.Dispose();
                     return ERRORE + "Numero di paramentri passati per il logout errato";
                 }
 
@@ -406,7 +406,7 @@ namespace BackupServer
                 SQLiteCommand comandoP = new SQLiteCommand(mainWindow.m_dbConnection);
                 comandoP.CommandText = "DELETE FROM UTENTILOGGATI WHERE username=@username";
                 comandoP.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                //comandoP.Transaction = transazioneLogout;
+                comandoP.Transaction = transazioneLogout;
                 bool isBroken = false;
                 do
                 {
@@ -421,8 +421,8 @@ namespace BackupServer
                         {
                             if (comandoP.ExecuteNonQuery() != 1)
                             {
-                                //transazioneLogout.Rollback();
-                                //transazioneLogout.Dispose();
+                                transazioneLogout.Rollback();
+                                transazioneLogout.Dispose();
                                 return ERRORE + "Errore durante la disconnessione";
                             }
                         }
@@ -439,15 +439,15 @@ namespace BackupServer
                         isBroken = false;
                 } while (isBroken);
 
-                //transazioneLogout.Commit();
-                //transazioneLogout.Dispose();
+                transazioneLogout.Commit();
+                transazioneLogout.Dispose();
 
                 return OK + "Utente Disconnesso";
             }
             catch
             {
-                //transazioneLogout.Rollback();
-                //transazioneLogout.Dispose();
+                transazioneLogout.Rollback();
+                transazioneLogout.Dispose();
                 return ERRORE + "Errore durante la disconnessione";
             }
         }
@@ -1021,7 +1021,7 @@ namespace BackupServer
         // Scrive versioni
         private string comandoGetVersioniFile(TcpClient clientsocket, string responseData)
         {
-            //SQLiteTransaction transaioneVersione = mainWindow.m_dbConnection.BeginTransaction();
+            //SQLiteTransaction transazioneVersione = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
                 String[] parametri = responseData.Split('+');
@@ -1029,8 +1029,8 @@ namespace BackupServer
                 if (numParametri > 6 || numParametri < 6)
                 {
 
-                    //transaioneVersione.Rollback();
-                    //transaioneVersione.Dispose();
+                    //transazioneVersione.Rollback();
+                    //transazioneVersione.Dispose();
                     return ERRORE + "Numero di paramentri passati per il trasferimento lista versioni file errato";
                 }
 
@@ -1042,32 +1042,32 @@ namespace BackupServer
 
                 if (comando == null || !comando.Equals(GETVFILE.Replace('+', ' ').Trim()))
                 {
-                    //transaioneVersione.Rollback();
-                    //transaioneVersione.Dispose();
+                    //transazioneVersione.Rollback();
+                    //transazioneVersione.Dispose();
                     return ERRORE + "Comando errato";
                 }
                 if (user == null || user.Equals(""))
                 {
-                    //transaioneVersione.Rollback();
-                    //transaioneVersione.Dispose();
+                    //transazioneVersione.Rollback();
+                    //transazioneVersione.Dispose();
                     return ERRORE + "User non valido";
                 }
                 if (folderRoot == null || folderRoot.Equals(""))
                 {
-                    //transaioneVersione.Rollback();
-                    //transaioneVersione.Dispose();
+                    //transazioneVersione.Rollback();
+                    //transazioneVersione.Dispose();
                     return ERRORE + "folderRoot non valido";
                 }
                 if (fileName == null || fileName.Equals(""))
                 {
-                    //transaioneVersione.Rollback();
-                    //transaioneVersione.Dispose();
+                    //transazioneVersione.Rollback();
+                    //transazioneVersione.Dispose();
                     return ERRORE + "fileName non valido";
                 }
                 if (idfile == null || idfile.Equals(""))
                 {
-                    //transaioneVersione.Rollback();
-                    //transaioneVersione.Dispose();
+                    //transazioneVersione.Rollback();
+                    //transazioneVersione.Dispose();
                     return ERRORE + "idfile non valido";
                 }
 
@@ -1081,7 +1081,7 @@ namespace BackupServer
                     comando1.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comando1.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName;
                     comando1.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = Int32.Parse(idfile);
-                    //comando1.Transaction = transaioneVersione;
+                    //comando1.Transaction = transazioneVersione;
                     SQLiteDataReader rdr;
 
                     try
@@ -1111,7 +1111,7 @@ namespace BackupServer
                     comando2.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comando2.Parameters.Add("@percorsoFileNEW", System.Data.DbType.String, fileName.Length).Value = fileName;
                     comando2.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = Int32.Parse(idfile);
-                    //comando2.Transaction = transaioneVersione;
+                    //comando2.Transaction = transazioneVersione;
 
                     try
                     {
@@ -1128,8 +1128,8 @@ namespace BackupServer
 
                 if (versioni.Equals(""))
                 {
-                    //transaioneVersione.Commit();
-                    //transaioneVersione.Dispose();
+                    //transazioneVersione.Commit();
+                    //transazioneVersione.Dispose();
                     return INFO + "Nessuna versione del file";
                 }
 
@@ -1142,16 +1142,16 @@ namespace BackupServer
                     ReadStringFromStream(clientsocket);
                 }
 
-                //transaioneVersione.Commit();
-                //transaioneVersione.Dispose();
+                //transazioneVersione.Commit();
+                //transazioneVersione.Dispose();
                 return "+ENDLIST+";
 
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                //transaioneVersione.Rollback();
-                //transaioneVersione.Dispose();
+                //transazioneVersione.Rollback();
+                //transazioneVersione.Dispose();
                 return ERRORE + "Invio versioni file non riuscito";
             }
         }
@@ -1338,15 +1338,15 @@ namespace BackupServer
         // "VALUES (@username,@folderBackup,@idfile,@fileNameOLD,@fileNameNEW,@lastVersionOLD,@lastUpdate)";
         private string comandoRenameFile(string responseData)
         {
-            SQLiteTransaction transaioneRename = mainWindow.m_dbConnection.BeginTransaction();
+            SQLiteTransaction transazioneRename = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
                 String[] parametri = responseData.Split('+');
                 int numParametri = parametri.Length;
                 if (numParametri > 6 || numParametri < 5)
                 {
-                    //transaioneRename.Rollback();
-                    //transaioneRename.Dispose();
+                    transazioneRename.Rollback();
+                    transazioneRename.Dispose();
                     return ERRORE + "Numero di paramentri passati per la rinonima del file errato";
                 }
 
@@ -1360,34 +1360,34 @@ namespace BackupServer
 
                 if (comando == null || !comando.Equals(RENAMEFILE.Replace('+', ' ').Trim()))
                 {
-                    //transaioneRename.Rollback();
-                    //transaioneRename.Dispose();
+                    transazioneRename.Rollback();
+                    transazioneRename.Dispose();
                     return ERRORE + "Comando errato";
                 }
                 if (user == null || user.Equals(""))
                 {
-                    //transaioneRename.Rollback();
-                    //transaioneRename.Dispose();
+                    transazioneRename.Rollback();
+                    transazioneRename.Dispose();
                     return ERRORE + "User non valido";
                 }
                 if (fileNameOLD == null || fileNameOLD.Equals(""))
                 {
-                    //transaioneRename.Rollback();
-                    //transaioneRename.Dispose();
+                    transazioneRename.Rollback();
+                    transazioneRename.Dispose();
                     return ERRORE + "fileNameOLD non valido";
                 }
                 if (fileNameNEW == null || fileNameNEW.Equals(""))
                 {
-                    //transaioneRename.Rollback();
-                    //transaioneRename.Dispose();
+                    transazioneRename.Rollback();
+                    transazioneRename.Dispose();
                     return ERRORE + "fileNameNEW non valida";
                 }
 
                 string folderRoot = getFolderRoot(user);
                 if (folderRoot == null)
                 {
-                    //transaioneRename.Rollback();
-                    //transaioneRename.Dispose();
+                    transazioneRename.Rollback();
+                    transazioneRename.Dispose();
                     return ERRORE + "impossibile recuperare FolderRoot";
                 }
 
@@ -1398,6 +1398,7 @@ namespace BackupServer
                     comandoPD.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                     comandoPD.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comandoPD.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileNameOLD.Length).Value = fileNameOLD + "\\%";
+                    comandoPD.Transaction = transazioneRename;
                     SQLiteDataReader drD;
                     String idfileD = "0";
 
@@ -1428,7 +1429,7 @@ namespace BackupServer
                             comandoPD1.Parameters.Add("@lastVersionOLD", System.Data.DbType.Int64, 5).Value = lastVersionD;
                             comandoPD1.Parameters.Add("@lastUpdate", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
                             comandoPD1.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = Int32.Parse(idfileD);
-                            //comandoP.Transaction = transaioneRename;
+                            comandoPD1.Transaction = transazioneRename;
 
                             bool isBrokenD = false;
                             do
@@ -1444,6 +1445,8 @@ namespace BackupServer
                                     {
                                         if (comandoPD1.ExecuteNonQuery() != 1)
                                         {
+                                            transazioneRename.Rollback();
+                                            transazioneRename.Dispose();
                                             return ERRORE + "impossibile inserire match rinomina file";
                                         }
                                     }
@@ -1467,7 +1470,7 @@ namespace BackupServer
                             comandoD2.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                             comandoD2.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileNameNEW.Length).Value = fileNameOLDD;
                             comandoD2.Parameters.Add("@versione", System.Data.DbType.Int64, 10).Value = lastVersionD;
-                            //comando2.Transaction = transaioneRename;
+                            comandoD2.Transaction = transazioneRename;
                             SQLiteDataReader drD2;
 
                             try
@@ -1489,22 +1492,22 @@ namespace BackupServer
                                 dimFileD = Convert.ToInt32(drD2["dimFile"]);
                                 checksum2D = Convert.ToString(drD2["checksum"]);
                             }
+                            drD2.Close();
 
                             if (!inserisciFile(user, folderRoot, fileNameNEWD, lastVersionD + 1, fileD, dimFileD, checksum2D, null, idfileD))
                             {
-                                //transaioneRename.Rollback();
-                                //transaioneRename.Dispose();
-                               Console.WriteLine(ERRORE + "Impossibile inserire file su DB");
-                            return ERRORE + "Impossibile inserire file su DB";
+                                transazioneRename.Rollback();
+                                transazioneRename.Dispose();
+                                Console.WriteLine(ERRORE + "Impossibile inserire file su DB");
+                                return ERRORE + "Impossibile inserire file su DB";
                             }
 
-                        transaioneRename.Commit();
-                        transaioneRename = mainWindow.m_dbConnection.BeginTransaction();
-                        //transaioneRename.Dispose();
                         Console.WriteLine(OK + "Inserito match rinomina file");
 
                         }
-                    transaioneRename.Commit();
+                    drD.Close();
+                    transazioneRename.Commit();
+                    transazioneRename.Dispose();
                     return OK + "Inserito match rinomina files";
 
                 }
@@ -1528,6 +1531,8 @@ namespace BackupServer
                         {
                             idfile = Convert.ToString(dr2["idfile"]);
                         }
+
+                        dr2.Close();
                     }
                     finally
                     {
@@ -1536,6 +1541,8 @@ namespace BackupServer
 
                     if (idfile.Equals("0"))
                     {
+                        transazioneRename.Commit();
+                        transazioneRename.Dispose();
                         return INFO + "File dim Zero Rename";
                     }
 
@@ -1549,7 +1556,7 @@ namespace BackupServer
                     comandoP.Parameters.Add("@lastVersionOLD", System.Data.DbType.Int64, 5).Value = lastVersion;
                     comandoP.Parameters.Add("@lastUpdate", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
                     comandoP.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = Int32.Parse(idfile);
-                    //comandoP.Transaction = transaioneRename;
+                    comandoP.Transaction = transazioneRename;
 
                     bool isBroken = false;
                     do
@@ -1565,6 +1572,8 @@ namespace BackupServer
                             {
                                 if (comandoP.ExecuteNonQuery() != 1)
                                 {
+                                    transazioneRename.Rollback();
+                                    transazioneRename.Dispose();
                                     return ERRORE + "impossibile inserire match rinomina file";
                                 }
                             }
@@ -1588,7 +1597,7 @@ namespace BackupServer
                     comando2.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comando2.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileNameNEW.Length).Value = fileNameOLD;
                     comando2.Parameters.Add("@versione", System.Data.DbType.Int64, 10).Value = lastVersion;
-                    //comando2.Transaction = transaioneRename;
+                    comando2.Transaction = transazioneRename;
                     SQLiteDataReader dr;
 
                     try
@@ -1611,22 +1620,24 @@ namespace BackupServer
                         checksum2 = Convert.ToString(dr["checksum"]);
                     }
 
+                    dr.Close();
+
                     if (!inserisciFile(user, folderRoot, fileNameNEW, lastVersion + 1, file, dimFile, checksum2, null, idfile))
                     {
-                        //transaioneRename.Rollback();
-                        //transaioneRename.Dispose();
+                        transazioneRename.Rollback();
+                        transazioneRename.Dispose();
                         return ERRORE + "Impossibile inserire file su DB";
                     }
 
-                    transaioneRename.Commit();
-                    transaioneRename.Dispose();
+                    transazioneRename.Commit();
+                    transazioneRename.Dispose();
                     return OK + "Inserito match rinomina file";
                 }
             }
             catch
             {
-                //transaioneRename.Rollback();
-                //transaioneRename.Dispose();
+                transazioneRename.Rollback();
+                transazioneRename.Dispose();
                 return ERRORE + "impossibile inserire match rinomina file";
             }
         }
