@@ -670,15 +670,15 @@ namespace BackupServer
         // UPDATE LASTFOLDERUTENTE SET folderBackup=@folderBackup WHERE username=@username
         private string comandoFolder(string responseData)
         {
-            //SQLiteTransaction transazioneFold = mainWindow.m_dbConnection.BeginTransaction();
+            SQLiteTransaction transazioneFold = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
                 String[] parametri = responseData.Split('+');
                 int numParametri = parametri.Length;
                 if (numParametri > 4 || numParametri < 4)
                 {
-                    //transazioneFold.Rollback();
-                    //transazioneFold.Dispose();
+                    transazioneFold.Rollback();
+                    transazioneFold.Dispose();
                     return ERRORE + "Numero di paramentri passati per il settaggio del RootFolder errato";
                 }
 
@@ -688,26 +688,26 @@ namespace BackupServer
 
                 if (comando == null || !comando.Equals(FOLDER.Replace('+', ' ').Trim()))
                 {
-                    //    transazioneFold.Rollback();
-                    //    transazioneFold.Dispose();
+                    transazioneFold.Rollback();
+                    transazioneFold.Dispose();
                     return ERRORE + "Comando errato";
                 }
                 if (user == null || user.Equals(""))
                 {
-                    //transazioneFold.Rollback();
-                    //transazioneFold.Dispose();
+                    transazioneFold.Rollback();
+                    transazioneFold.Dispose();
                     return ERRORE + "User non valido";
                 }
                 if (folder == null || folder.Equals(""))
                 {
-                    //transazioneFold.Rollback();
-                    //transazioneFold.Dispose();
+                    transazioneFold.Rollback();
+                    transazioneFold.Dispose();
                     return ERRORE + "Path RootFolder non valida";
                 }
                 SQLiteCommand comandoP1 = new SQLiteCommand(mainWindow.m_dbConnection);
                 comandoP1.CommandText = "SELECT * FROM LASTFOLDERUTENTE WHERE username=@username";
                 comandoP1.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                //comandoP1.Transaction = transazioneFold;
+                comandoP1.Transaction = transazioneFold;
                 object q1 = null;
 
                 try
@@ -728,7 +728,7 @@ namespace BackupServer
                     comandoP2.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                     comandoP2.Parameters.Add("@folderBackup", System.Data.DbType.String, folder.Length).Value = folder;
                     comandoP2.Parameters.Add("@lastUpdate", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
-                    //comandoP2.Transaction = transazioneFold;
+                    comandoP2.Transaction = transazioneFold;
 
                     bool isBroken = false;
                     do
@@ -744,6 +744,9 @@ namespace BackupServer
                             {
                                 if (comandoP2.ExecuteNonQuery() == 1)
                                 {
+                                    //throw new Exception("Eccezione generata manualmente.");
+                                    transazioneFold.Commit();
+                                    transazioneFold.Dispose();
                                     return OK + "RootFolder Inserita";
                                 }
                             }
@@ -760,8 +763,8 @@ namespace BackupServer
                             isBroken = false;
                     } while (isBroken);
 
-                    //transazioneFold.Rollback();
-                    //transazioneFold.Dispose();
+                    transazioneFold.Rollback();
+                    transazioneFold.Dispose();
 
                     return ERRORE + "Errore durante l'inserimento della RootFolder";
 
@@ -772,15 +775,14 @@ namespace BackupServer
                     comandoP2.CommandText = "SELECT * FROM LASTFOLDERUTENTE WHERE username=@username AND folderBackup=@folderBackup";
                     comandoP2.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                     comandoP2.Parameters.Add("@folderBackup", System.Data.DbType.String, folder.Length).Value = folder;
-                    //comandoP2.Transaction = transazioneFold;
+                    comandoP2.Transaction = transazioneFold;
                     object q2 = null;
 
                     try
                     {
                         _readerWriterLock.EnterReadLock();
 
-                        // Forse qui dovrebbe essere q2?
-                        q1 = comandoP2.ExecuteScalar();
+                        q2 = comandoP2.ExecuteScalar();
 
                     }
                     finally
@@ -794,7 +796,7 @@ namespace BackupServer
                         comandoP3.CommandText = "UPDATE LASTFOLDERUTENTE SET folderBackup=@folderBackup WHERE username=@username";
                         comandoP3.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                         comandoP3.Parameters.Add("@folderBackup", System.Data.DbType.String, folder.Length).Value = folder;
-                        //comandoP3.Transaction = transazioneFold;
+                        comandoP3.Transaction = transazioneFold;
 
                         bool isBroken = false;
                         do
@@ -810,7 +812,11 @@ namespace BackupServer
                                 {
 
                                     if (comandoP3.ExecuteNonQuery() == 1)
+                                    {
+                                        transazioneFold.Commit();
+                                        transazioneFold.Dispose();
                                         return OK + "RootFolder Aggiornata";
+                                    }
                                 }
                             }
                             finally
@@ -825,24 +831,25 @@ namespace BackupServer
                                 isBroken = false;
                         } while (isBroken);
 
-                        //transazioneFold.Rollback();
-                        //transazioneFold.Dispose();
+                        transazioneFold.Rollback();
+                        transazioneFold.Dispose();
                         return ERRORE + "Errore durante l'aggiornamento della RootFolder";
 
                     }
                     else
                     {
-                        //transazioneFold.Commit();
-                        //transazioneFold.Dispose();
+                        transazioneFold.Commit();
+                        transazioneFold.Dispose();
                         return OK + "Stessa RootFolder";
                     }
                 }
 
             }
-            catch
+            catch (Exception exc)
             {
-                //transazioneFold.Rollback();
-                //transazioneFold.Dispose();
+                Console.WriteLine(exc.Message);
+                transazioneFold.Rollback();
+                transazioneFold.Dispose();
                 return ERRORE + "Errore durante la gestione della RootFolder";
             }
         }
@@ -852,15 +859,15 @@ namespace BackupServer
         // Chiama riceviFile
         private string comandoFile(string responseData, TcpClient clientsocket, LinkedList<string> fileList)
         {
-            //SQLiteTransaction transazioneFile = mainWindow.m_dbConnection.BeginTransaction();
+            SQLiteTransaction transazioneFile = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
                 String[] parametri = responseData.Split('+');
                 int numParametri = parametri.Length;
                 if (numParametri > 4 || numParametri < 3)
                 {
-                    //transazioneFile.Rollback();
-                    //transazioneFile.Dispose();
+                    transazioneFile.Rollback();
+                    transazioneFile.Dispose();
 
                     return ERRORE + "Numero di parametri passati per il trasferimento file errato";
                 }
@@ -873,21 +880,21 @@ namespace BackupServer
 
                 if (comando == null || !comando.Equals(FILE.Replace('+', ' ').Trim()))
                 {
-                    //transazioneFile.Rollback();
-                    //transazioneFile.Dispose();
+                    transazioneFile.Rollback();
+                    transazioneFile.Dispose();
                     return ERRORE + "Comando errato";
                 }
                 if (user == null || user.Equals(""))
                 {
-                    //transazioneFile.Rollback();
-                    //transazioneFile.Dispose();
+                    transazioneFile.Rollback();
+                    transazioneFile.Dispose();
                     return ERRORE + "User non valido";
                 }
 
                 string risp = RiceviFile(clientsocket, user, fileList, null);
 
-                //transazioneFile.Commit();
-                //transazioneFile.Dispose();
+                transazioneFile.Commit();
+                transazioneFile.Dispose();
 
                 return risp;
 
@@ -896,8 +903,8 @@ namespace BackupServer
             {
                 //qui genera out of memory per cartelle con grandi files (la mia cartella era da 2.3 GB con file da 100MB )
                 Console.WriteLine(e.Message);
-                //transazioneFile.Rollback();
-                //transazioneFile.Dispose();
+                transazioneFile.Rollback();
+                transazioneFile.Dispose();
                 return ERRORE + "Invio file non riuscito";
             }
         }
@@ -2573,6 +2580,7 @@ namespace BackupServer
                     isBroken = false;
             } while (isBroken);
 
+            // throw new Exception("Eccezione generata manualmente.");
             return true;
         }
 
