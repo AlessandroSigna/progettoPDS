@@ -191,11 +191,12 @@ namespace Client
                 }
                 string extension = System.IO.Path.GetExtension(e.FullPath);
                 //se il file contiene un'estensione problematica ritorno
-                if (extensions.Contains(extension))
+                if (extensions.Contains(extension) && !extension.Equals(""))
                 {
                     mw.clientLogic.event_1.Set();   //segnalo l'evento e ritorno
                     return;
                 }
+                
                 WatcherChangeTypes wct = e.ChangeType;
                 if (e.ChangeType == WatcherChangeTypes.Deleted) //bisogna effettivamente controllare il ChangeType? 
                 {
@@ -320,7 +321,7 @@ namespace Client
                     mw.clientLogic.event_1.WaitOne();
                 }
                 string extension = System.IO.Path.GetExtension(e.FullPath);
-                if (extensions.Contains(extension))
+                if (extensions.Contains(extension) && !extension.Equals(""))
                 {
                     mw.clientLogic.event_1.Set();
                     return;
