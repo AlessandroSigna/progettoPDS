@@ -62,22 +62,38 @@ namespace Client
         #region Ricezione File
         public void RiceviFile()
         {
-            workertransaction = new BackgroundWorker();
-            workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_RiceviFile);
-            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(workertransaction_RiceviFileCompleted);
-            workertransaction.RunWorkerAsync();
+            try
+            {
+                workertransaction = new BackgroundWorker();
+                workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_RiceviFile);
+                workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(workertransaction_RiceviFileCompleted);
+                workertransaction.RunWorkerAsync();
+            }
+            catch
+            {
+                ExitStub();
+            }
         }
 
         private void workertransaction_RiceviFileCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
             try
             {
+                if (e.Error != null || e.Cancelled)
+                {
+                    Directory.Delete(completePath, true);
+                    ExitStub();
+                    return;
+                }
                 downloading = false;
                 string headerStr = clientLogic.ReadStringFromStream();
+                if (!headerStr.Contains(ClientLogic.OK))
+                {
+                    Directory.Delete(completePath, true);
+                    ExitStub();
+                    return;
+                }
                 System.Diagnostics.Process.Start("explorer.exe", completePath);
-                //clientLogic.WriteStringOnStream(ClientLogic.EXITDOWNLOAD);
-                //clientLogic.clientsocket.GetStream().Close();
-                //clientLogic.clientsocket.Close();
 
                 if (restoreControl != null)
                 {
@@ -87,46 +103,41 @@ namespace Client
                 }
                 else
                 {
-                    App.Current.MainWindow.Close();
+                    ExitStub();
                 }
             }
             catch
             {
-                App.Current.MainWindow.Close();
+                ExitStub();
             }
         }
 
         private void Workertransaction_RiceviFile(object sender, DoWorkEventArgs e)
         {
-            try
+            downloading = true;
+            //richiedo al server la versione del file fileName
+            clientLogic.WriteStringOnStream(ClientLogic.GETFILEV + clientLogic.username + "+" + root + "+" + fileName + "+" + versione + "+" + idFile);
+            int bufferSize = 1024;
+            byte[] buffer = null;
+            string headerStr = "";
+            int filesize = 0;
+
+            string folderCreated = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute;
+            completePath = clientLogic.folderR + "\\" + folderCreated;
+            Directory.CreateDirectory(completePath);    //creo la cartella dove salverò il file ricevuto
+            fileName = fileName.Substring(fileName.LastIndexOf(@"\"));
+            string pathTmp = completePath + @"\" + fileName.Substring(fileName.LastIndexOf(@"\") + 1);
+            //Creo il file usando un FileStream dentro la direttiva using 
+            //in questo modo il FileStream viene chiuso anche in caso di eccezioni
+            using (FileStream fs = new FileStream(pathTmp, FileMode.OpenOrCreate))
             {
-                downloading = true;
-                //richiedo al server la versione del file fileName
-                clientLogic.WriteStringOnStream(ClientLogic.GETFILEV + clientLogic.username + "+" + root + "+" + fileName + "+" + versione + "+" + idFile);
-                int bufferSize = 1024;
-                byte[] buffer = null;
-                string headerStr = "";
-                int filesize = 0;
-
-                string folderCreated = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute;
-                //completePath = @"C:\MyCloud\" + folderCreated;
-                completePath = clientLogic.folderR + "\\" + folderCreated;
-                //System.IO.Directory.CreateDirectory(@"C:\MyCloud");
-                System.IO.Directory.CreateDirectory(clientLogic.folderR + "\\" + folderCreated);    //creo la cartella dove salverò il file ricevuto
-                fileName = fileName.Substring(fileName.LastIndexOf(@"\"));
-                string pathTmp = completePath + @"\" + fileName.Substring(fileName.LastIndexOf(@"\") + 1);
-                FileStream fs = new FileStream(pathTmp, FileMode.OpenOrCreate); //preparo a creare il file
-
                 headerStr = clientLogic.ReadStringFromStream(); //leggo dallo stream la risposta del server - un header
                 if (headerStr.Contains(ClientLogic.ERRORE))
                 {
-                    //in caso di erroe rilascio e ritorno
-                    //if (clientLogic.clientsocket.Client.Connected)
-                    //{
-                    //    clientLogic.clientsocket.GetStream().Close();
-                    //    clientLogic.clientsocket.Close();
-                    //}
-                    clientLogic.DisconnectAndClose();
+                    //in caso di erroe cancello ricorsivamente la cartella creata, annullo il worker e se ne occuperà il workerCompleted
+                    fs.Close(); //prima di cancellare la directory occorre chiudere a mano fs dato che siamo nell stesso blocco
+                    Directory.Delete(completePath, true);
+                    e.Cancel = true;
                     return;
                 }
                 string[] splitted = headerStr.Split(new string[] { "\r\n" }, StringSplitOptions.None);
@@ -148,7 +159,12 @@ namespace Client
                         buffer = new byte[bufferSize];
                         clientLogic.clientsocket.Client.ReceiveTimeout = 30000;
                         if (clientLogic.GetState(clientLogic.clientsocket) != TcpState.Established)
-                            throw new Exception();
+                        {
+                            fs.Close();
+                            Directory.Delete(completePath, true);
+                            e.Cancel = true;
+                            return;
+                        }
                         //man mano che mi arrivano pezzi di file li scrivo nel FileStream e diminuisco la filesize attesa
                         int size = clientLogic.clientsocket.Client.Receive(buffer, SocketFlags.Partial);
                         fs.Write(buffer, 0, size);
@@ -164,38 +180,25 @@ namespace Client
                     else
                     {
                         fs.Close();
-                        throw new Exception();
+                        Directory.Delete(completePath, true);
+                        e.Cancel = true;
+                        return;
                     }
                 }
-                //ricevuto tutto. Chiudo e mando ACK
-                fs.Close();
+                //ricevuto tutto. Mando ACK
                 clientLogic.WriteStringOnStream(ClientLogic.OK);
-            }
-            catch
-            {
-                Thread t2 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<int>(ExitStub), 2); }));
-                t2.Start();
             }
         }
         #endregion
 
         #region ProgressBar e varie
-        private void ExitStub(int obj)
+        private void ExitStub(Boolean chiusuraInattesa = true)
         {
             if (App.Current.MainWindow is Restore)
-                App.Current.MainWindow.Close();
-            //if (clientLogic.clientsocket.Client.Connected)
-            //{
-            //    clientLogic.clientsocket.GetStream().Close();
-            //    clientLogic.clientsocket.Close();
-            //}
-            clientLogic.DisconnectAndClose();
-            //App.Current.MainWindow = mw;
-            //MainControl main = new MainControl();
-            //mw.Content = main;
-            //main.messaggioErrore();
-            //*******mw.restart(true);
-            return;
+            {
+                restoreWindow.chiusuraInattesa = chiusuraInattesa;
+                restoreWindow.Close();
+            }
         }
 
         private void SetProgressBar(ProgressBar arg1, int arg2)

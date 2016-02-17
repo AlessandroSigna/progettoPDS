@@ -145,24 +145,35 @@ namespace Client
          */
         private void workertransaction_RiceviRestoreCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            downloading = false;
-            System.Diagnostics.Process.Start("explorer.exe", clientLogic.folderR);
-            if(restoreControl != null)
+            try
             {
-                App.Current.MainWindow.Content = restoreControl;
-                App.Current.MainWindow.Width = 400;
-                App.Current.MainWindow.Height = 400;
+                if (e.Error != null || e.Cancelled)
+                {
+                    //Directory.Delete(completePath, true);
+                    ExitStub();
+                    return;
+                }
+                downloading = false;
+                System.Diagnostics.Process.Start("explorer.exe", clientLogic.folderR);
+                if (restoreControl != null)
+                {
+                    App.Current.MainWindow.Content = restoreControl;
+                    App.Current.MainWindow.Width = 400;
+                    App.Current.MainWindow.Height = 400;
+                }
+                else
+                {
+                    ExitStub();
+                }
             }
-            else
+            catch
             {
-                App.Current.MainWindow.Close();
+                ExitStub();
             }
         }
 
         private void Workertransaction_RiceviRestore(object sender, DoWorkEventArgs e)
         {
-            try
-            {
                 //loop che itera leggendo di volta in volta la risposta del server e ricevendo eventualmente i file
                 while (true)
                 {
@@ -189,11 +200,11 @@ namespace Client
                     fileName = MakeRelativePath2(pathRoot.Substring(0, pathRoot.LastIndexOf(@"\") - 1), fileName);
                     string localpath = clientLogic.folderR + @"\" + fileName;
 
-                    //creo la directory che conterrà il file se già non esiste. si ricava il nome della directory esaminando il filename
+                    //creo la (sub)directory che conterrà il file se già non esiste. si ricava il nome della directory esaminando il filename
                     localpath = localpath.Substring(0, localpath.LastIndexOf(@"\"));
                     if (!Directory.Exists(localpath))
                     {
-                        DirectoryInfo di = Directory.CreateDirectory(localpath);
+                        Directory.CreateDirectory(localpath);
                     }
                     bool exist = false;
                     //se il file esiste già ed ha la stessa checksum ricevuta dal server non devo riscriverlo
@@ -224,68 +235,63 @@ namespace Client
                     }
 
                     //ricevo il file proprio come viene fatto nella StartDownload
-                    FileStream fs = new FileStream(clientLogic.folderR + @"\" + fileName, FileMode.OpenOrCreate);
-                    int sizetot = 0;
-                    int original = filesize;
-                    Thread t1 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int, System.Windows.Controls.Label, string>(SetProgressBar), pbStatus, original, downloadName, fileName); }));
-                    t1.Start(); //progressbar
-                    int bufferCount = Convert.ToInt32(Math.Ceiling((double)original / (double)bufferSize));
-                    int i = 0;
-                    while (filesize > 0)
+                    using (FileStream fs = new FileStream(clientLogic.folderR + @"\" + fileName, FileMode.OpenOrCreate))
                     {
-                        if (clientLogic.clientsocket.Client.Poll(10000, SelectMode.SelectRead))
+                        int sizetot = 0;
+                        int original = filesize;
+                        Thread t1 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int, System.Windows.Controls.Label, string>(SetProgressBar), pbStatus, original, downloadName, fileName); }));
+                        t1.Start(); //progressbar
+                        int bufferCount = Convert.ToInt32(Math.Ceiling((double)original / (double)bufferSize));
+                        int i = 0;
+                        while (filesize > 0)
                         {
-                            buffer = new byte[bufferSize];
-                            clientLogic.clientsocket.Client.ReceiveTimeout = 30000;
-                            if (clientLogic.GetState(clientLogic.clientsocket) != TcpState.Established)
-                                throw new Exception();
-                            int size = clientLogic.clientsocket.Client.Receive(buffer, SocketFlags.Partial);
-                            fs.Write(buffer, 0, size);
-                            filesize -= size;
-                            sizetot += size;
-                            if ((i == (bufferCount / 4)) || (i == (bufferCount / 2)) || (i == ((bufferCount * 3) / 4)) || (i == (bufferCount - 1)))
+                            if (clientLogic.clientsocket.Client.Poll(10000, SelectMode.SelectRead))
                             {
-                                Thread t2 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int>(UpdateProgressBar), pbStatus, sizetot); }));
-                                t2.Start();
+                                buffer = new byte[bufferSize];
+                                clientLogic.clientsocket.Client.ReceiveTimeout = 30000;
+                                if (clientLogic.GetState(clientLogic.clientsocket) != TcpState.Established)
+                                {
+                                    fs.Close();
+                                    //Directory.Delete(completePath, true);
+                                    e.Cancel = true;
+                                    return;
+                                }
+                                int size = clientLogic.clientsocket.Client.Receive(buffer, SocketFlags.Partial);
+                                fs.Write(buffer, 0, size);
+                                filesize -= size;
+                                sizetot += size;
+                                if ((i == (bufferCount / 4)) || (i == (bufferCount / 2)) || (i == ((bufferCount * 3) / 4)) || (i == (bufferCount - 1)))
+                                {
+                                    Thread t2 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int>(UpdateProgressBar), pbStatus, sizetot); }));
+                                    t2.Start();
+                                }
+                                i++;
                             }
-                            i++;
+                            else
+                            {
+
+                                fs.Close();
+                                //Directory.Delete(completePath, true);
+                                e.Cancel = true;
+                                return;
+                            }
                         }
-                        else
-                        {
-                            fs.Close();
-                            throw new Exception();
-                        }
+                        fs.Close();
+                        clientLogic.WriteStringOnStream(ClientLogic.OK);
                     }
-                    fs.Close();
-                    clientLogic.WriteStringOnStream(ClientLogic.OK);
                 }
-            }
-            catch
-            {
-                Thread t2 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<int>(ExitStub), 2); }));
-                t2.Start();
-            }
+            
         }
         #endregion
 
         #region ProgressBar e vari
-        private void ExitStub(int obj)
+        private void ExitStub(Boolean chiusuraInattesa = true)
         {
             if (App.Current.MainWindow is Restore)
-                App.Current.MainWindow.Close();
-            //if (clientLogic.clientsocket.Client.Connected)
-            //{
-            //    clientLogic.clientsocket.GetStream().Close();
-            //    clientLogic.clientsocket.Close();
-            //}
-            clientLogic.DisconnectAndClose();
-            //App.Current.MainWindow = mw;
-            //MainControl main = new MainControl();
-            //mw.Content = main;
-            //main.messaggioErrore();
-            //********mw.restart(true);
-            return;
-
+            {
+                restoreWindow.chiusuraInattesa = chiusuraInattesa;
+                restoreWindow.Close();
+            }
         }
 
         private void SetProgressBar(ProgressBar arg1, Label arg2, string arg3)
