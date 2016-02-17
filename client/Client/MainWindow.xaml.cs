@@ -26,18 +26,11 @@ namespace Client
     public partial class MainWindow : Window
     {
         public static System.Windows.Forms.NotifyIcon MyNotifyIcon;
-        private CustomDialog _customDialog;
-        private Esci _exitwindow;
-        private Boolean closing;
-        private CustomDialog customDialog;
-        private Disconnetti disconnettiWindow;
         public ClientLogic clientLogic;
-        private MenuControl menuContr;
         public MainWindow()
         {
             InitializeComponent();
             Console.Out.WriteLine("MainWindow: Costruttore ");
-            closing = false;
             this.Left = SystemParameters.PrimaryScreenWidth - this.Width;
             this.Top = SystemParameters.PrimaryScreenHeight - this.Height - 40;
             MainControl main = new MainControl();
@@ -71,75 +64,40 @@ namespace Client
         #region Chiusura finestra e richiesta conferma
         /*
          * handler della chiusura della window
-         * deve gestire eventuali disconnessioni e logout
+         * deve gestire eventuali disconnessioni e logout in base al contenuto di MainWindow
          */
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             Console.Out.WriteLine("MainWindow: Closing");
-            if (App.Current.MainWindow.Content is MainControl)
+            var windowContent = App.Current.MainWindow.Content;
+            if (windowContent is MainControl)
             {
                 //se la finestra corrente è MainControl posso uscire direttmente senza comunicare nulla nè al server nè all'utente
                 return;
             }
 
-            //altrimenti prima chiedo conferma e poi disconnetto e chiudo
+            //altrimenti prima chiedo conferma e poi disconnetto e 
             MessageBoxResult result = System.Windows.MessageBox.Show("Sicuro di volere uscire?", "Chiusura", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
             if (result == MessageBoxResult.Yes)
             {
-                //prima di chiamare la ClientLogic.DisconnettiServer occorrerebbe attendere e/o interrompere eventuali operazioni in corso di backup o restore
-                //vedere vecchia implementazione su MenuControl.ButtonServerOnClick
-
-                clientLogic.DisconnettiServer(true);
+                if (windowContent is MenuControl)
+                {
+                    //si delega l'uscita al controllore stesso perché potrebbero essere in corso backup
+                    ((MenuControl)windowContent).RichiediChiusura();
+                }
+                else
+                {
+                    //gli altri casi non richiedono controlli speciali. delego il tutto a DisconnettiServer
+                    clientLogic.DisconnettiServer(true);
+                }
             }
 
-            e.Cancel = true;    //cancello questo evento. Sarà la DisconnettiServer a richiamare la Close in modo efficace dopo aver effettuato la disconnessione pulita
+            e.Cancel = true;    //cancello questo evento. Sarà la DisconnettiServer o MenuControl a richiamare la Close in modo efficace dopo aver effettuato la disconnessione pulita
             return;
 
-
-            //vecchia implementazione che dipende dal contesto
-            if (closing)
-            {
-                clientLogic.DisconnettiServer(true);
-                e.Cancel = false;
-                return;
-            }
-
-            else if ((App.Current.MainWindow.Content is LoginControl) || (App.Current.MainWindow.Content is LoginRegisterControl) || (App.Current.MainWindow.Content is RegistratiControl))
-            {
-                e.Cancel = true;
-                messaggioDisconnetti();
-                return;
-            }
-            else if ((App.Current.MainWindow.Content is MenuControl))
-            {
-                // Non arriviamo più qui
-                menuContr = (MenuControl)App.Current.MainWindow.Content;
-                e.Cancel = true;
-                DialogDisconnetti();
-                return;
-
-            }
-            else if ((App.Current.MainWindow.Content is Disconnetti))
-            {
-                e.Cancel = true;
-            }
-            return;
         }
 
-        /*
-         * Chiamata da closing se (App.Current.MainWindow.Content is LoginControl) || (App.Current.MainWindow.Content is LoginRegisterControl) || (App.Current.MainWindow.Content is RegistratiControl)
-         */
-        private /*async*/ void messaggioDisconnetti()
-        {
-            Console.Out.WriteLine("MainWindow: messaggioDisconnetti");
-            _customDialog = new CustomDialog();
-            _exitwindow = new Esci();
-            _exitwindow.BOk.Click += ButtonOkOnClick;
-            _exitwindow.BCancel.Click += ButtonCancelOnClick;
-            _customDialog.Content = _exitwindow;
-            //await this.ShowMetroDialogAsync(_customDialog);
-        }
 
         public void restart(bool error, string messaggio = null)
         {
@@ -149,62 +107,6 @@ namespace Client
             if (error)
                 main.messaggioErrore(messaggio);
         }
-
-        private void ButtonOkOnClick(object sender, RoutedEventArgs e)
-        {
-            Console.Out.WriteLine("MainWindow: ButtonOnClick ");
-            //this.HideMetroDialogAsync(_customDialog);
-            this.Hide();
-            closing = true;
-            this.Close();
-        }
-
-        private void ButtonCancelOnClick(object sender, RoutedEventArgs e)
-        {
-            Console.Out.WriteLine("MainWindow: ButtonCancelOnClick");
-            //this.HideMetroDialogAsync(_customDialog);
-            this.Hide();
-        }
-
-        // Non viene più utilizzato
-        public /*async*/ void DialogDisconnetti()
-        {
-            Console.Out.WriteLine("MainWindow: DialogDisconnetti");
-            customDialog = new CustomDialog();
-            disconnettiWindow = new Disconnetti();
-            disconnettiWindow.BServer.Click += ButtonServerOnClick;
-            disconnettiWindow.BCancel.Click += ButtonCancellaOnClick;
-            customDialog.Content = disconnettiWindow;
-            Window mw = (Window)App.Current.MainWindow;
-            //await mw.ShowMetroDialogAsync(customDialog);
-        }
-
-
-        // Non viene più utilizzato
-        private void ButtonServerOnClick(object sender, RoutedEventArgs e)
-        {
-            Console.Out.WriteLine("MainWindow: ButtonServerOnClick");
-            Window mw = (Window)App.Current.MainWindow;
-            //mw.HideMetroDialogAsync(customDialog);
-            mw.Hide();
-            MainWindow mainw = (MainWindow)mw;
-
-            menuContr.exit = true;
-            if (mainw.clientLogic.lavorandoInvio || menuContr.updating)
-                menuContr.EffettuaBackup.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));
-            else
-                mainw.clientLogic.DisconnettiServer(false);
-
-        }
-
-        private void ButtonCancellaOnClick(object sender, RoutedEventArgs e)
-        {
-            Console.Out.WriteLine("MainWindow: ButtonCancellaOnClick");
-            Window mw = (Window)App.Current.MainWindow;
-            //mw.HideMetroDialogAsync(customDialog);
-            mw.Hide();
-        }
-        
         #endregion
     }
 }

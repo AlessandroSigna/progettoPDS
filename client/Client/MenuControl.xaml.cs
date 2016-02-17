@@ -30,14 +30,14 @@ namespace Client
     public partial class MenuControl : System.Windows.Controls.UserControl
     {
 
-        private CustomDialog customDialog;
-        private Disconnetti disconnettiWindow;
         private FileSystemWatcher watcher;
         private MainWindow mw;
         private string path;    //cartella di backup
         private string pathR;   //cartella di restore
-        public volatile bool updating;  //sto inviando qualcosa al server
-        public volatile bool exit;  //mi sono disconnesso
+        public volatile bool updating;  //il watcher sta comunicando un aggiornamento o un file nuovo o modificato - può essere true solo dopo lavorando invio e solo durante monitorando
+        public volatile bool wantToExit;            //voglio chiudere la finestra
+        private volatile bool wantToLogout;         //voglio effettuare il logout -> LoginControl
+        private volatile bool wantToDisconnect;     //voglio effettuare la disconnessione -> MainControl
         public volatile bool create = false;    //non so
         private string lastCheck;       //non so
         private string[] files; //filenames nella rootDir
@@ -51,15 +51,13 @@ namespace Client
         public MenuControl()
         {
             InitializeComponent();
-            //((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true;
-            exit = false;
+            wantToExit = wantToDisconnect = wantToLogout = false;
             lastCheck = String.Empty;
             App.Current.MainWindow.Title = "Mycloud";
             mw = (MainWindow)App.Current.MainWindow;
             //mw.clientLogic.event_1 = new AutoResetEvent(false); ??
             updating = false;
             BackButtonControl.BackButton.Click += Back_Click;
-            //RestoreFile.IsEnabled = true;
         }
 
         #region Backup
@@ -69,17 +67,25 @@ namespace Client
          */
         private void Select_Folder(object sender, RoutedEventArgs e)
         {
-            FolderBrowserDialog fbd = new FolderBrowserDialog();    //finestra di sistema per selezionare la cartella
-            DialogResult result = fbd.ShowDialog();
-            if (fbd.SelectedPath != "")
+            try
             {
-                //se il path non è vuoto lo inserisco nella TextBox e cambio colore al Button EffettuaBackup
-                BackupDir.Text = fbd.SelectedPath;
-                path = fbd.SelectedPath;
-                //mw.clientLogic.folder = path;
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.IsEnabled = true;
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
+                FolderBrowserDialog fbd = new FolderBrowserDialog();    //finestra di sistema per selezionare la cartella
+                DialogResult result = fbd.ShowDialog();
+                if (fbd.SelectedPath != "")
+                {
+                    //se il path non è vuoto lo inserisco nella TextBox e cambio colore al Button EffettuaBackup
+                    BackupDir.Text = fbd.SelectedPath;
+                    path = fbd.SelectedPath;
+                    //mw.clientLogic.folder = path;
+                    BrushConverter bc = new BrushConverter();
+                    EffettuaBackup.IsEnabled = true;
+                    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
+                }
+            }
+            catch
+            {
+                mw.clientLogic.DisconnectAndClose();
+                mw.restart(true);
             }
 
         }
@@ -102,10 +108,13 @@ namespace Client
                     mw.clientLogic.WriteStringOnStream(ClientLogic.FOLDER + mw.clientLogic.username + "+" + path);  //invio al server la rootfolder
                     string retFolder = mw.clientLogic.ReadStringFromStream();
                     if (retFolder == ClientLogic.OK + "RootFolder Inserita")
+                    {
                         FileUploading.Text = "Cartella aggiunta: " + System.IO.Path.GetDirectoryName(path);
+                    }
                     else if (retFolder == ClientLogic.OK + "Stessa RootFolder")
+                    {
                         FileUploading.Text = "Cartella : " + System.IO.Path.GetDirectoryName(path);
-
+                    }
 
                     pbStatus.Value = 0; //La ProgressBar in questione è Hidden in partenza
                     pbStatus.Maximum = 100;
@@ -113,7 +122,7 @@ namespace Client
                     if (files.Length != 0)
                     {
                         pbStatus.Visibility = Visibility.Visible;
-                        mw.clientLogic.InvioFile(files);    //invio al server i nomi dei files nella cartella e nelle sottocartelle
+                        mw.clientLogic.InvioFile(files);    //se necessario invio al server i files nella cartella e nelle sottocartelle - lavorandoinvio true nel frattempo
                     }
                     watcher = new System.IO.FileSystemWatcher();    //FileWatcher a cui si registrano le callback in caso di modifiche sui file
                     watcher.Path = BackupDir.Text;
@@ -131,13 +140,12 @@ namespace Client
                     //termino di monitorare attendendo eventuali lavori in corso
                     AttendiTermineUpdate();
                 }
+                //toggle sul bool monitorando
                 mw.clientLogic.monitorando = !mw.clientLogic.monitorando;
             }
             catch
             {
-                //viene catturata l'eventuale eccezione lanciando un apposito thread
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-                t.Start();
+                ExitStub();
             }
         }
 
@@ -174,7 +182,7 @@ namespace Client
         }
         #endregion
 
-        #region Gestione modifiche ai file
+        #region Gestione modifiche ai file - Watcher
         /*
          * callback del FileSystemWatcher in caso di cancellazione di file
          */
@@ -209,10 +217,9 @@ namespace Client
             }
             catch
             {
-
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+                //devo lanciare un apposito thread per gestire l'eccezione: The calling thread must be STA, because many UI components require this.
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<Boolean>(ExitStub)); }));
                 t.Start();
-
             }
         }
 
@@ -253,7 +260,7 @@ namespace Client
             }
             catch
             {
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<Boolean>(ExitStub)); }));
                 t.Start();
             }
 
@@ -297,7 +304,7 @@ namespace Client
             }
             catch
             {
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<Boolean>(ExitStub)); }));
                 t.Start();
             }
         }
@@ -350,7 +357,7 @@ namespace Client
             }
             catch
             {
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<Boolean>(ExitStub)); }));
                 t.Start();
             }
         }
@@ -364,7 +371,8 @@ namespace Client
         }
 
         /*
-         * Invia il file puntato da fileName al sever. Usata nel caso di creazione di file o di renaming
+         * Invia il file puntato da fileName al sever. 
+         * Usata nel caso di creazione di file o di renaming
          */
         private void InviaSingoloFile(string fileName, string onCreate)
         {
@@ -373,55 +381,63 @@ namespace Client
             {
                 //informo il sevrer di quello che sto per fare
                 if (onCreate.Equals("CREATE"))
+                {
                     mw.clientLogic.WriteStringOnStream(ClientLogic.FILE + mw.clientLogic.username + "+" + onCreate);
+                }
                 else
+                {
                     mw.clientLogic.WriteStringOnStream(ClientLogic.FILE + mw.clientLogic.username);
+                }
                 int bufferSize = 1024;
                 byte[] buffer = null;
                 byte[] header = null;
                 string checksum = "";
 
-                mw.clientLogic.ReadStringFromStream();  //consumo lo stream (eventuale risposta del server)
-                Thread.Sleep(100);
+                string chk = mw.clientLogic.ReadStringFromStream();
+                if(!chk.Equals(ClientLogic.OK))
+                {
+                    ExitStub();
+                }
+                //Thread.Sleep(100);
 
                 //le operazioni sono molto simili a quanto fatto nella ClientLogic.InviaFile
                 checksum = mw.clientLogic.GetMD5HashFromFile(fileName);
-                FileStream fs = new FileStream(fileName, FileMode.Open);
-                int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));
-
-                string headerStr = "Content-length:" + fs.Length.ToString() + "\r\nFilename:" + fileName + "\r\nChecksum:" + checksum + "\r\n";
-                header = new byte[bufferSize];
-                Array.Copy(Encoding.ASCII.GetBytes(headerStr), header, Encoding.ASCII.GetBytes(headerStr).Length);
-                mw.clientLogic.clientsocket.Client.Send(header);
-                string streamReady = mw.clientLogic.ReadStringFromStream();
-                if (streamReady.Equals(ClientLogic.OK + "File ricevuto correttamente") || streamReady.Equals(ClientLogic.INFO + "File non modificato") || streamReady.Equals(ClientLogic.INFO + "file dim 0"))
+                using (FileStream fs = new FileStream(fileName, FileMode.Open))
                 {
-                    fs.Close();
-                    return;
-                }
+                    int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));
 
-                //delego ad un thread il setup della ProgressBar e della TextBox
-                Thread t1 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int, string, System.Windows.Controls.TextBox>(SetProgressBar), pbStatus, bufferCount, System.IO.Path.GetFileName(fileName), FileUploading); }));
-                t1.Start();
-
-                for (int i = 0; i < bufferCount; i++)
-                {
-                    if ((i == (bufferCount / 4)) || (i == (bufferCount / 2)) || (i == ((bufferCount * 3) / 4)) || (i == (bufferCount - 1)))
+                    string headerStr = "Content-length:" + fs.Length.ToString() + "\r\nFilename:" + fileName + "\r\nChecksum:" + checksum + "\r\n";
+                    header = new byte[bufferSize];
+                    Array.Copy(Encoding.ASCII.GetBytes(headerStr), header, Encoding.ASCII.GetBytes(headerStr).Length);
+                    mw.clientLogic.clientsocket.Client.Send(header);
+                    string streamReady = mw.clientLogic.ReadStringFromStream();
+                    if (streamReady.Equals(ClientLogic.OK + "File ricevuto correttamente") || streamReady.Equals(ClientLogic.INFO + "File non modificato") || streamReady.Equals(ClientLogic.INFO + "file dim 0"))
                     {
-                        //delego a un altro thread la gestione del progresso della ProgressBar
-                        Thread t2 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int>(UpdateProgressBar), pbStatus, i); }));
-                        t2.Start();
+                        return;
                     }
-                    buffer = new byte[bufferSize];
-                    int size = fs.Read(buffer, 0, bufferSize);
-                    mw.clientLogic.clientsocket.Client.SendTimeout = 30000;
-                    mw.clientLogic.clientsocket.Client.Send(buffer, size, SocketFlags.Partial);
+
+                    //delego ad un thread il setup della ProgressBar e della TextBox
+                    Thread t1 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int, string, System.Windows.Controls.TextBox>(SetProgressBar), pbStatus, bufferCount, System.IO.Path.GetFileName(fileName), FileUploading); }));
+                    t1.Start();
+
+                    for (int i = 0; i < bufferCount; i++)
+                    {
+                        if ((i == (bufferCount / 4)) || (i == (bufferCount / 2)) || (i == ((bufferCount * 3) / 4)) || (i == (bufferCount - 1)))
+                        {
+                            //delego a un altro thread la gestione del progresso della ProgressBar
+                            Thread t2 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar, int>(UpdateProgressBar), pbStatus, i); }));
+                            t2.Start();
+                        }
+                        buffer = new byte[bufferSize];
+                        int size = fs.Read(buffer, 0, bufferSize);
+                        mw.clientLogic.clientsocket.Client.SendTimeout = 30000;
+                        mw.clientLogic.clientsocket.Client.Send(buffer, size, SocketFlags.Partial);
+                    }
                 }
 
                 //thread per chiudere la ProgressBar
                 Thread t3 = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.ProgressBar>(HideProgress), pbStatus); }));
                 t3.Start();
-                fs.Close();
                 //thread per settare il messaggio di ultima sincornizzazione nella TextBox - si poteva fare direttamente nel thread precedente?
                 Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<System.Windows.Controls.TextBox>(SetValue), FileUploading); }));
                 t.Start();
@@ -435,8 +451,7 @@ namespace Client
             }
             catch (Exception)
             {
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-                t.Start();
+                ExitStub();
             }
         }
         #endregion
@@ -445,38 +460,31 @@ namespace Client
         /*
          * Chiamata da EffettuaBackup_Click quando si vuole interrompere di monitorare la cartella
          * Se il client sta ancora inviando i file appare un messaggio di attesa e il watcher viene rilasciato
+         * Altrimenti se non ci sono lavori in corso 
          */
         private void AttendiTermineUpdate()
         {
-
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            if (mw.clientLogic.lavorandoInvio)
+            try
             {
-                //al posto del bottone EffettuaBackup compare una Label Wait
-                // Ma quando succede?
-                EffettuaBackup.Visibility = Visibility.Hidden;
-                EffettuaBackup.IsEnabled = false;
-                Wait.Visibility = Visibility.Visible;
-                messaggioStop();
-                if (watcher != null)
+                //if (mw.clientLogic.lavorandoInvio)
+                //{
+                //    if (watcher != null)
+                //    {
+                //        watcher.EnableRaisingEvents = false;
+                //        watcher.Dispose();
+                //    }
+                //}
+                if (mw.clientLogic.lavorandoInvio || updating)
                 {
-                    watcher.EnableRaisingEvents = false;
-                    watcher.Dispose();
-                }
-            }
-            else
-            {
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F5FFFA");
-                EffettuaBackup.Content = "Start";
-                FolderButton.IsEnabled = true;
-                if (updating)
-                {
-                    //non ho capito che cosa controlla updating 
+                    //sono qui se sto facendo il backup "grosso" - lavorandoInvio
+                    //oppure se il watcher mentre monitorava comunica qualcosa al server - updating
+                    //al posto del bottone EffettuaBackup compare una Label Wait
+                    //attendo di accedere alle risorse in modo pulito - Workertransaction_Waited
+                    //per poi operare in base al contesto verificando il valore di alcuni flag - Workertransaction_WaitedCompleted
                     EffettuaBackup.Visibility = Visibility.Hidden;
                     EffettuaBackup.IsEnabled = false;
                     Wait.Visibility = Visibility.Visible;
-                    messaggioStop();
+                    //messaggioStop();
                     BackgroundWorker worker = new BackgroundWorker();
                     worker.DoWork += new DoWorkEventHandler(Workertransaction_Waited);
                     worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_WaitedCompleted);
@@ -484,25 +492,41 @@ namespace Client
                 }
                 else
                 {
+                    BrushConverter bc = new BrushConverter();
+                    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+                    EffettuaBackup.Content = "Start";
+                    FolderButton.IsEnabled = true;
                     if (watcher != null)
                     {
                         watcher.EnableRaisingEvents = false;
                         watcher.Dispose();
                     }
                 }
-
+            }
+            catch
+            {
+                ExitStub();
             }
         }
 
-        // Questa funzione non dovrebbe essere qui (?)
+        /*
+         * sincronizzazione con la ClientLogic.InvioFile e con i vari eventi del watcher
+         */
         private void Workertransaction_Waited(object sender, DoWorkEventArgs e)
         {
             mw.clientLogic.event_1.WaitOne();
         }
 
-        // Questa funzione non dovrebbe essere qui (?)
+        /*
+         * finita l'attesa ha il compito di verificare alcuni flag per capire cosa fare tra disconnessione logout ecc
+         */
         private void Workertransaction_WaitedCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
+            if (e.Error != null || e.Cancelled)
+            {
+                ExitStub();
+                return;
+            }
             try
             {
                 pbStatus.Value = 0;
@@ -515,43 +539,27 @@ namespace Client
                 watcher.EnableRaisingEvents = false;
                 watcher.Dispose();
                 updating = false;
-                if (exit)   //se nel frattempo mi sono disconnesso pulisco e rilascio tutto
+                if (wantToLogout)   //se ho interrotto il backup in seguito al click su back
                 {
-                    MainWindow mainw = (MainWindow)App.Current.MainWindow;
-                    mainw.clientLogic.monitorando = false;
-                    mainw.clientLogic.lavorandoInvio = false;
-                    mainw.clientLogic.WriteStringOnStream(ClientLogic.DISCONNETTIUTENTE + mainw.clientLogic.username + "+" + mainw.clientLogic.mac);
-                    mainw.clientLogic.connesso = false;
-                    ClientLogic.UpdateNotifyIconDisconnesso();
-                    //if (mw.clientLogic.clientsocket.Client.Connected)
-                    //{
-                    //    mw.clientLogic.clientsocket.GetStream().Close();
-                    //    mw.clientLogic.clientsocket.Close();
-                    //}
-                    mainw.clientLogic.DisconnectAndClose();
-                    //MainControl main = new MainControl();
-                    //App.Current.MainWindow.Content = main;
-                    mainw.restart(false);
+                    mw.clientLogic.Logout(this);
+                }
+                else if (wantToExit)    //se ho interrotto il backup in seguito al click sulla X
+                {
+                    mw.clientLogic.DisconnettiServer(true);
+                }
+                else if (wantToDisconnect)   //se ho interrotto il backup in seguito al click su disconnetti
+                {
+                    mw.clientLogic.DisconnettiServer(false);
                 }
             }
             catch
             {
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<MainWindow>(ChangeWindow), mw); }));
-                t.Start();
+                ExitStub();
             }
         }
         #endregion
 
         #region Restore
-        /*
-         * Button per selezionare la cartella di restore
-         */
-        // Questa andrebbe rimossa
-        private void Select_FolderR(object sender, RoutedEventArgs e)
-        {
-
-
-        }
 
         /*
          * Callback per iniziare il restore
@@ -579,15 +587,15 @@ namespace Client
                     mw.restart(true, "Connessione persa. Impossibile effettuare il restore.");
                     return;
                 }
-                //il pattern che seguo per gestire problemi nella nuova window è: una volta chiusa la window checkare il valore dei DialogResult
+                //il pattern che seguo per gestire problemi nella nuova window è: una volta chiusa la window Restore checkare il valore dei DialogResult
                 //se è true è andato tutto bene altrimenti si è chiusa con un eccezione e MenuControl deve capire che è successo
                 //se un'eccezione occorre in Restore si deve chiudere il nuovo socket aperto e chiudere la nuova window - è compito di Restore stessa
                 if (windowRestore.ShowDialog() == false) {  //istanzio Restore e la mostro come finestra di dialogo
                     Console.WriteLine("chiusura inattesa");
-                    //fai altro per verificare connessione
                     //verifico connessione
                     if (mw.clientLogic.clientsocket.Client.Poll(1000, SelectMode.SelectRead))
                     {
+                        //errore non recuperabile: resetto
                         mw.clientLogic.DisconnectAndClose();
                         mw.restart(true, "Connessione persa.");
                         return;
@@ -595,23 +603,22 @@ namespace Client
                     }
                     else
                     {
+                        //errore recuperabile: il controllo resta su MenuControl
                         MessageBoxResult result = System.Windows.MessageBox.Show("Errore durante durante la fase di restore.\nRiprovare.", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             }
             catch (Exception)
             {
-                //rilascio risorse il caso di eccezione
+                //rilascio risorse in caso di eccezione
                 mw.clientLogic.DisconnectAndClose();
 
                 if (App.Current.MainWindow is Restore)
+                {
                     App.Current.MainWindow.Close();
+                }
                 mw.restart(true, "Connessione persa.");
             }
-
-            //App.Current.MainWindow = mw;
-            //App.Current.MainWindow.Width = 400;
-            //App.Current.MainWindow.Height = 400;
         }
 
         private void RestoreFile_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
@@ -655,12 +662,48 @@ namespace Client
             
             if (result == MessageBoxResult.OK)
             {
-                //prima di chiamare la ClientLogic.Logout occorrerebbe attendere e/o interrompere eventuali operazioni in corso di backup o restore
-                //vedere loro vecchia implementazione ButtonServerOnClick
-                mw.clientLogic.Logout(this);
+                //prima di chiamare la ClientLogic.Logout occorreattendere e/o interrompere eventuali operazioni in corso di backup
+                wantToLogout = true;
+                if (mw.clientLogic.lavorandoInvio || updating)
+                {
+                    EffettuaBackup.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));    //riscatena l'evento click che stavolta porterà ad AttendiTermineUpdate
+                }
+                else
+                {
+                    mw.clientLogic.Logout(this);
+                }
+                
             }
         }
 
+        public void RichiediChiusura()
+        {  
+            //prima di chiamare la DisconnettiServer occorre attendere e/o interrompere eventuali operazioni in corso di backup
+            wantToExit = true;
+            if (mw.clientLogic.lavorandoInvio || updating)
+            {
+                EffettuaBackup.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));    //riscatena l'evento click che stavolta porterà ad AttendiTermineUpdate
+            }
+            else
+            {
+                mw.clientLogic.DisconnettiServer(true);
+            }
+        }
+
+
+        public void RichiediDisconnessione()
+        {  
+            //prima di chiamare la DisconnettiServer occorre attendere e/o interrompere eventuali operazioni in corso di backup
+            wantToDisconnect = true;
+            if (mw.clientLogic.lavorandoInvio || updating)
+            {
+                EffettuaBackup.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));    //riscatena l'evento click che stavolta porterà ad AttendiTermineUpdate
+            }
+            else
+            {
+                mw.clientLogic.DisconnettiServer(false);
+            }
+        }
         /*
          * Button Logout
          */
@@ -771,24 +814,10 @@ namespace Client
         /*
          * Il controllo torna a MainControl lanciando un messaggio di errore
          */
-        private void ChangeWindow(MainWindow obj)
+        private void ExitStub(Boolean error = true)
         {
-            if (App.Current.MainWindow is Restore)
-                App.Current.MainWindow.Close();
-            //if (obj.clientLogic.clientsocket.Connected)
-            //{
-            //    Console.WriteLine("socket CHIUSO");
-            //    obj.clientLogic.clientsocket.GetStream().Close();
-            //    obj.clientLogic.clientsocket.Close();
-            //}
-            obj.clientLogic.DisconnectAndClose();
-
-            App.Current.MainWindow = obj;
-            updating = false;
-            //MainControl main = new MainControl();
-            //mw.Content = main;
-            //main.messaggioErrore();
-            obj.restart(true);
+            mw.clientLogic.DisconnectAndClose();
+            mw.restart(error);
         }
 
         private void messaggioErrore(string mess)

@@ -47,7 +47,17 @@ namespace Client
                 //vedere vecchia implementazione su MenuControl.ButtonServerOnClick
 
                 MainWindow mw = (MainWindow)App.Current.MainWindow;
-                mw.clientLogic.DisconnettiServer(false);
+                var windowContent = App.Current.MainWindow.Content;
+                if (windowContent is MenuControl)
+                {
+                    //si delega la disconnessione al controllore stesso perché potrebbero essere in corso backup
+                    ((MenuControl)windowContent).RichiediDisconnessione();
+                }
+                else
+                {
+                    //gli altri casi non richiedono controlli speciali. delego il tutto a DisconnettiServer
+                    mw.clientLogic.DisconnettiServer(false);
+                }
             }
 
         }
