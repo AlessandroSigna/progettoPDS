@@ -34,30 +34,40 @@ namespace Client
         public volatile bool downloading;
         private string root;
         private Restore restoreWindow;
-        private string completePath;
+        private String completePath;
         private BackgroundWorker workertransaction;
         private string idFile;
         private RestoreControl restoreControl;
 
+        #region Costruttore
         /*
          * costruttore
          */
         public StartDownload(ClientLogic client, string file, string versionP, string rootF, Restore main, String sIdFile, RestoreControl restoreControl)
         {
-            InitializeComponent();
-            restoreWindow = main;
-            downloading = false;
-            clientLogic = client;
-            fileName = file;
-            versione = versionP;
-            root = rootF;
-            App.Current.MainWindow.Width = 300;
-            App.Current.MainWindow.Height = 300;
-            downloadName.Content = System.IO.Path.GetFileName(file); ;
-            idFile = sIdFile;
-            this.restoreControl = restoreControl;       //per ripassargli il controllo
-            RiceviFile();
+            try
+            {
+                InitializeComponent();
+                restoreWindow = main;
+                downloading = false;
+                clientLogic = client;
+                fileName = file;
+                versione = versionP;
+                root = rootF;
+                App.Current.MainWindow.Width = 300;
+                App.Current.MainWindow.Height = 300;
+                downloadName.Content = System.IO.Path.GetFileName(file); ;
+                idFile = sIdFile;
+                this.restoreControl = restoreControl;       //per ripassargli il controllo
+                RiceviFile();
+
+            }
+            catch
+            {
+                ExitStub();
+            }
         }
+        #endregion
 
         #region Ricezione File
         public void RiceviFile()
@@ -81,7 +91,10 @@ namespace Client
             {
                 if (e.Error != null || e.Cancelled)
                 {
-                    Directory.Delete(completePath, true);
+                    if (completePath != null)
+                    {
+                        Directory.Delete(completePath, true);
+                    }
                     ExitStub();
                     return;
                 }
@@ -134,9 +147,6 @@ namespace Client
                 headerStr = clientLogic.ReadStringFromStream(); //leggo dallo stream la risposta del server - un header
                 if (headerStr.Contains(ClientLogic.ERRORE))
                 {
-                    //in caso di erroe cancello ricorsivamente la cartella creata, annullo il worker e se ne occuperà il workerCompleted
-                    fs.Close(); //prima di cancellare la directory occorre chiudere a mano fs dato che siamo nell stesso blocco
-                    Directory.Delete(completePath, true);
                     e.Cancel = true;
                     return;
                 }
@@ -160,8 +170,6 @@ namespace Client
                         clientLogic.clientsocket.Client.ReceiveTimeout = 30000;
                         if (clientLogic.GetState(clientLogic.clientsocket) != TcpState.Established)
                         {
-                            fs.Close();
-                            Directory.Delete(completePath, true);
                             e.Cancel = true;
                             return;
                         }
@@ -179,8 +187,6 @@ namespace Client
                     }
                     else
                     {
-                        fs.Close();
-                        Directory.Delete(completePath, true);
                         e.Cancel = true;
                         return;
                     }
