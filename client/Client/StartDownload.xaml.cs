@@ -136,7 +136,7 @@ namespace Client
             int filesize = 0;
 
             string folderCreated = DateTime.Now.Year + "_" + DateTime.Now.Month + "_" + DateTime.Now.Day + "_" + DateTime.Now.Hour + "_" + DateTime.Now.Minute;
-            completePath = clientLogic.folderR + "\\" + folderCreated;
+            completePath = clientLogic.restoreFolder + "\\" + folderCreated;
             Directory.CreateDirectory(completePath);    //creo la cartella dove salverò il file ricevuto
             fileName = fileName.Substring(fileName.LastIndexOf(@"\"));
             string pathTmp = completePath + @"\" + fileName.Substring(fileName.LastIndexOf(@"\") + 1);

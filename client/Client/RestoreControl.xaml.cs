@@ -89,8 +89,7 @@ namespace Client
                         rootItemTag.relativePath = s.Substring(s.LastIndexOf("\\") + 1);  //nome 
                         rootItemTag.nome = rootItemTag.relativePath;
                         rootItemTag.rootDir = s;
-                        TreeViewItem item = new TreeViewItem();
-                        item.Header = rootItemTag.nome;
+                        TreeViewItem item = GetRootFolderItem(rootItemTag.nome);
                         item.Tag = rootItemTag;
                         item.FontWeight = FontWeights.Normal;
                         item.Items.Add(dummyNode);
@@ -106,6 +105,37 @@ namespace Client
             
         }
 
+        /*
+         * Restituisce il TreeViewItem costruendone l'header adatto per le RootFolder
+         * cioè con l'immagine corretta e con name nella label
+         */
+        private TreeViewItem GetRootFolderItem(string name)
+        {
+            TreeViewItem item = new TreeViewItem();
+            item.IsExpanded = false;
+
+            // create stack panel
+            StackPanel stack = new StackPanel();
+            stack.Orientation = Orientation.Horizontal;
+
+            // create Image
+            Image image = new Image();
+            image.Source = new BitmapImage
+                (new Uri("pack://application:,,/Images/home.png"));
+            image.Width = 20;
+            image.Height = 20;
+
+            Label lbl = new Label();
+            lbl.Content = name;
+
+            // Add into stack
+            stack.Children.Add(image);
+            stack.Children.Add(lbl);
+
+            // assign stack to header
+            item.Header = stack;
+            return item;
+        }
         /*
          * Callback chiamata quando una rootFolder viene espansa
          */
@@ -326,7 +356,12 @@ namespace Client
                 System.Windows.Forms.DialogResult result = fbd.ShowDialog();
                 if (fbd.SelectedPath != "")
                 {
-                    clientlogic.folderR = fbd.SelectedPath;      //salvo il riferimento alla folder selezionata per il restore perché serve nella StartDownload
+                    if (clientlogic.cartellaMonitorata != null && fbd.SelectedPath.Contains(clientlogic.cartellaMonitorata))
+                    {
+                        System.Windows.MessageBox.Show("La risorsa è usata da un altro processo", "Errore", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                    clientlogic.restoreFolder = fbd.SelectedPath;      //salvo il riferimento alla folder selezionata per il restore perché serve nella StartDownload
                     StartDownload main = new StartDownload(clientlogic, tag.fullPath, tag.versione, tag.rootDir, restoreWindow, tag.id, this);
                     if (App.Current.MainWindow is Restore)
                         App.Current.MainWindow.Content = main;
@@ -348,7 +383,12 @@ namespace Client
                 System.Windows.Forms.DialogResult result = fbd.ShowDialog();
                 if (fbd.SelectedPath != "")
                 {
-                    clientlogic.folderR = fbd.SelectedPath;      //salvo il riferimento alla folder selezionata per il restore perché serve nella DownloadFolder
+                    if (clientlogic.cartellaMonitorata != null && fbd.SelectedPath.Contains(clientlogic.cartellaMonitorata))
+                    {
+                        System.Windows.MessageBox.Show("La risorsa è usata da un altro processo", "Errore", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+                    clientlogic.restoreFolder = fbd.SelectedPath;      //salvo il riferimento alla folder selezionata per il restore perché serve nella StartDownload
                     DownloadFolder main = new DownloadFolder(clientlogic, tag.rootDir, tag.fullPath, restoreWindow, this);
                     if (App.Current.MainWindow is Restore)
                         App.Current.MainWindow.Content = main;

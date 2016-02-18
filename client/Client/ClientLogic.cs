@@ -60,8 +60,8 @@ namespace Client
         public volatile Boolean monitorando;    //true mentre si osserva la rootDir in attesa di cambiamenti
         public volatile Boolean lavorandoInvio; //true mentre si inviano i file facendo il backup "grosso" - cioè quando si preme start backup
         public AutoResetEvent event_1;
-        public string folder;
-        public string folderR;
+        public String cartellaMonitorata;
+        public string restoreFolder;
         private string _username;
         public bool connesso = false;   //true se loggato
         public string username
@@ -106,14 +106,13 @@ namespace Client
             workertransaction.RunWorkerAsync();
         }
 
-        public ClientLogic(IPAddress iPAddress, int port, string fold, string user, string folderR)
+        public ClientLogic(IPAddress iPAddress, int port, string backupFolder, string user)
         {
             this.clientsocket = new TcpClient();
             this.ip = iPAddress;
             this.porta = port;
-            this.folder = fold;
+            this.cartellaMonitorata = backupFolder;
             this.username = user;
-            this.folderR = folderR;
             try
             {
                 clientsocket.Connect(ip, porta);
@@ -915,7 +914,7 @@ namespace Client
             }
             //try
             //{
-                this.WriteStringOnStream(ClientLogic.ENDSYNC + username + "+" + folder);    //comunico al server che ho terminato l'invio dei file
+                this.WriteStringOnStream(ClientLogic.ENDSYNC /*+ username + "+" + backupFolder*/);    //comunico al server che ho terminato l'invio dei file
             //}
             //catch
             //{
