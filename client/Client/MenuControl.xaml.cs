@@ -32,8 +32,8 @@ namespace Client
 
         private FileSystemWatcher watcher;
         private MainWindow mw;
-        private string path;    //cartella di backup
-        private string pathR;   //cartella di restore
+        private string backupFolder;    //cartella di backup
+        //private string restoreFolder;   //cartella di restore
         public volatile bool updating;  //il watcher sta comunicando un aggiornamento o un file nuovo o modificato - può essere true solo dopo lavorando invio e solo durante monitorando
         public volatile bool wantToExit;            //voglio chiudere la finestra
         private volatile bool wantToLogout;         //voglio effettuare il logout -> LoginControl
@@ -77,8 +77,8 @@ namespace Client
                 {
                     //se il path non è vuoto lo inserisco nella TextBox e cambio colore al Button EffettuaBackup
                     BackupDir.Text = fbd.SelectedPath;
-                    path = fbd.SelectedPath;
-                    //mw.clientLogic.folder = path;
+                    backupFolder = fbd.SelectedPath;
+                    //mw.clientLogic.backupFolder = path;
                     BrushConverter bc = new BrushConverter();
                     EffettuaBackup.IsEnabled = true;
                     EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
@@ -107,20 +107,20 @@ namespace Client
                     EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");   //cambio il colore del bottone
                     EffettuaBackup.Content = "Stop";    //e la scritta
                     FolderButton.IsEnabled = false;     //disabilito il bottone folder
-                    mw.clientLogic.WriteStringOnStream(ClientLogic.FOLDER + mw.clientLogic.username + "+" + path);  //invio al server la rootfolder
+                    mw.clientLogic.WriteStringOnStream(ClientLogic.FOLDER + mw.clientLogic.username + "+" + backupFolder);  //invio al server la rootfolder
                     string retFolder = mw.clientLogic.ReadStringFromStream();
                     if (retFolder == ClientLogic.OK + "RootFolder Inserita")
                     {
-                        FileUploading.Text = "Cartella aggiunta: " + System.IO.Path.GetDirectoryName(path);
+                        FileUploading.Text = "Cartella aggiunta: " + System.IO.Path.GetDirectoryName(backupFolder);
                     }
                     else if (retFolder == ClientLogic.OK + "Stessa RootFolder")
                     {
-                        FileUploading.Text = "Cartella : " + System.IO.Path.GetDirectoryName(path);
+                        FileUploading.Text = "Cartella : " + System.IO.Path.GetDirectoryName(backupFolder);
                     }
 
                     pbStatus.Value = 0; //La ProgressBar in questione è Hidden in partenza
                     pbStatus.Maximum = 100;
-                    files = Directory.GetFiles(path, "*.*", System.IO.SearchOption.AllDirectories); //si ricavano i nomi dei files nella rootdir
+                    files = Directory.GetFiles(backupFolder, "*.*", System.IO.SearchOption.AllDirectories); //si ricavano i nomi dei files nella rootdir
                     if (files.Length != 0)
                     {
                         pbStatus.Visibility = Visibility.Visible;
@@ -155,12 +155,12 @@ namespace Client
         private void EffettuaBackup_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
             MainWindow mw = (MainWindow)App.Current.MainWindow;
-            if (path != null && !mw.clientLogic.monitorando)
+            if (backupFolder != null && !mw.clientLogic.monitorando)
             {
                 BrushConverter bc = new BrushConverter();
                 EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F5FFFA");
             }
-            else if (path != null && mw.clientLogic.monitorando)
+            else if (backupFolder != null && mw.clientLogic.monitorando)
             {
                 BrushConverter bc = new BrushConverter();
                 EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F6CECE");
@@ -171,12 +171,12 @@ namespace Client
         private void EffettuaBackup_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
         {
             MainWindow mw = (MainWindow)App.Current.MainWindow;
-            if (path != null && !mw.clientLogic.monitorando)
+            if (backupFolder != null && !mw.clientLogic.monitorando)
             {
                 BrushConverter bc = new BrushConverter();
                 EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
             }
-            else if (path != null && mw.clientLogic.monitorando)
+            else if (backupFolder != null && mw.clientLogic.monitorando)
             {
                 BrushConverter bc = new BrushConverter();
                 EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");
@@ -600,7 +600,8 @@ namespace Client
 
                 }
                 //istanzio un nuovo ClientSocket in cui aprirò un socket - quello che già c'è è riservato a backup e accounting
-                clRestore = new ClientLogic(mw.clientLogic.ip, mw.clientLogic.porta, mw.clientLogic.folder, mw.clientLogic.username, mw.clientLogic.folderR);
+                String monitoredDir = mw.clientLogic.monitorando ? backupFolder : null;
+                clRestore = new ClientLogic(mw.clientLogic.ip, mw.clientLogic.porta, monitoredDir, mw.clientLogic.username);
                 Restore windowRestore = null;
                 windowRestore = new Restore(clRestore, mw);
                 if (windowRestore.chiusuraInattesa == true) //intercetto errori nella costruzione della Restore e RestoreControl

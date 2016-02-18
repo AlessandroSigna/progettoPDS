@@ -916,7 +916,7 @@ namespace BackupServer
                 int numParametri = parametri.Length;
                 string listaFiles = string.Empty;
 
-                if (numParametri > 5 || numParametri < 5)
+                if (numParametri != 4)
                 {
                     //transazioneLista.Rollback();
                     //transazioneLista.Dispose();
@@ -926,7 +926,6 @@ namespace BackupServer
                 String comando = parametri[1];
                 String user = parametri[2].ToUpper();
                 String folderRoot = parametri[3];
-                String nomeLike = parametri[4];
 
                 if (comando == null || !comando.Equals(LISTFILES.Replace('+', ' ').Trim()))
                 {
@@ -950,20 +949,11 @@ namespace BackupServer
                         return ERRORE + "folderRoot non valida";
                     }
                 }
-                if (nomeLike == null)
-                {
-                    {
-                        //transazioneLista.Rollback();
-                        //transazioneLista.Dispose();
-                        return ERRORE + "folderRoot non valida";
-                    }
-                }
 
                 SQLiteCommand comando1 = new SQLiteCommand(mainWindow.m_dbConnection);
-                comando1.CommandText = "SELECT percorsoFile,versione,dimFile,timestamp,idfile FROM BACKUPHISTORY bh1 WHERE bh1.username=@username AND bh1.folderBackup=@folderBackup AND bh1.percorsoFile like @percorsoFile and not exists (select 1 from RENAMEFILEMATCH rfm where bh1.idfile=rfm.idfile and bh1.username=rfm.username and bh1.folderBackup=rfm.folderBackup and bh1.percorsoFile=rfm.percorsoFileOLD) and bh1.versione=(SELECT MAX(versione) FROM BACKUPHISTORY bh2 WHERE bh1.username=bh2.username and bh1.folderbackup=bh2.folderbackup and bh1.percorsofile = bh2.percorsofile and bh1.idfile=bh2.idfile)";
+                comando1.CommandText = "SELECT percorsoFile,versione,dimFile,timestamp,idfile FROM BACKUPHISTORY bh1 WHERE bh1.username=@username AND bh1.folderBackup=@folderBackup and not exists (select 1 from RENAMEFILEMATCH rfm where bh1.idfile=rfm.idfile and bh1.username=rfm.username and bh1.folderBackup=rfm.folderBackup and bh1.percorsoFile=rfm.percorsoFileOLD) and bh1.versione=(SELECT MAX(versione) FROM BACKUPHISTORY bh2 WHERE bh1.username=bh2.username and bh1.folderbackup=bh2.folderbackup and bh1.percorsofile = bh2.percorsofile and bh1.idfile=bh2.idfile)";
                 comando1.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                 comando1.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
-                comando1.Parameters.Add("@percorsoFile", System.Data.DbType.String, nomeLike.Length).Value = folderRoot + "\\%" + nomeLike + "%";
                 //comando1.Transaction = transazioneLista;
                 SQLiteDataReader rdr;
 
@@ -998,7 +988,7 @@ namespace BackupServer
                 for (int i = 0; i < numFile - 1; i++)
                 {
                     writeStringOnStream(clientsocket, FLP + i + "+" + splittato[i]);
-                    ReadStringFromStream(clientsocket);
+                    string s = ReadStringFromStream(clientsocket);     //FIXME: questa risposta non viene esaminata
                 }
 
 
@@ -1162,6 +1152,7 @@ namespace BackupServer
         private string comandoGetFileVersione(TcpClient clientsocket, string responseData)
         {
             string token = RandomString(30); //??
+            String tmpFileName = null;
             //SQLiteTransaction transazioneGetFile = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
@@ -1222,7 +1213,6 @@ namespace BackupServer
                 comando2.CommandText = "SELECT file,dimFile,checksum FROM BACKUPHISTORY WHERE username=@username AND folderBackup=@folderBackup AND versione=@versione and idfile=@idfile"; //AND percorsoFile=@percorsoFile 
                 comando2.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                 comando2.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
-                //comando2.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName;
                 comando2.Parameters.Add("@versione", System.Data.DbType.Int64, 10).Value = Convert.ToInt64(versione);
                 comando2.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = Int32.Parse(idfile);
                 //comando2.Transaction = transazioneGetFile;
@@ -1288,32 +1278,26 @@ namespace BackupServer
                 }
 
                 Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\tmp");
-                FileStream fs = new FileStream(Directory.GetCurrentDirectory() + "\\tmp\\" + idfile+token, FileMode.Create);
-                fs.Write(file, 0, file.Length);
-                fs.Close();
-                fs = new FileStream(Directory.GetCurrentDirectory() + "\\tmp\\" + idfile+token, FileMode.Open, FileAccess.Read);
-                string headerStr = "Content-length:" + fs.Length.ToString() + "\r\nFilename:" + fileName + "\r\nChecksum:" + checksum + "\r\n";
-                writeStringOnStream(clientsocket, headerStr);
-                string streamReady = ReadStringFromStream(clientsocket);
-                int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));
-                Console.WriteLine("inizio invio");
-                for (int i = 0; i < bufferCount; i++)
-                {
-                    buffer = new byte[bufferSize];
-                    int size = fs.Read(buffer, 0, bufferSize);
-                    clientsocket.Client.Send(buffer, size, SocketFlags.Partial);
+                tmpFileName = Directory.GetCurrentDirectory() + "\\tmp\\" + idfile + token;
+                using (FileStream fs = new FileStream(tmpFileName, FileMode.Create))
+                { 
+                    fs.Write(file, 0, file.Length);
                 }
-
-                //if (dimFile == 0)
-                //    if(!incasellaFile(user, folderRoot, fileName, file, (int)fs.Length, checksum, null))
-                //    {
-                //        //transazioneGetFile.Rollback();
-                //        //transazioneGetFile.Dispose();
-                //        ReadStringFromStream(clientsocket);
-                //        return ERRORE + "Impossibile inserire file su DB";
-                //    }
-
-                fs.Close();
+                using (FileStream fs = new FileStream(tmpFileName, FileMode.Open, FileAccess.Read))
+                {
+                    string headerStr = "Content-length:" + fs.Length.ToString() + "\r\nFilename:" + fileName + "\r\nChecksum:" + checksum + "\r\n";
+                    writeStringOnStream(clientsocket, headerStr);
+                    string streamReady = ReadStringFromStream(clientsocket);
+                    int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));
+                    Console.WriteLine("inizio invio");
+                    for (int i = 0; i < bufferCount; i++)
+                    {
+                        buffer = new byte[bufferSize];
+                        int size = fs.Read(buffer, 0, bufferSize);
+                        clientsocket.Client.Send(buffer, size, SocketFlags.Partial);
+                    }
+                }
+                
                 ReadStringFromStream(clientsocket);
                 //transazioneGetFile.Commit();
                 //transazioneGetFile.Dispose();
@@ -1330,7 +1314,10 @@ namespace BackupServer
             }
             finally
             {
-                //Directory.Delete(Directory.GetCurrentDirectory() + "\\tmp", true);
+                if (tmpFileName != null)
+                {
+                    File.Delete(tmpFileName);
+                }
             }
         }
 
@@ -1808,7 +1795,7 @@ namespace BackupServer
                 String[] parametri = responseData.Split('+');
                 int numParametri = parametri.Length;
 
-                if (numParametri > 3 || numParametri < 3)
+                if (numParametri != 3)
                     return ERRORE + "Numero di paramentri passati per il login errato";
 
                 String comando = parametri[1];
@@ -1980,7 +1967,7 @@ namespace BackupServer
                 int numParametri = parametri.Length;
                 string listaFiles = string.Empty;
 
-                if (numParametri != 7)
+                if (numParametri != 6)
                 {
                     //transazioneRestore.Rollback();
                     //transazioneRestore.Dispose();
@@ -1991,8 +1978,7 @@ namespace BackupServer
                 String user = parametri[2].ToUpper();
                 String folderRoot = parametri[3];   //path della rootDirectory backuppata
                 String newFolderRoot = parametri[4];    //cartella dove il client salverà i file ripristinati
-                String fileCanc = parametri[5];
-                String folderToBeRestored = parametri[6];   //(sub)directory di cui effettuare il restore
+                String folderToBeRestored = parametri[5];   //(sub)directory di cui effettuare il restore
 
                 if (comando == null || !comando.Equals(RESTORE.Replace('+', ' ').Trim()))
                 {
@@ -2018,12 +2004,6 @@ namespace BackupServer
                     //transazioneRestore.Dispose();
                     return ERRORE + "newFolderRoot non valida";
                 }
-                if (fileCanc == null)
-                {
-                    //transazioneRestore.Rollback();
-                    //transazioneRestore.Dispose();
-                    return ERRORE + "fileCanc non valida";
-                }
                 if (!folderToBeRestored.Contains(folderRoot))
                 {
                     return ERRORE + "sotto cartella non valida";
@@ -2036,7 +2016,7 @@ namespace BackupServer
                 //comando2.Transaction = transazioneRestore;
                 SQLiteDataReader dr;
 
-                try
+                try     //FIXME: questo try è senza catch
                 {
                     _readerWriterLock.EnterReadLock();
                     dr = comando2.ExecuteReader();
@@ -2048,6 +2028,7 @@ namespace BackupServer
                         int dimFile = 0;
                         int dimFile2 = 0;
                         int bufferSize = 1024;
+                        String tmpFileName = null;
                         string idfile = Convert.ToString(dr["idfile"]);
                         string checksum = Convert.ToString(dr["checksum"]);
                         string fileName = Convert.ToString(dr["percorsoFile"]);
@@ -2059,111 +2040,82 @@ namespace BackupServer
                             file = (Byte[])dr["file"];
                         dimFile = Convert.ToInt32(dr["dimFile"]);
 
+                        if (file == null)
+                        {
+                            continue;
+                        }
                         //se il nome del file correntemente del reader non contiene il nome della cartella da ripristinare lo salto
                         if (!fileName.Contains(folderToBeRestored + "\\"))
                         {
                             continue;
                         }
 
-                        if (isDelete.Equals("S") && fileCanc.Equals("N"))
+                        if (isDelete.Equals("S"))   //se il file puntato dal reader è cancellato ignoralo
                             continue;
-                        //else if (isDelete.Equals("S") && fileCanc.Equals("Y"))
-                        //{
-                        //    // Questo è il caso in cui è flaggata l'opzione di avere file cancellati
-                        //    // è implementato ma non sembra funzionare.
-
-                        //    SQLiteCommand comando3 = new SQLiteCommand(mainWindow.m_dbConnection);
-                        //    comando3.CommandText = "SELECT file,dimFile,checksum,idfile FROM BACKUPHISTORY bh1 WHERE username=@username AND folderBackup=@folderBackup AND percorsoFile=@percorsoFile AND dimFile>0 and isDelete='N' and versione=(select max(bh2.versione) from backuphistory bh2 where bh1.username=bh2.username and bh1.folderBackup=bh2.folderBackup and bh1.percorsoFile=bh2.percorsoFile and bh1.idfile=bh2.idfile and bh2.dimFile>0) and idfile=@idfile";
-                        //    comando3.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                        //    comando3.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
-                        //    comando3.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName;
-                        //    comando3.Parameters.Add("@idfile", System.Data.DbType.Int32,10).Value=Int32.Parse(idfile);
-                        //    //comando3.Transaction = transazioneRestore;
-                        //    SQLiteDataReader dr2;
-
-                        //    dr2 = comando3.ExecuteReader();
-
-                        //    if (dr2.Read())
-                        //    {
-
-                        //        if (DBNull.Value.Equals(dr["file"]))
-                        //            file = null;
-                        //        else
-                        //            file = (Byte[])dr["file"];
-                        //        dimFile2 = Convert.ToInt32(dr["dimFile"]);
-                        //        checksum = Convert.ToString(dr["checksum"]);
-                        //        idfile = Convert.ToString(dr["idfile"]);
-                        //    }
-                            
-                        //}
+                        
                         idfile = idfile + RandomString(30); //??
 
                         Directory.CreateDirectory(Directory.GetCurrentDirectory() + "\\tmp");
-                        FileStream fs = new FileStream(Directory.GetCurrentDirectory() + "\\tmp\\" + idfile, FileMode.Create);
-                        if (file == null)
+                        tmpFileName = Directory.GetCurrentDirectory() + "\\tmp\\" + idfile;
+                        using (FileStream fs = new FileStream(tmpFileName, FileMode.Create))
                         {
-                            fs.Close();
-                            continue;
-                        }
-                        for (int i = 0; i < file.Length; i++)
-                            fs.WriteByte(file[i]);
-
-                        fs.Close();
-
-                        fs = new FileStream(Directory.GetCurrentDirectory() + "\\tmp\\" + idfile, FileMode.Open, FileAccess.Read);
-
-                        if (!folderRoot.Equals(newFolderRoot))
-                        {
-                            string nomefileSenzaRoot = fileName.Substring(folderToBeRestored.Length + 1);
-                            fileName = newFolderRoot + "\\" + nomefileSenzaRoot;
-                        }
-                        int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));
-
-
-                        string headerStr = "Content-length=" + fs.Length.ToString() + "\r\nFilename=" + fileName + "\r\nChecksum=" + checksum + "\r\n";
-
-                        writeStringOnStream(clientsocket, headerStr); //Breakpoint
-
-                        string streamReady = ReadStringFromStream(clientsocket);
-
-                        if (streamReady.Contains(ERRORE))
-                        {
-                            //transazioneRestore.Rollback();
-                            //transazioneRestore.Dispose();
-                            fs.Close();
-                            return ERRORE + "Errore durante il restore";
+                            for (int i = 0; i < file.Length; i++)
+                                fs.WriteByte(file[i]);
                         }
 
-                        if (streamReady.Contains(STOP))
+                        using (FileStream fs = new FileStream(tmpFileName, FileMode.Open, FileAccess.Read))
                         {
-                            //transazioneRestore.Commit();
-                            //transazioneRestore.Dispose();
-                            fs.Close();
-                            return INFO + "Restore interrotto dal client";
-                        }
+                            if (!folderRoot.Equals(newFolderRoot))
+                            {
+                                string nomefileSenzaRoot = fileName.Substring(folderToBeRestored.Length + 1);
+                                fileName = newFolderRoot + "\\" + nomefileSenzaRoot;
+                            }
+                            int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));
 
-                        if (streamReady.Equals(INFO + "File gia' presente e non modificato"))
-                        {
-                            fs.Close();
-                            continue;
-                        }
 
-                        for (int i = 0; i < bufferCount; i++)
-                        {
-                            buffer = new byte[bufferSize];
-                            int size = fs.Read(buffer, 0, bufferSize);
-                            clientsocket.Client.Send(buffer, size, SocketFlags.Partial);
-                        }
+                            string headerStr = "Content-length=" + fs.Length.ToString() + "\r\nFilename=" + fileName + "\r\nChecksum=" + checksum + "\r\n";
 
-                        if (!folderRoot.Equals(newFolderRoot) || (dimFile == 0 && fileCanc.Equals("Y")))
-                        {
-                            //incasellaFile(user, newFolderRoot, fileName, file, (int)fs.Length, checksum);
-                        }
+                            writeStringOnStream(clientsocket, headerStr); //Breakpoint
 
-                        fs.Close();
-                        //File.Delete(Directory.GetCurrentDirectory() + "\\tmp\\" + token);
+                            string streamReady = ReadStringFromStream(clientsocket);
+
+                            if (streamReady.Contains(ERRORE))
+                            {
+                                //transazioneRestore.Rollback();
+                                //transazioneRestore.Dispose();
+                                return ERRORE + "Errore durante il restore";
+                            }
+
+                            if (streamReady.Contains(STOP))
+                            {
+                                //transazioneRestore.Commit();
+                                //transazioneRestore.Dispose();
+                                return INFO + "Restore interrotto dal client";
+                            }
+
+                            if (streamReady.Equals(INFO + "File gia' presente e non modificato"))
+                            {
+                                continue;
+                            }
+
+                            for (int i = 0; i < bufferCount; i++)
+                            {
+                                buffer = new byte[bufferSize];
+                                int size = fs.Read(buffer, 0, bufferSize);
+                                clientsocket.Client.Send(buffer, size, SocketFlags.Partial);
+                            }
+
+                            if (!folderRoot.Equals(newFolderRoot))
+                            {
+                                //incasellaFile(user, newFolderRoot, fileName, file, (int)fs.Length, checksum);
+                            }
+                        }
 
                         ReadStringFromStream(clientsocket);
+                        if (tmpFileName != null)
+                        {
+                            File.Delete(tmpFileName);
+                        }
                     }
                 }
                 finally
@@ -2176,7 +2128,7 @@ namespace BackupServer
                 return OK + "Restore Avvenuto Correttamente";
 
             }
-            catch (Exception e)
+            catch
             {
                 //transazioneRestore.Rollback();
                 //transazioneRestore.Dispose();

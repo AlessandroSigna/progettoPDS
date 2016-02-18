@@ -58,7 +58,7 @@ namespace Client
                 //creo una cartella dentro la cartella scelta dall'utente dove collezionare i file che verranno ripristinati
                 //questa nuova cartella avrà lo stesso nome della (sotto)cartella che si vuole ripristinare
                 string folderCreated = folderToBeRestored.Substring(folderToBeRestored.LastIndexOf((@"\")) + 1);
-                pathRoot = clientlogic.folderR + @"\" + folderCreated;
+                pathRoot = clientlogic.restoreFolder + @"\" + folderCreated;
                 System.IO.Directory.CreateDirectory(pathRoot);
 
                 RiceviRestore();
@@ -136,8 +136,8 @@ namespace Client
             try
             {
 
-                //RESTORE + username + fullPath della root directory backuppata + fullPath della cartella creata per accogliere il restore + char per file cancellati + fullPath della subdir da ripristinare
-                clientLogic.WriteStringOnStream(ClientLogic.RESTORE + clientLogic.username + "+" + folderRoot + "+" + pathRoot + "+" + "N" + "+" + folderToBeRestored);
+                //RESTORE + username + fullPath della root directory backuppata + fullPath della cartella creata per accogliere il restore + fullPath della subdir da ripristinare
+                clientLogic.WriteStringOnStream(ClientLogic.RESTORE + clientLogic.username + "+" + folderRoot + "+" + pathRoot + "+" + folderToBeRestored);
 
                 //assegno le callback a workertransaction
                 workertransaction = new BackgroundWorker();
@@ -168,7 +168,7 @@ namespace Client
                     return;
                 }
                 downloading = false;
-                System.Diagnostics.Process.Start("explorer.exe", clientLogic.folderR);
+                System.Diagnostics.Process.Start("explorer.exe", clientLogic.restoreFolder);
                 if (restoreControl != null)
                 {
                     App.Current.MainWindow.Content = restoreControl;
@@ -212,7 +212,7 @@ namespace Client
                 string checksum = str3[1];
 
                 fileName = MakeRelativePath(pathRoot.Substring(0, pathRoot.LastIndexOf(@"\") - 1), fileName);
-                string filepath = clientLogic.folderR + @"\" + fileName;
+                string filepath = clientLogic.restoreFolder + @"\" + fileName;
 
                 //creo la (sub)directory che conterrà il file se già non esiste. si ricava il nome della directory esaminando il filename
                 string folderpath = filepath.Substring(0, filepath.LastIndexOf(@"\"));
