@@ -42,6 +42,8 @@ namespace Client
         private string lastCheck;       //non so
         private string[] files; //filenames nella rootDir
 
+        public const string WARNING_SINCRONIZZAZIONE = "L'operazione non è stata sincronizzata.";
+
         //lista di estensioni problematiche per le quali non voglio sincronizzare il relativo file -  FIXME?
         private List<string> extensions = new List<string>() { "", ".pub", ".pps", ".pptm", ".ppt", ".pptx", ".xlm", ".xlt", ".xls", ".docx", ".doc", ".tmp", ".lnk", ".TMP", ".docm", ".dotx", ".dotcb", ".dotm", ".accdb", ".xlsx", ".jnt" };
 
@@ -199,18 +201,24 @@ namespace Client
                 }
                 string extension = System.IO.Path.GetExtension(e.FullPath);
                 //se il file contiene un'estensione problematica ritorno
-                if (extensions.Contains(extension))
+                if (extensions.Contains(extension) && !extension.Equals(""))
                 {
                     mw.clientLogic.event_1.Set();   //segnalo l'evento e ritorno
                     return;
                 }
+                
                 WatcherChangeTypes wct = e.ChangeType;
                 if (e.ChangeType == WatcherChangeTypes.Deleted) //bisogna effettivamente controllare il ChangeType? 
                 {
                     updating = true;
                     //segnalo la cancellazione al server
                     mw.clientLogic.WriteStringOnStream(ClientLogic.CANC + mw.clientLogic.username + "+" + e.FullPath);
-                    mw.clientLogic.ReadStringFromStream();  //consumo la risposta senza analizzarla?
+                    String risposta = mw.clientLogic.ReadStringFromStream();  //consumo la risposta senza analizzarla?
+                    if (risposta.Contains("ERR"))
+                    {
+                        System.Windows.MessageBox.Show(WARNING_SINCRONIZZAZIONE, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
+
                     updating = false;
                     mw.clientLogic.event_1.Set();   //segnalo l'evento
                 }
@@ -316,6 +324,7 @@ namespace Client
         {
             try
             {
+                string risposta = null;
                 //i controlli iniziali sono gli stessi
                 Console.WriteLine("Onren");
                 Console.WriteLine(e.FullPath);
@@ -327,7 +336,7 @@ namespace Client
                     mw.clientLogic.event_1.WaitOne();
                 }
                 string extension = System.IO.Path.GetExtension(e.FullPath);
-                if (extensions.Contains(extension))
+                if (extensions.Contains(extension) && !extension.Equals(""))
                 {
                     mw.clientLogic.event_1.Set();
                     return;
@@ -337,7 +346,11 @@ namespace Client
                 {
                     updating = true;
                     mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + "+" + e.OldFullPath + "+" + e.FullPath + "+" + "DIR");
-                    mw.clientLogic.ReadStringFromStream();
+                    risposta = mw.clientLogic.ReadStringFromStream();
+                    if (risposta.Contains("ERR"))
+                    {
+                        System.Windows.MessageBox.Show(WARNING_SINCRONIZZAZIONE, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
                     updating = false;
                     mw.clientLogic.event_1.Set();
 
@@ -349,7 +362,11 @@ namespace Client
                     {
                         updating = true;
                         mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + "+" + e.OldFullPath + "+" + e.FullPath);
-                        mw.clientLogic.ReadStringFromStream();
+                        risposta = mw.clientLogic.ReadStringFromStream();
+                        if (risposta.Contains("ERR"))
+                        {
+                            System.Windows.MessageBox.Show(WARNING_SINCRONIZZAZIONE, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
                         updating = false;
                         mw.clientLogic.event_1.Set();
                     }
@@ -393,12 +410,11 @@ namespace Client
                 byte[] header = null;
                 string checksum = "";
 
-                string chk = mw.clientLogic.ReadStringFromStream();
-                if(!chk.Equals(ClientLogic.OK))
+                string risposta = mw.clientLogic.ReadStringFromStream();  //consumo lo stream (eventuale risposta del server)
+                if (risposta.Contains("ERR"))
                 {
-                    ExitStub();
+                    System.Windows.MessageBox.Show(WARNING_SINCRONIZZAZIONE, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
                 }
-                //Thread.Sleep(100);
 
                 //le operazioni sono molto simili a quanto fatto nella ClientLogic.InviaFile
                 checksum = mw.clientLogic.GetMD5HashFromFile(fileName);
@@ -413,6 +429,11 @@ namespace Client
                     string streamReady = mw.clientLogic.ReadStringFromStream();
                     if (streamReady.Equals(ClientLogic.OK + "File ricevuto correttamente") || streamReady.Equals(ClientLogic.INFO + "File non modificato") || streamReady.Equals(ClientLogic.INFO + "file dim 0"))
                     {
+                        return;
+                    }
+                    else if (streamReady.Contains("ERR"))
+                    {
+                        System.Windows.MessageBox.Show(WARNING_SINCRONIZZAZIONE, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
 
