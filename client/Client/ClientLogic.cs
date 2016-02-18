@@ -58,7 +58,7 @@ namespace Client
         #endregion
 
         public volatile Boolean monitorando;    //true mentre si osserva la rootDir in attesa di cambiamenti
-        public volatile Boolean lavorandoInvio; //true mentre si invia un file al server
+        public volatile Boolean lavorandoInvio; //true mentre si inviano i file facendo il backup "grosso" - cioè quando si preme start backup
         public AutoResetEvent event_1;
         public string folder;
         public string folderR;
@@ -78,7 +78,6 @@ namespace Client
 
         }
         private TcpClient _clientsocket;
-
         public TcpClient clientsocket
         {
             get
@@ -852,7 +851,7 @@ namespace Client
         #region Metodi invio file
         /*
          * Invocato da MenuControl.EffettuaBackup_Click. Riceve un array di path di file 
-         * e li invia al server sfruttando diversi thread (?) di workertransaction i 
+         * e li invia al server sfruttando diversi thread di workertransaction 
          */
         public void InvioFile(string[] Filenames)
         {
@@ -929,7 +928,7 @@ namespace Client
                 //    throw new Exception();
                 //    // break;
                 //}
-                if (monitorando == false)   //monitorando vale false in modo anomalo (?) - flaggo il task come canceled
+                if (monitorando == false)   //se monitorando vale false in questo contesto vuol dire che ho voluto interrompere da MenuControl il backup
                 {
                     e.Cancel = true;
                     return;
@@ -963,6 +962,8 @@ namespace Client
                 menuc.EffettuaBackup.IsEnabled = true;
                 menuc.EffettuaBackup.Visibility = Visibility.Visible;
                 BrushConverter bc = new BrushConverter();
+                lavorandoInvio = false;
+                event_1.Set();
 
                 if (e.Error != null)
                 {
@@ -980,33 +981,31 @@ namespace Client
                     menuc.EffettuaBackup.Content = "Start";
                     menuc.FolderButton.IsEnabled = true;
                     menuc.FileUploading.Text = "Non tutti i dati sono aggiornati";
-                    monitorando = false;
-                    MenuControl menuC = (MenuControl)App.Current.MainWindow.Content;
-                    if (menuC.exit) //non capisco exit cosa gestisce
-                    {
-                        MainWindow mainw = (MainWindow)App.Current.MainWindow;
-                        mainw.clientLogic.monitorando = false;
-                        mainw.clientLogic.lavorandoInvio = false;
-                        mainw.clientLogic.WriteStringOnStream(ClientLogic.DISCONNETTIUTENTE + username + "+" + mac);
-                        connesso = false;
-                        ClientLogic.UpdateNotifyIconDisconnesso();
-                        //if (mainw.clientLogic.clientsocket.Client.Connected)
-                        //{
-                        //    mainw.clientLogic.clientsocket.GetStream().Close();
-                        //    mainw.clientLogic.clientsocket.Close();
-                        //}
-                        DisconnectAndClose();
-                        //MainControl main = new MainControl();
-                        //App.Current.MainWindow.Content = main;
-                        mw.restart(false);
-                    }
+                    //monitorando = false;
+                    //MenuControl menuC = (MenuControl)App.Current.MainWindow.Content;
+                    //if (menuC.exit) //non capisco exit cosa gestisce
+                    //{
+                    //    MainWindow mainw = (MainWindow)App.Current.MainWindow;
+                    //    mainw.clientLogic.monitorando = false;
+                    //    mainw.clientLogic.lavorandoInvio = false;
+                    //    mainw.clientLogic.WriteStringOnStream(ClientLogic.DISCONNETTIUTENTE + username + "+" + mac);
+                    //    connesso = false;
+                    //    ClientLogic.UpdateNotifyIconDisconnesso();
+                    //    //if (mainw.clientLogic.clientsocket.Client.Connected)
+                    //    //{
+                    //    //    mainw.clientLogic.clientsocket.GetStream().Close();
+                    //    //    mainw.clientLogic.clientsocket.Close();
+                    //    //}
+                    //    DisconnectAndClose();
+                    //    //MainControl main = new MainControl();
+                    //    //App.Current.MainWindow.Content = main;
+                    //    mw.restart(false);
+                    //}
                 }
                 else
                 {
                     //altrimenti si comunica il 'successo'
                     menuc.FileUploading.Text = "Ultima sincronizzazione : " + DateTime.Now;
-                    lavorandoInvio = false;
-                    event_1.Set();
 
                     //se è avvenuto qualche problema nell'esecuzione del task torno a MainControl con un errore
                     //if ((bool)e.Result == false)
@@ -1042,13 +1041,14 @@ namespace Client
         private void WorkerProgressChanged(object sender, ProgressChangedEventArgs e)
         {
             MenuControl menuc = (MenuControl)mw.Content;
-            // Manca show?
             menuc.pbStatus.Value += e.ProgressPercentage;
             menuc.FileUploading.Text = (string)e.UserState;
         }
 
         /*
-         * Invia il file relativo a Filename al server
+         * Invia un header al server con info sul file tra cui una checksum
+         * Confrontando la checksum il server comunica se è interessato alla versione corrente del file o meno
+         * Se necessario si invia il file relativo a Filename al server
          */
         private void InviaFile(string Filename, ref bool inviato)
         {

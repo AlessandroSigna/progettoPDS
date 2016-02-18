@@ -29,6 +29,8 @@ namespace Client
         private object dummyNode = null;
         public string SelectedImagePath { get; set; }
         public static HeaderToImageConverter ConverterInstance = new HeaderToImageConverter();
+        
+        #region Costruttore
         /*
          * Costruttore
          */
@@ -44,11 +46,7 @@ namespace Client
                 String[] rootFolders = RetrieveRootFolders();
                 if (rootFolders == null)
                 {
-                    if (App.Current.MainWindow is Restore)
-                    {
-                        restoreWindow.chiusuraInattesa = true;
-                        restoreWindow.Close();
-                    }
+                    ExitStub();
                     return;
                 }
                 else if (rootFolders.Length == 0)
@@ -68,14 +66,13 @@ namespace Client
             catch
             {
                 //in caso di eccezione rilascio le risorse
-                if (App.Current.MainWindow is Restore)
-                {
-                    restoreWindow.chiusuraInattesa = true;
-                    restoreWindow.Close();
-                }
+                ExitStub();
             }
         }
-        #region Explorer Tree
+
+        #endregion
+
+        #region TreeView
         /*
          * Aggiunge i campi relativi alle root folders nel tree
          */
@@ -104,11 +101,7 @@ namespace Client
             }
             catch 
             {
-                if (App.Current.MainWindow is Restore)
-                {
-                    restoreWindow.chiusuraInattesa = true;
-                    restoreWindow.Close();
-                }
+                ExitStub();
             }
             
         }
@@ -136,124 +129,50 @@ namespace Client
             }
             catch
             {
-                if (App.Current.MainWindow is Restore)
-                {
-                    restoreWindow.chiusuraInattesa = true;
-                    restoreWindow.Close();
-                }
+                ExitStub();
             }
             
         }
+
         /*
          * Callback chiamata quando un file viene espanso
          */
         void file_Expanded(object sender, RoutedEventArgs e)
         {
 
-            
-            TreeViewItem item = (TreeViewItem)sender;
-            if (item.Items.Count == 1 && item.Items[0] == dummyNode)
+            try
             {
-                //entro qui solo quando l'oggetto viene espanso la prima volta
-                item.Items.Clear();
-
-                try
+                TreeViewItem item = (TreeViewItem)sender;
+                if (item.Items.Count == 1 && item.Items[0] == dummyNode)
                 {
-                    //se invece l'oggetto espanso è un file (posso espandere un file?)
+                    //entro qui solo quando l'oggetto viene espanso la prima volta
+                    item.Items.Clear();
+
+                    //se l'oggetto espanso è un file
                     //domando al server le versioni del file selezionato
-                    //clientLogic.WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + "+" + folder + "+" + completePath + "+" + idFile);
-                    //vedi DownloadFile.DownloadFile
                     ItemTag tag = (ItemTag)item.Tag;
                     //lista di stringhe contenenti fileinfo 
                     //NB: questa volta il primo campo della stringa è il nome del file e non il fullPath
                     List<String> fileVersions = RetrieveFileVersions(tag);
                     foreach (String s in fileVersions)
                     {
-
                         AddSubItem(item, s);
                     }
                 }
-                catch (Exception) { }   //FIXME
+            }
+            catch
+            {
+                ExitStub();
             }
         }
-
 
         /*
-         * Callback chiamata in casi di cambio selezione nel TreeView. Abilita o meno il ConfirmButton
-         */
-        private void foldersItem_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            
-            TreeView tree = (TreeView)sender;
-            TreeViewItem item = ((TreeViewItem)tree.SelectedItem);
-            ItemTag tag = (ItemTag)item.Tag;
-            if (tag.tipo == ItemType.FileVersion && tag.dimFile == 0)    //caso file cancellato
-            {
-                ConfirmButton.IsEnabled = false;
-                BrushConverter bc = new BrushConverter();
-                ConfirmButton.Background = (Brush)bc.ConvertFrom("#F5FFFA");
-            }
-            else if (tag.tipo == ItemType.FileVersion || tag.tipo == ItemType.RootFolder || tag.tipo == ItemType.Folder)
-            {
-
-                ConfirmButton.IsEnabled = true; 
-                BrushConverter bc = new BrushConverter();
-                ConfirmButton.Background = (Brush)bc.ConvertFrom("#FF44E572");
-                
-            }
-            else 
-            {
-                ConfirmButton.IsEnabled = false;
-                BrushConverter bc = new BrushConverter();
-                ConfirmButton.Background = (Brush)bc.ConvertFrom("#F5FFFA");
-            }
-            return;
-
-        }
-
-        private void file_DoubleClick(object sender, MouseButtonEventArgs e)
-        {
-            if (e.ChangedButton == MouseButton.Left)
-            {
-                TreeViewItem src = e.Source as TreeViewItem;
-                richiediDownloadFile(src);
-                
-            }
-        }
-
-        private void richiediDownloadFile(TreeViewItem file)
-        {
-            ItemTag tag = file.Tag as ItemTag;
-            System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
-            System.Windows.Forms.DialogResult result = fbd.ShowDialog();
-            if (fbd.SelectedPath != "")
-            {
-                clientlogic.folderR = fbd.SelectedPath;      //salvo il riferimento alla folder selezionata per il restore perché serve nella StartDownload
-                StartDownload main = new StartDownload(clientlogic, tag.fullPath, tag.versione, tag.rootDir, restoreWindow, tag.id, this);
-                if (App.Current.MainWindow is Restore)
-                    App.Current.MainWindow.Content = main;
-            }
-        }
-
-        private void richiediDownloadCartella(TreeViewItem folder)
-        {
-            ItemTag tag = folder.Tag as ItemTag;
-            System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
-            System.Windows.Forms.DialogResult result = fbd.ShowDialog();
-            if (fbd.SelectedPath != "")
-            {
-                clientlogic.folderR = fbd.SelectedPath;      //salvo il riferimento alla folder selezionata per il restore perché serve nella DownloadFolder
-                DownloadFolder main = new DownloadFolder(clientlogic, tag.rootDir, tag.fullPath, restoreWindow, this);
-                if (App.Current.MainWindow is Restore)
-                    App.Current.MainWindow.Content = main;
-            }
-        }
-        /*
+         * Metodo principale per il popolamento del TreeView
          * Analizza la stringa di subFileInfo e aggiunge folder e/o file come subitem al parentItem
          * I vari casi sono differenziati in base al tipo di parentItem così da capire in che contesto ci si trova
          * 
          */
-        private void AddSubItem(TreeViewItem parentItem, String subFileInfo) 
+        private void AddSubItem(TreeViewItem parentItem, String subFileInfo)
         {
             try
             {
@@ -336,40 +255,120 @@ namespace Client
             }
             catch
             {
-                if (App.Current.MainWindow is Restore)
-                {
-                    restoreWindow.chiusuraInattesa = true;
-                    restoreWindow.Close();
-                }
+                ExitStub();
             }
-            
+
         }
+
 
         /*
-         * Cerca se in parentItem c'è una cartella con nome folderName
-         * Se sì ne ritorna un riferimento
-         * Se no ritorna null
+         * Callback chiamata in casi di cambio selezione nel TreeView. Abilita o meno il ConfirmButton
          */
-        private TreeViewItem searchFolderInParent(TreeViewItem parentItem, string folderName)
+        private void foldersItem_SelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
         {
-            foreach(TreeViewItem item in parentItem.Items)
+            try
             {
+                TreeView tree = (TreeView)sender;
+                TreeViewItem item = ((TreeViewItem)tree.SelectedItem);
                 ItemTag tag = (ItemTag)item.Tag;
-                bool chk = tag.tipo == ItemType.Folder && tag.nome == folderName;
-                if (chk)
+                if (tag.tipo == ItemType.FileVersion && tag.dimFile == 0)    //caso file cancellato
                 {
-                    return item;
+                    ConfirmButton.IsEnabled = false;
+                    BrushConverter bc = new BrushConverter();
+                    ConfirmButton.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+                }
+                else if (tag.tipo == ItemType.FileVersion || tag.tipo == ItemType.RootFolder || tag.tipo == ItemType.Folder)
+                {
+
+                    ConfirmButton.IsEnabled = true;
+                    BrushConverter bc = new BrushConverter();
+                    ConfirmButton.Background = (Brush)bc.ConvertFrom("#FF44E572");
+
+                }
+                else
+                {
+                    ConfirmButton.IsEnabled = false;
+                    BrushConverter bc = new BrushConverter();
+                    ConfirmButton.Background = (Brush)bc.ConvertFrom("#F5FFFA");
                 }
             }
-            return null;
+            catch
+            {
+                ExitStub();
+            }
+
         }
 
-        public string MakeRelativePath(string workingDirectory, string fullPath)
+        private void file_DoubleClick(object sender, MouseButtonEventArgs e)
         {
-            return fullPath.Substring(workingDirectory.Length + 1);
+            try
+            {
+                if (e.ChangedButton == MouseButton.Left)
+                {
+                    TreeViewItem src = e.Source as TreeViewItem;
+                    richiediDownloadFile(src);
+                }
+            }
+            catch
+            {
+                ExitStub();
+            }
+        }
+        #endregion
+
+        #region Richiedi Download
+        private void richiediDownloadFile(TreeViewItem file)
+        {
+            try
+            {
+                ItemTag tag = file.Tag as ItemTag;
+                System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
+                System.Windows.Forms.DialogResult result = fbd.ShowDialog();
+                if (fbd.SelectedPath != "")
+                {
+                    clientlogic.folderR = fbd.SelectedPath;      //salvo il riferimento alla folder selezionata per il restore perché serve nella StartDownload
+                    StartDownload main = new StartDownload(clientlogic, tag.fullPath, tag.versione, tag.rootDir, restoreWindow, tag.id, this);
+                    if (App.Current.MainWindow is Restore)
+                        App.Current.MainWindow.Content = main;
+                }
+            }
+            catch
+            {
+                ExitStub();
+            }
+
         }
 
-        private class ItemTag {
+        private void richiediDownloadCartella(TreeViewItem folder)
+        {
+            try
+            {
+                ItemTag tag = folder.Tag as ItemTag;
+                System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
+                System.Windows.Forms.DialogResult result = fbd.ShowDialog();
+                if (fbd.SelectedPath != "")
+                {
+                    clientlogic.folderR = fbd.SelectedPath;      //salvo il riferimento alla folder selezionata per il restore perché serve nella DownloadFolder
+                    DownloadFolder main = new DownloadFolder(clientlogic, tag.rootDir, tag.fullPath, restoreWindow, this);
+                    if (App.Current.MainWindow is Restore)
+                        App.Current.MainWindow.Content = main;
+                }
+            }
+            catch
+            {
+                ExitStub();
+            }
+
+        }
+
+        #endregion
+
+        #region Classi helper gestione Tree
+        /*
+         * Classe che verrà usata come TreeViewItem.Tag per ogni item dell'albero
+         */
+        private class ItemTag
+        {
             public ItemType tipo;
             public String nome;
             public String fileInfo;
@@ -390,7 +389,7 @@ namespace Client
                     //in questo caso fileInfo contiene solo il path della cartella
                     this.fullPath = fileInfo;
                 }
-                else 
+                else
                 {
                     //fileInfo ha info sul file 
                     String[] info = fileInfo.Split('?');
@@ -412,25 +411,34 @@ namespace Client
 
             public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
             {
-                ItemTag tag = (ItemTag)value;
-                // this is a diskdrive
-                if (tag.tipo == ItemType.File)
+                try
                 {
+                    ItemTag tag = (ItemTag)value;
+                    if (tag.tipo == ItemType.File)
+                    {
 
+                        Uri uri = new Uri("pack://application:,,,/Images/file.png");
+                        BitmapImage source = new BitmapImage(uri);
+                        return source;
+                    }
+                    else if (tag.tipo == ItemType.FileVersion)
+                    {
+                        String uriPath = tag.dimFile == 0 ? "pack://application:,,,/Images/filedel.png" : "pack://application:,,,/Images/fileadd.png";
+                        Uri uri = new Uri(uriPath);
+                        BitmapImage source = new BitmapImage(uri);
+                        return source;
+                    }
+                    else //if (tag.tipo == ItemType.Folder)
+                    {
+                        Uri uri = new Uri("pack://application:,,,/Images/folder.png");
+                        BitmapImage source = new BitmapImage(uri);
+                        return source;
+                    }
+                }
+                catch
+                {
+                    //in caso di eccezione in questa fase attribuisco all'item un'immagine di default
                     Uri uri = new Uri("pack://application:,,,/Images/file.png");
-                    BitmapImage source = new BitmapImage(uri);
-                    return source;
-                }
-                else if (tag.tipo == ItemType.FileVersion)
-                {
-                    String uriPath = tag.dimFile == 0 ? "pack://application:,,,/Images/filedel.png" : "pack://application:,,,/Images/fileadd.png";
-                    Uri uri = new Uri(uriPath);
-                    BitmapImage source = new BitmapImage(uri);
-                    return source;
-                }
-                else //if (tag.tipo == ItemType.Folder)
-                {
-                    Uri uri = new Uri("pack://application:,,,/Images/folder.png");
                     BitmapImage source = new BitmapImage(uri);
                     return source;
                 }
@@ -443,22 +451,25 @@ namespace Client
         }
         #endregion
 
-
-
-
         #region Button
         private void ConfirmButton_Click(object sender, RoutedEventArgs e)
         {
-            
-            TreeViewItem item = (TreeViewItem)foldersTree.SelectedItem;
-            ItemTag tag = (ItemTag)item.Tag;
-            if (tag.tipo == ItemType.FileVersion)
+            try
             {
-                richiediDownloadFile((TreeViewItem)foldersTree.SelectedItem);
+                TreeViewItem item = (TreeViewItem)foldersTree.SelectedItem;
+                ItemTag tag = (ItemTag)item.Tag;
+                if (tag.tipo == ItemType.FileVersion)
+                {
+                    richiediDownloadFile((TreeViewItem)foldersTree.SelectedItem);
+                }
+                else if (tag.tipo == ItemType.RootFolder || tag.tipo == ItemType.Folder)
+                {
+                    richiediDownloadCartella((TreeViewItem)foldersTree.SelectedItem);
+                }
             }
-            else if (tag.tipo == ItemType.RootFolder || tag.tipo == ItemType.Folder)
+            catch
             {
-                richiediDownloadCartella((TreeViewItem)foldersTree.SelectedItem);
+                ExitStub();
             }
         }
 
@@ -482,6 +493,74 @@ namespace Client
 
 
         #endregion
+
+        #region Metodi helper e varie
+
+        /*
+         * Cerca se in parentItem c'è una cartella con nome folderName
+         * Se sì ne ritorna un riferimento
+         * Se no ritorna null
+         */
+        private TreeViewItem searchFolderInParent(TreeViewItem parentItem, string folderName)
+        {
+            try
+            {
+                foreach (TreeViewItem item in parentItem.Items)
+                {
+                    ItemTag tag = (ItemTag)item.Tag;
+                    bool chk = tag.tipo == ItemType.Folder && tag.nome == folderName;
+                    if (chk)
+                    {
+                        return item;
+                    }
+                }
+            }
+            catch
+            {
+                ExitStub();
+            }
+            return null;
+        }
+
+        private void ExitStub(Boolean chiusuraInattesa = true)
+        {
+            if (App.Current.MainWindow is Restore)
+            {
+                restoreWindow.chiusuraInattesa = chiusuraInattesa;
+                restoreWindow.Close();
+            }
+        }
+
+        public string MakeRelativePath(string workingDirectory, string fullPath)
+        {
+            return fullPath.Substring(workingDirectory.Length + 1);
+        }
+
+        /*
+         * convertitore da int a string per rappresentare in string la dimensione del file
+         */
+        static readonly string[] SizeSuffixes = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
+        static string SizeSuffix(Int64 value)
+        {
+            try
+            {
+                //if (value < 0) { return "-" + SizeSuffix(-value); }
+                if (value == 0) { return "\tFile Cancellato"; }
+
+                int mag = (int)Math.Log(value, 1024);
+                decimal adjustedSize = (decimal)value / (1L << (mag * 10));
+
+                return "\t" + string.Format("{0:n1} {1}", adjustedSize, SizeSuffixes[mag]);
+            }
+            catch
+            {
+                return "Dim ?";
+            }
+        }
+        #endregion
+
+        #region Comunicazione con il server
+
         /*
          * Chiede al server i path delle root folder (cartelle backuppate)
          */
@@ -503,122 +582,111 @@ namespace Client
                 else
                 {
                     //se il server non da OK si chiudono le risorse (gestite dalla window closing)
-                    if (App.Current.MainWindow is Restore)
-                    {
-                        restoreWindow.chiusuraInattesa = true;
-                        restoreWindow.Close();
-                    }
+                    ExitStub();
                 }
             }
             catch
             {
-                if (App.Current.MainWindow is Restore)
-                {
-                    restoreWindow.chiusuraInattesa = true;
-                    restoreWindow.Close();
-                }
+                ExitStub();
             }
             return folders;
-            
+
         }
 
         private List<String> RetrieveFolderContent(String folderPath)
         {
-            //si chiede al server la lista dei file nella folder (che contengono likeNome)
-            clientlogic.WriteStringOnStream(ClientLogic.LISTFILES + clientlogic.username + "+" + folderPath + "+" + "");
-
-
             List<String> retFiles = new List<String>();
-            Boolean exit = false;
-            Boolean fine = false;
-            //si parsifica opportunamente la stringa che ha inviato il server come risposta
-            while (!exit)
+            try
             {
-                String messaggio = clientlogic.ReadStringFromStream();
-                String[] parametri = messaggio.Split('+');
-                String comando = parametri[1];
-                if (comando.Equals("FLP"))
+                //si chiede al server la lista dei file nella folder (che contengono likeNome)
+                clientlogic.WriteStringOnStream(ClientLogic.LISTFILES + clientlogic.username + "+" + folderPath + "+" + "");
+
+                Boolean exit = false;
+                Boolean fine = false;
+                //si parsifica opportunamente la stringa che ha inviato il server come risposta
+                while (!exit)
                 {
-                    retFiles.Add(parametri[3]);     //ricevuta la stringa si aggiunge l'elemeno all'array
-                    clientlogic.WriteStringOnStream(ClientLogic.OK);    //e si manda un ACK al server
+                    String messaggio = clientlogic.ReadStringFromStream();
+                    String[] parametri = messaggio.Split('+');
+                    String comando = parametri[1];
+                    if (comando.Equals("FLP"))
+                    {
+                        retFiles.Add(parametri[3]);     //ricevuta la stringa si aggiunge l'elemeno alla lista
+                        clientlogic.WriteStringOnStream(ClientLogic.OK);    //e si manda un ACK al server
+                    }
+                    else if (comando.Equals("ENDLIST") || comando.Equals("INFO"))
+                    {
+                        exit = true;
+                    }
+                    else
+                    {
+                        exit = true;
+                        fine = true;
+                    }
                 }
-                else if (comando.Equals("ENDLIST") || comando.Equals("INFO"))
+                if (fine)
                 {
-                    exit = true;
+                    //si chiudono le risorse (gestite dalla window closing)
+                    ExitStub();
                 }
-                else
-                {
-                    //FIXME: Situazione inattesa - eccezione?!
-                    exit = true;
-                    fine = true;
-                }
+                //le stringhe qui sono tutti i file contenuti nella rootDir, non vengono ritornate le cartelle
+                //le cartelle si devono creare logicamente esaminando le varie stringhe
+                retFiles.RemoveAll(str => String.IsNullOrEmpty(str));
             }
-            if (fine)
+            catch
             {
-                //occorre un messaggio di errore prima di chiudere
-                App.Current.MainWindow.Close();
+                ExitStub();
             }
-            //le stringhe qui sono tutti i file contenuti nella rootDir, non vengono ritornate le cartelle
-            //le cartelle si devono creare logicamente esaminando le varie stringhe
-            retFiles.RemoveAll(str => String.IsNullOrEmpty(str));
             return retFiles;
         }
 
         private List<String> RetrieveFileVersions(ItemTag fileTag)
         {
-            //richiesta versioni del file
-            //WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + "+" + pathDellaRootFolderDiBackup + "+" + fullPathDelFile + "+" + idFile);
-
-            clientlogic.WriteStringOnStream(ClientLogic.GETVFILE + clientlogic.username + "+" + fileTag.rootDir + "+" + fileTag.fullPath + "+" + fileTag.id);
-
-
             List<String> retFiles = new List<String>();
-            Boolean exit = false;
-            Boolean fine = false;
-            //si parsifica opportunamente la stringa che ha inviato il server come risposta
-            while (!exit)
+            try
             {
-                String messaggio = clientlogic.ReadStringFromStream();
-                String[] parametri = messaggio.Split('+');
-                String comando = parametri[1];
-                if (comando.Equals("FLP"))
+                //richiesta versioni del file
+                //WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + "+" + pathDellaRootFolderDiBackup + "+" + fullPathDelFile + "+" + idFile);
+
+                clientlogic.WriteStringOnStream(ClientLogic.GETVFILE + clientlogic.username + "+" + fileTag.rootDir + "+" + fileTag.fullPath + "+" + fileTag.id);
+
+
+                Boolean exit = false;
+                Boolean fine = false;
+                //si parsifica opportunamente la stringa che ha inviato il server come risposta
+                while (!exit)
                 {
-                    retFiles.Add(parametri[3]);     //ricevuta la stringa si aggiunge l'elemeno all'array
-                    clientlogic.WriteStringOnStream(ClientLogic.OK);    //e si manda un ACK al server
+                    String messaggio = clientlogic.ReadStringFromStream();
+                    String[] parametri = messaggio.Split('+');
+                    String comando = parametri[1];
+                    if (comando.Equals("FLP"))
+                    {
+                        retFiles.Add(parametri[3]);     //ricevuta la stringa si aggiunge l'elemeno alla lista
+                        clientlogic.WriteStringOnStream(ClientLogic.OK);    //e si manda un ACK al server
+                    }
+                    else if (comando.Equals("ENDLIST") || comando.Equals("INFO"))
+                    {
+                        exit = true;
+                    }
+                    else
+                    {
+                        exit = true;
+                        fine = true;
+                    }
                 }
-                else if (comando.Equals("ENDLIST") || comando.Equals("INFO"))
+                if (fine)
                 {
-                    exit = true;
+                    ExitStub();
                 }
-                else
-                {
-                    exit = true;
-                    fine = true;
-                }
+                retFiles.RemoveAll(str => String.IsNullOrEmpty(str));
             }
-            if (fine)
+            catch
             {
-                App.Current.MainWindow.Close();
+                ExitStub();
             }
-            //le stringhe qui sono tutti i file contenuti nella rootDir, non vengono ritornate le cartelle
-            //le cartelle si devono creare logicamente esaminando le varie stringhe
-            retFiles.RemoveAll(str => String.IsNullOrEmpty(str));
             return retFiles;
         }
+        #endregion
 
-        /*
-         * convertitore da int a string per rappresentare in string la dimensione del file
-         */
-        static readonly string[] SizeSuffixes = { "bytes", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB" };
-        static string SizeSuffix(Int64 value)
-        {
-            //if (value < 0) { return "-" + SizeSuffix(-value); }
-            if (value == 0) { return "\tFile Cancellato"; }
-
-            int mag = (int)Math.Log(value, 1024);
-            decimal adjustedSize = (decimal)value / (1L << (mag * 10));
-
-            return "\t" + string.Format("{0:n1} {1}", adjustedSize, SizeSuffixes[mag]);
-        }
     }
 }
