@@ -63,7 +63,7 @@ namespace BackupServer
         {
             mainWindow = mw;
             port = portPassed;
-            //serverSocket = serverSocketPassed;
+            //serverSocket = serverSocketPassed; ??
             serverSocket = mw.serverSocket; //serverSocket come argomento del costruttore, preso comunque direttamente da MainWindow
             
             // Operazioni eseguite in thread separati per socket
