@@ -90,7 +90,6 @@ namespace BackupServer
         private void MFDBD_Checked(object sender, RoutedEventArgs e)
         {
             pathDB = Directory.GetCurrentDirectory() + "\\DatabasePROVA.sqlite";
-            //pathDB = "\\\\Mac\\Home\\Documents\\db1.sqlite";
         }
 
         private void MFDBD_Unchecked(object sender, RoutedEventArgs e)
@@ -283,7 +282,7 @@ namespace BackupServer
                             comand = new SQLiteCommand(queryCheck, m_dbConnection, transazioneINIT);
                             if (comand.ExecuteScalar() == null)
                             {
-                                String queryCreaTab3 = "CREATE TABLE UTENTILOGGATI ( username VARCHAR(50), indirizzoMAC VARCHAR(50), lastUpdate VARCHAR(50),PRIMARY KEY (username,indirizzoMAC))";
+                                String queryCreaTab3 = "CREATE TABLE UTENTILOGGATI ( username VARCHAR(50), lastUpdate VARCHAR(50),PRIMARY KEY (username))";
                                 comand = null;
                                 comand = new SQLiteCommand(queryCreaTab3, m_dbConnection, transazioneINIT);
                                 comand.ExecuteNonQuery();

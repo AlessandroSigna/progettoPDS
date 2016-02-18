@@ -598,8 +598,8 @@ namespace Client
             List<String> retFiles = new List<String>();
             try
             {
-                //si chiede al server la lista dei file nella folder (che contengono likeNome)
-                clientlogic.WriteStringOnStream(ClientLogic.LISTFILES + clientlogic.username + "+" + folderPath + "+" + "");
+                //si chiede al server la lista dei file nella folder
+                clientlogic.WriteStringOnStream(ClientLogic.LISTFILES + clientlogic.username + "+" + folderPath);
 
                 Boolean exit = false;
                 Boolean fine = false;

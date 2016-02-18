@@ -62,7 +62,6 @@ namespace Client
         public AutoResetEvent event_1;
         public string folder;
         public string folderR;
-        public string mac;
         private string _username;
         public bool connesso = false;   //true se loggato
         public string username
@@ -168,26 +167,6 @@ namespace Client
             }
         }
 
-        private string GetMacAddress()
-        {
-            const int MIN_MAC_ADDR_LENGTH = 12;
-            string macAddress = string.Empty;
-            long maxSpeed = -1;
-
-            foreach (NetworkInterface nic in NetworkInterface.GetAllNetworkInterfaces())
-            {
-                string tempMac = nic.GetPhysicalAddress().ToString();
-                if (nic.Speed > maxSpeed &&
-                    !string.IsNullOrEmpty(tempMac) &&
-                    tempMac.Length >= MIN_MAC_ADDR_LENGTH)
-                {
-                    maxSpeed = nic.Speed;
-                    macAddress = tempMac;
-                }
-            }
-
-            return macAddress;
-        }
 
         public TcpState GetState(TcpClient tcpClient)
         {
@@ -972,8 +951,7 @@ namespace Client
                     //App.Current.MainWindow.Content = main;
                     mw.restart(true, e.Error.Message);
                 }
-
-                if (e.Cancelled)
+                else if (e.Cancelled)
                 {
                     //Se l'invio file è stato annullato  si ritorna ad uno stato stabile (senza rollback?) e lo si comunica all'utente nella TextBox FileUploading
                     // Questi comandi non dovrebbero essere qui
