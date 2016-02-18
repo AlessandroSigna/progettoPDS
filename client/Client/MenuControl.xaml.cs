@@ -42,6 +42,8 @@ namespace Client
         private string lastCheck;       //non so
         private string[] files; //filenames nella rootDir
 
+        public const string WARNING_SINCRONIZZAZIONE = "L'operazione non è stata sincronizzata.";
+
         //lista di estensioni problematiche per le quali non voglio sincronizzare il relativo file -  FIXME?
         private List<string> extensions = new List<string>() { "", ".pub", ".pps", ".pptm", ".ppt", ".pptx", ".xlm", ".xlt", ".xls", ".docx", ".doc", ".tmp", ".lnk", ".TMP", ".docm", ".dotx", ".dotcb", ".dotm", ".accdb", ".xlsx", ".jnt" };
 
@@ -206,10 +208,9 @@ namespace Client
                     String risposta = mw.clientLogic.ReadStringFromStream();  //consumo la risposta senza analizzarla?
                     if (risposta.Contains("ERR"))
                     {
-                        String tmp = risposta.Substring(1, risposta.Length - 1);
-                        String messaggioErrore = risposta.Substring(tmp.IndexOf('+') + 2, tmp.Length - tmp.IndexOf('+') - 1);
-                        MessageBoxResult result = System.Windows.MessageBox.Show(messaggioErrore, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        System.Windows.MessageBox.Show(WARNING_SINCRONIZZAZIONE, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
                     }
+
                     updating = false;
                     mw.clientLogic.event_1.Set();   //segnalo l'evento
                 }
@@ -316,6 +317,7 @@ namespace Client
         {
             try
             {
+                string risposta = null;
                 //i controlli iniziali sono gli stessi
                 Console.WriteLine("Onren");
                 Console.WriteLine(e.FullPath);
@@ -337,7 +339,11 @@ namespace Client
                 {
                     updating = true;
                     mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + "+" + e.OldFullPath + "+" + e.FullPath + "+" + "DIR");
-                    mw.clientLogic.ReadStringFromStream();
+                    risposta = mw.clientLogic.ReadStringFromStream();
+                    if (risposta.Contains("ERR"))
+                    {
+                        System.Windows.MessageBox.Show(WARNING_SINCRONIZZAZIONE, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    }
                     updating = false;
                     mw.clientLogic.event_1.Set();
 
@@ -349,7 +355,11 @@ namespace Client
                     {
                         updating = true;
                         mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + "+" + e.OldFullPath + "+" + e.FullPath);
-                        mw.clientLogic.ReadStringFromStream();
+                        risposta = mw.clientLogic.ReadStringFromStream();
+                        if (risposta.Contains("ERR"))
+                        {
+                            System.Windows.MessageBox.Show(WARNING_SINCRONIZZAZIONE, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        }
                         updating = false;
                         mw.clientLogic.event_1.Set();
                     }
@@ -388,7 +398,11 @@ namespace Client
                 byte[] header = null;
                 string checksum = "";
 
-                mw.clientLogic.ReadStringFromStream();  //consumo lo stream (eventuale risposta del server)
+                string risposta = mw.clientLogic.ReadStringFromStream();  //consumo lo stream (eventuale risposta del server)
+                if (risposta.Contains("ERR"))
+                {
+                    System.Windows.MessageBox.Show(WARNING_SINCRONIZZAZIONE, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
+                }
                 Thread.Sleep(100);
 
                 //le operazioni sono molto simili a quanto fatto nella ClientLogic.InviaFile
@@ -403,6 +417,12 @@ namespace Client
                 string streamReady = mw.clientLogic.ReadStringFromStream();
                 if (streamReady.Equals(ClientLogic.OK + "File ricevuto correttamente") || streamReady.Equals(ClientLogic.INFO + "File non modificato") || streamReady.Equals(ClientLogic.INFO + "file dim 0"))
                 {
+                    fs.Close();
+                    return;
+                }
+                else if (streamReady.Contains("ERR"))
+                {
+                    System.Windows.MessageBox.Show(WARNING_SINCRONIZZAZIONE, "Attenzione", MessageBoxButton.OK, MessageBoxImage.Warning);
                     fs.Close();
                     return;
                 }

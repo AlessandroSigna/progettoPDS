@@ -888,6 +888,7 @@ namespace BackupServer
 
                 string risp = RiceviFile(clientsocket, user, fileList, null);
 
+                //throw new Exception("Eccezione generata manualmente.");
                 transazioneFile.Commit();
                 transazioneFile.Dispose();
 
@@ -1629,6 +1630,7 @@ namespace BackupServer
                         return ERRORE + "Impossibile inserire file su DB";
                     }
 
+                    //throw new Exception("Eccezione generata manualmente.");
                     transazioneRename.Commit();
                     transazioneRename.Dispose();
                     return OK + "Inserito match rinomina file";
@@ -1646,15 +1648,15 @@ namespace BackupServer
         // Chiama inserisci file e azzera dimensioni del file con quell'ID
         private string comandoFileCancellato(string responseData)
         {
-            //SQLiteTransaction transazioneDelete = mainWindow.m_dbConnection.BeginTransaction();
+            SQLiteTransaction transazioneDelete = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
                 String[] parametri = responseData.Split('+');
                 int numParametri = parametri.Length;
                 if (numParametri > 4 || numParametri < 4)
                 {
-                    //transazioneDelete.Rollback();
-                    //transazioneDelete.Dispose();
+                    transazioneDelete.Rollback();
+                    transazioneDelete.Dispose();
                     return ERRORE + "Numero di paramentri passati per la cancellazione del file errato";
                 }
 
@@ -1664,28 +1666,28 @@ namespace BackupServer
 
                 if (comando == null || !comando.Equals(CANC.Replace('+', ' ').Trim()))
                 {
-                    //transazioneDelete.Rollback();
-                    //transazioneDelete.Dispose();
+                    transazioneDelete.Rollback();
+                    transazioneDelete.Dispose();
                     return ERRORE + "Comando errato";
                 }
                 if (user == null || user.Equals(""))
                 {
-                    //transazioneDelete.Rollback();
-                    //transazioneDelete.Dispose();
+                    transazioneDelete.Rollback();
+                    transazioneDelete.Dispose();
                     return ERRORE + "User non valido";
                 }
                 if (fileName == null || fileName.Equals(""))
                 {
-                    //transazioneDelete.Rollback();
-                    //transazioneDelete.Dispose();
+                    transazioneDelete.Rollback();
+                    transazioneDelete.Dispose();
                     return ERRORE + "fileName non valido";
                 }
 
                 string folderRoot = getFolderRoot(user);
                 if (folderRoot == null)
                 {
-                    //transazioneDelete.Rollback();
-                    //transazioneDelete.Dispose();
+                    transazioneDelete.Rollback();
+                    transazioneDelete.Dispose();
                     return ERRORE + "impossibile recuperare FolderRoot";
                 }
 
@@ -1694,6 +1696,7 @@ namespace BackupServer
                 comandoP0.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                 comandoP0.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                 comandoP0.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName;
+                comandoP0.Transaction = transazioneDelete;
                 SQLiteDataReader dr2;
                 String idfile = "0";
                 try
@@ -1705,6 +1708,8 @@ namespace BackupServer
                     {
                         idfile = Convert.ToString(dr2["idfile"]);
                     }
+
+                    dr2.Close();
                 }
                 finally
                 {
@@ -1719,6 +1724,7 @@ namespace BackupServer
                     comandoP0D.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                     comandoP0D.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comandoP0D.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName + "\\%";
+                    comandoP0D.Transaction = transazioneDelete;
                     SQLiteDataReader dr2D;
                     String idfileD = "0";
 
@@ -1741,19 +1747,24 @@ namespace BackupServer
 
                         if (inserisciFile(user, folderRoot, fileNameD, lastVersionD, null, 0, "", null, idfileD, "S"))
                         {
-                            //transazioneDelete.Commit();
-                            //transazioneDelete.Dispose();
+                            transazioneDelete.Commit();
+                            transazioneDelete.Dispose();
                             Console.WriteLine(OK + "File cancellatto correttamente");
                         }
                         else
                         {
-                            //transazioneDelete.Rollback();
-                            //transazioneDelete.Dispose();
+                            transazioneDelete.Rollback();
+                            transazioneDelete.Dispose();
                             Console.WriteLine(ERRORE + "impossibile cancellare il file");
                             return ERRORE + "impossibile cancellare il file";
                         }
                     }
-                    throw new Exception("Eccezione generata manualmente.");
+
+                    dr2D.Close();
+
+                    //throw new Exception("Eccezione generata manualmente.");
+                    transazioneDelete.Commit();
+                    transazioneDelete.Dispose();
                     return OK + "File cancellatti correttamente";
                 }
                 else
@@ -1763,15 +1774,16 @@ namespace BackupServer
 
                     if (inserisciFile(user, folderRoot, fileName, lastVersion, null, 0, "", null, idfile, "S"))
                     {
-                        //transazioneDelete.Commit();
-                        //transazioneDelete.Dispose();
-                        throw new Exception("Eccezione generata manualmente.");
+
+                        //throw new Exception("Eccezione generata manualmente.");
+                        transazioneDelete.Commit();
+                        transazioneDelete.Dispose();
                         return OK + "File cancellatto correttamente";
                     }
                     else
                     {
-                        //transazioneDelete.Rollback();
-                        //transazioneDelete.Dispose();
+                        transazioneDelete.Rollback();
+                        transazioneDelete.Dispose();
                         return ERRORE + "impossibile cancellare il file";
                     }
 
@@ -1779,8 +1791,8 @@ namespace BackupServer
             }
             catch
             {
-                //transazioneDelete.Rollback();
-                //transazioneDelete.Dispose();
+                transazioneDelete.Rollback();
+                transazioneDelete.Dispose();
                 return ERRORE + "impossibile cancellare il file";
             }
 
