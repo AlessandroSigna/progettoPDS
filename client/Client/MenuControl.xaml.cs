@@ -125,6 +125,7 @@ namespace Client
                     {
                         pbStatus.Visibility = Visibility.Visible;
                         mw.clientLogic.InvioFile(files);    //se necessario invio al server i files nella cartella e nelle sottocartelle - lavorandoinvio true nel frattempo
+                        RestoreFile.IsEnabled = false;
                     }
                     watcher = new System.IO.FileSystemWatcher();    //FileWatcher a cui si registrano le callback in caso di modifiche sui file
                     watcher.Path = BackupDir.Text;
@@ -388,7 +389,7 @@ namespace Client
         }
 
         /*
-         * Invia il file puntato da fileName al sever. 
+         * Invia il file puntato da fileName al sever.
          * Usata nel caso di creazione di file o di renaming
          */
         private void InviaSingoloFile(string fileName, string onCreate)

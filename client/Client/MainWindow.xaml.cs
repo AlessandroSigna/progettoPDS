@@ -103,6 +103,7 @@ namespace Client
         {
             MainControl main = new MainControl();
             App.Current.MainWindow.Content = main;
+            App.Current.MainWindow.Title = "MyCloud";
 
             if (error)
                 main.messaggioErrore(messaggio);

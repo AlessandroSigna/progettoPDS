@@ -1763,8 +1763,8 @@ namespace BackupServer
                     dr2D.Close();
 
                     //throw new Exception("Eccezione generata manualmente.");
-                    transazioneDelete.Commit();
-                    transazioneDelete.Dispose();
+                    //transazioneDelete.Commit();
+                    //transazioneDelete.Dispose();
                     return OK + "File cancellatti correttamente";
                 }
                 else

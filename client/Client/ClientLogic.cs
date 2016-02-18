@@ -961,6 +961,7 @@ namespace Client
                 menuc.Wait.Visibility = Visibility.Hidden;
                 menuc.EffettuaBackup.IsEnabled = true;
                 menuc.EffettuaBackup.Visibility = Visibility.Visible;
+                menuc.RestoreFile.IsEnabled = true;
                 BrushConverter bc = new BrushConverter();
                 lavorandoInvio = false;
                 event_1.Set();
