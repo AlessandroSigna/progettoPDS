@@ -91,7 +91,8 @@ namespace Client
                         rootItemTag.relativePath = s.Substring(s.LastIndexOf("\\") + 1);  //nome 
                         rootItemTag.nome = rootItemTag.relativePath;
                         rootItemTag.rootDir = s;
-                        TreeViewItem item = GetRootFolderItem(rootItemTag.nome);
+                        TreeViewItem item = new TreeViewItem();
+                        item.Header = rootItemTag.nome;
                         item.Tag = rootItemTag;
                         item.FontWeight = FontWeights.Normal;
                         item.Items.Add(dummyNode);
@@ -505,9 +506,15 @@ namespace Client
                         BitmapImage source = new BitmapImage(uri);
                         return source;
                     }
-                    else //if (tag.tipo == ItemType.Folder)
+                    else if (tag.tipo == ItemType.Folder)
                     {
                         Uri uri = new Uri("pack://application:,,,/Images/folder.png");
+                        BitmapImage source = new BitmapImage(uri);
+                        return source;
+                    }
+                    else //if (tag.tipo == ItemType.RootFolder)
+                    {
+                        Uri uri = new Uri("pack://application:,,,/Images/home.png");
                         BitmapImage source = new BitmapImage(uri);
                         return source;
                     }
