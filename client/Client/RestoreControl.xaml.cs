@@ -29,6 +29,7 @@ namespace Client
         private object dummyNode = null;
         public string SelectedImagePath { get; set; }
         public static HeaderToImageConverter ConverterInstance = new HeaderToImageConverter();
+        //private List<TreeViewItem> itemFolderList = new List<TreeViewItem>();
         
         #region Costruttore
         /*
@@ -196,6 +197,38 @@ namespace Client
             }
         }
 
+        private void FolderSort(TreeViewItem head, TreeViewItem node, TreeViewItem parent)
+        {
+            // se il primo contiene il punto sarà un file
+            // se il primo è un folder si procede, altrimenti andrà sicuramente prima l'oggetto attuale che è una cartella (e quindi andrà posizionato prima dei file).
+            if (!head.Header.ToString().Contains("."))
+            {
+                // Confronta l'oggetto attuale con quello in prima posizione, se l'oggetto attuale precede alfabeticamente
+                // il primo della lista, allora prenderà il suo posto, altrimenti sarà posizionato dopo.
+                if (head.Header.ToString().CompareTo(node.Header.ToString()) > 0)
+                {
+                    parent.Items.Insert(parent.Items.CurrentPosition, node);
+                }
+                else
+                {
+                    parent.Items.MoveCurrentToNext();
+                    if (!parent.Items.IsCurrentAfterLast)
+                    {
+                        head = (TreeViewItem)parent.Items.GetItemAt(parent.Items.CurrentPosition);
+                        FolderSort(head, node, parent);
+                    }
+                    else
+                    {
+                        parent.Items.Insert(parent.Items.CurrentPosition, node);
+                    }
+                }
+            }
+            else
+            {
+                parent.Items.Insert(parent.Items.CurrentPosition, node);
+            }
+        }
+
         /*
          * Metodo principale per il popolamento del TreeView
          * Analizza la stringa di subFileInfo e aggiunge folder e/o file come subitem al parentItem
@@ -233,25 +266,7 @@ namespace Client
                     String parentFolderPath = parentTag.fullPath;
                     String itemRelativePath = MakeRelativePath(parentFolderPath, itemFullPath);
 
-                    if (!itemRelativePath.Contains(@"\"))    //è il path di un file che sta direttamente nella folder aperta
-                    {
-                        //istanzio in ItemTag con le info contenute in subFileInfo
-                        ItemTag subItemTag = new ItemTag(subFileInfo, ItemType.File);
-                        subItemTag.relativePath = itemRelativePath;
-                        subItemTag.nome = itemRelativePath;
-                        subItemTag.rootDir = parentTag.rootDir;
-
-                        //istanzio il TreeViewItem (oggetto visibile nel TreeView) mettendogli come tag l'oggetto ItemTag appena creato
-                        TreeViewItem subItem = new TreeViewItem();
-                        subItem.Header = subItemTag.nome;
-                        subItem.Tag = subItemTag;
-                        subItem.FontWeight = FontWeights.Normal;
-                        subItem.Items.Add(dummyNode);
-                        subItem.Expanded += new RoutedEventHandler(file_Expanded);        //callback per l'espansione del file
-                        parentItem.Items.Add(subItem);
-
-                    }
-                    else if (itemRelativePath.Contains(@"\"))    //è il path di un file che sta in una sottocartella - estraggo solo il nome della cartella
+                    if (itemRelativePath.Contains(@"\"))    //è il path di un file che sta in una sottocartella - estraggo solo il nome della cartella
                     {
 
                         String folderName = itemRelativePath.Substring(0, itemRelativePath.IndexOf("\\"));
@@ -277,9 +292,82 @@ namespace Client
                             folderItem.FontWeight = FontWeights.Normal;
                             //folderItem.Items.Add(dummyNode);  //qui il dummyNode non serve perchè gestisco a mano l'inserimento del primo nodo
                             folderItem.Expanded += new RoutedEventHandler(folder_Expanded);        //file expanded
-                            parentItem.Items.Add(folderItem);
+
+                            parentItem.Items.MoveCurrentToFirst();
+
+                            // Se è il primo della struttura, sarà posizionato in 0.
+                            if (parentItem.Items.CurrentPosition == -1)
+                            {
+                                parentItem.Items.Insert(0, folderItem);
+                            }
+                            else
+                            {
+                                TreeViewItem temp = (TreeViewItem)parentItem.Items.CurrentItem;
+
+                                FolderSort(temp, folderItem, parentItem);
+
+                            }
                         }
+
                         AddSubItem(folderItem, subFileInfo);
+                    }
+                    else if (!itemRelativePath.Contains(@"\"))    //è il path di un file che sta direttamente nella folder aperta
+                    {
+                        //istanzio in ItemTag con le info contenute in subFileInfo
+                        ItemTag subItemTag = new ItemTag(subFileInfo, ItemType.File);
+                        subItemTag.relativePath = itemRelativePath;
+                        subItemTag.nome = itemRelativePath;
+                        subItemTag.rootDir = parentTag.rootDir;
+
+                        //istanzio il TreeViewItem (oggetto visibile nel TreeView) mettendogli come tag l'oggetto ItemTag appena creato
+                        TreeViewItem subItem = new TreeViewItem();
+                        //itemFolderList.Add(subItem);
+                        subItem.Header = subItemTag.nome;
+                        subItem.Tag = subItemTag;
+                        subItem.FontWeight = FontWeights.Normal;
+                        subItem.Items.Add(dummyNode);
+                        subItem.Expanded += new RoutedEventHandler(file_Expanded);        //callback per l'espansione del file
+
+                        parentItem.Items.MoveCurrentToLast();
+
+                        // Se è il primo della struttura, sarà posizionato in 0.
+                        if (parentItem.Items.CurrentPosition == -1)
+                        {
+                            parentItem.Items.Insert(0, subItem);
+                        }
+                        else
+                        {
+                            TreeViewItem temp = (TreeViewItem)parentItem.Items.CurrentItem;
+
+                            // se contiene il punto sarà un file
+                            // se l'ultimo è un file si procede, altrimenti l'oggetto attuale che è un file andrà sicuramente dopo le cartelle.
+                            if (temp.Header.ToString().Contains("."))
+                            {
+                                // Confronta l'oggetto attuale con quello in ultima posizione, se l'oggetto attuale succede alfabeticamente
+                                // l'ultimo della lista, allora prenderà il suo posto, altrimenti sarà posizionato prima.
+                                if (temp.Header.ToString().CompareTo(subItem.Header.ToString()) < 0)
+                                {
+                                    parentItem.Items.Insert(parentItem.Items.CurrentPosition + 1, subItem);
+                                }
+                                else // Non entra mai in questo else perché arrivano in ordine alfabetico
+                                {
+                                    // Per evitare out of range, controllo che sia disponibile la prima posizione, altrimenti inserisco nella posizione 0.
+                                    if (parentItem.Items.CurrentPosition != 0)
+                                    {
+                                        parentItem.Items.Insert(parentItem.Items.CurrentPosition - 1, subItem);
+                                    }
+                                    else
+                                    {
+                                        parentItem.Items.Insert(0, subItem);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                parentItem.Items.Insert(parentItem.Items.CurrentPosition, subItem);
+                            }
+                        }
+
                     }
                 }
             }
