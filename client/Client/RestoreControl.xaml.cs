@@ -1,9 +1,10 @@
-﻿using MahApps.Metro.Controls;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Text;
 using System.Globalization;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace Client
 {
@@ -29,7 +31,7 @@ namespace Client
         private object dummyNode = null;
         public string SelectedImagePath { get; set; }
         public static HeaderToImageConverter ConverterInstance = new HeaderToImageConverter();
-        
+        private BackgroundWorker workertransaction;
         #region Costruttore
         /*
          * Costruttore
@@ -136,6 +138,7 @@ namespace Client
             item.Header = stack;
             return item;
         }
+
         /*
          * Callback chiamata quando una rootFolder viene espansa
          */
@@ -146,15 +149,19 @@ namespace Client
                 TreeViewItem item = (TreeViewItem)sender;
                 if (item.Items.Count == 1 && item.Items[0] == dummyNode)
                 {
-                    //entro qui solo quando l'oggetto viene espanso la prima volta
+                    //entro qui solo quando la root folder viene espansa la prima volta
+                    MyPopup.IsOpen = true;
                     item.Items.Clear();
 
-                    ItemTag tag = (ItemTag)item.Tag;
-                    List<String> folderContent = RetrieveFolderContent(tag.fullPath);   //lista di stringhe contenenti fileinfo
-                    foreach (String s in folderContent)
-                    {
-                        AddSubItem(item, s);
-                    }
+                    //ho bisogno del worker per mantenere la UI responsive
+                    workertransaction = new BackgroundWorker();
+
+                    object paramObj1 = item.Tag;
+                    object paramObj2 = item;
+                    object[] parameters = new object[] { paramObj1, paramObj2 };
+                    workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_RootFolder);
+                    workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_RootFolderCompleted);
+                    workertransaction.RunWorkerAsync(parameters);
                 }
             }
             catch
@@ -164,6 +171,36 @@ namespace Client
             
         }
 
+        private void Workertransaction_RootFolder(object sender, DoWorkEventArgs e)
+        {
+            object[] parameters = e.Argument as object[];
+            ItemTag tag = (ItemTag)parameters[0];
+            TreeViewItem item = (TreeViewItem)parameters[1];
+            List<String> folderContent = RetrieveFolderContent(tag.fullPath);
+
+            foreach (String s in folderContent)
+            {
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<TreeViewItem, String>(AddSubItem), item, s); }));
+                t.Start();
+            }
+        }
+        private void Workertransaction_RootFolderCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            try
+            {
+                if (e.Error != null || e.Cancelled)
+                {
+                    ExitStub();
+                    return;
+                }
+
+                MyPopup.IsOpen = false;
+            }
+            catch
+            {
+                ExitStub();
+            }
+        }
         /*
          * Callback chiamata quando un file viene espanso
          */

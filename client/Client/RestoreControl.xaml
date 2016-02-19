@@ -11,6 +11,14 @@
             <RowDefinition Height="149*"/>
             <RowDefinition Height="26*"/>
         </Grid.RowDefinitions>
+
+
+        <Popup Name="MyPopup" Placement="Mouse">
+            <Grid Height="56" Width="254" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
+                <Label Content="Scaricando informazioni dal server..." HorizontalAlignment="Center"/>
+                <ProgressBar Minimum="0" Maximum="100" x:Name="pbStatus" IsIndeterminate="True" Margin="49,27,49,10"/>
+            </Grid>
+        </Popup>
         <Label x:Name="noFolder" Visibility="Visible" Content="Nessuna cartella salvata!"  HorizontalAlignment="Left" Margin="60,75,0,0" VerticalAlignment="Top" Height="47" Width="299" BorderThickness="0" FontSize="24" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold" Foreground="Red" />
 
         <Button x:Name="ConfirmButton" Content="Ripristina" HorizontalAlignment="Center" Margin="253,5,0,0" VerticalAlignment="Top" Width="147" Height="38" FontFamily="Yu Gothic UI Semibold" FontSize="13" Opacity="0.9" Background="#F5FFFA" IsEnabled="False" MouseEnter="ConfirmButton_MouseEnter" MouseLeave="ConfirmButton_MouseLeave" Click="ConfirmButton_Click" Grid.Row="1">

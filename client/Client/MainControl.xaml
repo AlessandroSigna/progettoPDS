@@ -21,7 +21,7 @@
                         <Label Content="Inserire un indirizzo IP nel formato x.x.x.x"/>
                     </StackPanel>
                 </ToolTip>
-                </TextBox.ToolTip>
+            </TextBox.ToolTip>
         </TextBox>
         <TextBox x:Name="PortBox" Text="1234" MaxLength ="5" HorizontalAlignment="Left" Height="27" Margin="191,196,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontSize="14" FontFamily="Yu Gothic UI Semibold" TextAlignment="Center" VerticalContentAlignment="Center" LostFocus="PortBox_LostFocus" RenderTransformOrigin="0.942,0.481">
             <TextBox.Resources>
@@ -81,6 +81,7 @@
                 </Style>
             </Button.Style>
         </Button>
+
         <Grid.Background>
             <ImageBrush>
                 <ImageBrush.ImageSource>
