@@ -2199,87 +2199,94 @@ namespace BackupServer
 
         // Usa l'header per sapere la dimensione del file
         // Unico punto in cui usa socket.Receive
-        // Controllo integrità prendendo il checksum (file in arrivo) dall'header
-        // Usa MD5 Hash per calcolare checksum file ricevuto che è diverso da checksum file in arrivo
+        // Controllo sul checksum (file in arrivo) dall'header
         public string RiceviFile(TcpClient client, String user, LinkedList<string> listFile, SQLiteTransaction transazioneFile,String ext)
         {
-            writeStringOnStream(client, OK);
-            int bufferSize = 1024;
-            byte[] buffer = null;
-            byte[] header = null;
-            string headerStr = "";
-            string filename = "";
-            string checksumFileInArrivo = "";
-            int filesize = 0;
-            String token = RandomString(10);
-            string pathTmp = Directory.GetCurrentDirectory() + "\\" + token; // Il token serve solo per non avere path temporanei coincidenti?
-
-            header = new byte[bufferSize];
+            String pathTmp = null;
             try
             {
+                writeStringOnStream(client, OK);
+                byte[] buffer = null;
+                byte[] header = null;
+                string headerStr = "";
+                string filename = "";
+                string checksumFileInArrivo = "";
+                int filesize = 0;
+                String token = RandomString(10);
+
+                header = new byte[BUFFERSIZE];
                 client.Client.Receive(header);
+                headerStr = Encoding.ASCII.GetString(header);
+
+                string[] splitted = headerStr.Split(new string[] { "\r\n" }, StringSplitOptions.None);
+                Dictionary<string, string> headers = new Dictionary<string, string>();
+                foreach (string s in splitted)
+                {
+                    if (s.Contains(":"))
+                    {
+                        headers.Add(s.Substring(0, s.IndexOf(":")), s.Substring(s.IndexOf(":") + 1));
+                    }
+
+                }
+                //Dimensione prelevata dall'header
+                filesize = Convert.ToInt32(headers["Content-length"]);
+                int filesizeC = filesize;
+                if (filesizeC == 0)
+                {
+                    return INFO + "file dim 0";
+                }
+                filename = headers["Filename"];
+                checksumFileInArrivo = headers["Checksum"];
+                listFile.AddFirst(filename);
+                // Controllo se il file è presente identico nel db
+                if (!(ext != null && ext.Equals("CREATE")) && controlloCheck(checksumFileInArrivo, user, filename))
+                {
+                    return INFO + "File non modificato";
+                }
+
+                writeStringOnStream(client, OK);
+
+
+                int bufferCount = Convert.ToInt32(Math.Ceiling((double)filesize / (double)BUFFERSIZE));
+
+                pathTmp = Directory.GetCurrentDirectory() + "\\" + token; // Il token serve solo per non avere path temporanei coincidenti
+                using (FileStream fs = new FileStream(pathTmp, FileMode.OpenOrCreate))
+                {
+                    while (filesize > 0)
+                    {
+                        buffer = new byte[BUFFERSIZE];
+                        int size = client.Client.Receive(buffer, SocketFlags.Partial);
+                        fs.Write(buffer, 0, size);
+                        filesize -= size;
+                    }
+                }
+
+                using (FileStream fs = new FileStream(pathTmp, FileMode.Open, FileAccess.Read))
+                {
+                    byte[] file = new byte[fs.Length];
+                    fs.Read(file, 0, System.Convert.ToInt32(fs.Length));
+                    string checksumFileRicevuto = GetMD5HashFromFile(pathTmp);
+
+                    if (incasellaFile(user, null, filename, file, filesizeC, checksumFileRicevuto, transazioneFile, ext))
+                    {
+                        return OK + "File ricevuto correttamente";
+                    }
+                    else
+                    {
+                        return ERRORE + "Invio file non riuscito";
+                    }
+                }
             }
             catch
             {
                 return "FORCE_ERRORE";
             }
-            headerStr = Encoding.ASCII.GetString(header);
-
-            string[] splitted = headerStr.Split(new string[] { "\r\n" }, StringSplitOptions.None);
-            Dictionary<string, string> headers = new Dictionary<string, string>();
-            foreach (string s in splitted)
+            finally
             {
-                if (s.Contains(":"))
+                if (pathTmp != null)
                 {
-                    headers.Add(s.Substring(0, s.IndexOf(":")), s.Substring(s.IndexOf(":") + 1));
+                    File.Delete(pathTmp);
                 }
-
-            }
-            //Dimensione prelevata dall'header
-            filesize = Convert.ToInt32(headers["Content-length"]);
-            int filesizeC = filesize;
-            if (filesizeC == 0)
-            {
-                return INFO + "file dim 0";
-            }
-            filename = headers["Filename"];
-            checksumFileInArrivo = headers["Checksum"];
-            listFile.AddFirst(filename);
-            // Controllo integrità
-            if (!(ext!=null && ext.Equals("CREATE")) &&  controlloCheck(checksumFileInArrivo, user, filename))
-            {
-                return INFO + "File non modificato";
-            }
-
-            writeStringOnStream(client, OK);
-
-
-            int bufferCount = Convert.ToInt32(Math.Ceiling((double)filesize / (double)bufferSize));
-            FileStream fs = new FileStream(pathTmp, FileMode.OpenOrCreate);
-
-            while (filesize > 0)
-            {
-                buffer = new byte[bufferSize];
-                int size = client.Client.Receive(buffer, SocketFlags.Partial);
-                fs.Write(buffer, 0, size);
-                filesize -= size;
-            }
-            fs.Close();
-
-            fs = new FileStream(pathTmp, FileMode.Open, FileAccess.Read);
-            byte[] file = new byte[fs.Length];
-            fs.Read(file, 0, System.Convert.ToInt32(fs.Length));
-            fs.Close();
-            string checksumFileRicevuto = GetMD5HashFromFile(pathTmp); // ???
-            File.Delete(pathTmp);
-
-            if (incasellaFile(user, null, filename, file, filesizeC, checksumFileRicevuto, transazioneFile,ext))
-            {
-                return OK + "File ricevuto correttamente";
-            }
-            else
-            {
-                return ERRORE + "Invio file non riuscito";
             }
         }
 

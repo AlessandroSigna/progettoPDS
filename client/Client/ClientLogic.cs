@@ -857,28 +857,13 @@ namespace Client
             int nFile = 100 / resultArray.Length;   //per calcolare la percentuale di progresso
             foreach (string name in resultArray)
             {
-                //try
-                //{
-                    this.WriteStringOnStream(ClientLogic.FILE + username);  //scrivo lo username sullo stream preceduto da FILE (per avvisare il server?)
-                //}
-                //catch
-                //{
-                //    //gestione eccezione: chiudo socket
-                //    if (this.clientsocket.Client.Connected)
-                //    {
-                //        this.clientsocket.GetStream().Close();
-                //        this.clientsocket.Close();
-                //    }
-                //    e.Result = false;
-                //}
+                WriteStringOnStream(ClientLogic.FILE + username);  //scrivo lo username sullo stream preceduto da FILE
 
                 InviaFile(name, ref inviato);
 
                 //gestisco i codici di errore ritornati da IviaFile
-                if (inviato)    //FIXME: magicnumber - file inviato
+                if (inviato)
                 {
-                    //try
-                    //{
                         workertransaction.ReportProgress(nFile, "Ultimo file sincronizzato: " + Path.GetFileName(name)); //si invoca la callback per monitorare il progresso
                         string message = ReadStringFromStream();
                         if (message == (ERRORE + "Invio file non riuscito"))
@@ -886,42 +871,20 @@ namespace Client
                             UpdateNotifyIconDisconnesso();
                         }
                         e.Result = true;
-                    //}
-                    //catch
-                    ////{
-                    //    e.Result = false;
-                    //    break;
-                    //}
                 }
-                else   //FIXME: magicnumber - Non è stato necessario inviare il file
+                else   
                 {
                     workertransaction.ReportProgress(nFile, "Ultimo file sincronizzato: " + Path.GetFileName(name));
                     e.Result = true;
                 }
-                //else if (retVal == 2)   //FIXME: magicnumber - eccezione
-                //{
-                //    //e.Result = false; 
-                //    throw new Exception();
-                //    // break;
-                //}
                 if (monitorando == false)   //se monitorando vale false in questo contesto vuol dire che ho voluto interrompere da MenuControl il backup
                 {
                     e.Cancel = true;
                     return;
                 }
             }
-            //try
-            //{
-                this.WriteStringOnStream(ClientLogic.ENDSYNC /*+ username + "+" + backupFolder*/);    //comunico al server che ho terminato l'invio dei file
-            //}
-            //catch
-            //{
-                //if (this.clientsocket.Client.Connected)
-                //{
-                //    this.clientsocket.GetStream().Close();
-                //    this.clientsocket.Close();
-                //}
-            //}
+            this.WriteStringOnStream(ClientLogic.ENDSYNC + username + "+" + cartellaMonitorata);    //comunico al server che ho terminato l'invio dei file
+
         }
 
         /*
@@ -945,70 +908,30 @@ namespace Client
                 if (e.Error != null)
                 {
                     DisconnectAndClose();
-                    //MainControl main = new MainControl();
-                    //App.Current.MainWindow.Content = main;
                     mw.restart(true, e.Error.Message);
                 }
                 else if (e.Cancelled)
                 {
-                    //Se l'invio file è stato annullato  si ritorna ad uno stato stabile (senza rollback?) e lo si comunica all'utente nella TextBox FileUploading
-                    // Questi comandi non dovrebbero essere qui
+                    //Se l'invio file è stato annullato  lo si comunica all'utente nella TextBox FileUploading
                     menuc.EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
                     menuc.EffettuaBackup.Content = "Start";
                     menuc.FolderButton.IsEnabled = true;
                     menuc.FileUploading.Text = "Non tutti i dati sono aggiornati";
-                    //monitorando = false;
-                    //MenuControl menuC = (MenuControl)App.Current.MainWindow.Content;
-                    //if (menuC.exit) //non capisco exit cosa gestisce
-                    //{
-                    //    MainWindow mainw = (MainWindow)App.Current.MainWindow;
-                    //    mainw.clientLogic.monitorando = false;
-                    //    mainw.clientLogic.lavorandoInvio = false;
-                    //    mainw.clientLogic.WriteStringOnStream(ClientLogic.DISCONNETTIUTENTE + username + "+" + mac);
-                    //    connesso = false;
-                    //    ClientLogic.UpdateNotifyIconDisconnesso();
-                    //    //if (mainw.clientLogic.clientsocket.Client.Connected)
-                    //    //{
-                    //    //    mainw.clientLogic.clientsocket.GetStream().Close();
-                    //    //    mainw.clientLogic.clientsocket.Close();
-                    //    //}
-                    //    DisconnectAndClose();
-                    //    //MainControl main = new MainControl();
-                    //    //App.Current.MainWindow.Content = main;
-                    //    mw.restart(false);
-                    //}
+
                 }
                 else
                 {
                     //altrimenti si comunica il 'successo'
                     menuc.FileUploading.Text = "Ultima sincronizzazione : " + DateTime.Now;
 
-                    //se è avvenuto qualche problema nell'esecuzione del task torno a MainControl con un errore
-                    //if ((bool)e.Result == false)
-                    //{
-                    //    //MainControl main = new MainControl(1);  //FIXME: magicnumber
-                    //    //App.Current.MainWindow.Content = main;
-                    //    mw.restart(true);
-                    //    return;
-                    //}
                 }
             }
             catch
             {
-                //gestione eccezione chiudo stream e socket
-                //if (clientsocket.Connected)
-                //{
-                //    clientsocket.GetStream().Close();
-                //    clientsocket.Close();
-                //}
                 DisconnectAndClose();
-                //MainControl main = new MainControl(1);
-                //App.Current.MainWindow.Content = main;
                 mw.restart(true);
             }
-
         }
-
 
         /*
          * Callback per monitorare il progresso dell'invio chiamata da workertransaction.ReportProgress
@@ -1028,46 +951,44 @@ namespace Client
          */
         private void InviaFile(string Filename, ref bool inviato)
         {
-                int bufferSize = 1024;
-                byte[] buffer = null;
-                byte[] header = null;
-                string checksum = "";
+            byte[] buffer = null;
+            byte[] header = null;
+            string checksum = "";
 
-                ReadStringFromStream();     //?? per svuotare lo stream? per lanciare eccezione?
-                checksum = GetMD5HashFromFile(Filename);
-                FileStream fs = new FileStream(Filename, FileMode.Open);    //apro il file da inviare come uno stream
-                int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));    //numero di buffer necessari per salvare il file
+            ReadStringFromStream();     //?? per svuotare lo stream? per lanciare eccezione?
+            checksum = GetMD5HashFromFile(Filename);
+            FileStream fs = new FileStream(Filename, FileMode.Open);    //apro il file da inviare come uno stream
+            int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)BUFFERSIZE));    //numero di buffer necessari per salvare il file
 
-                //preparo una string header da inviare al server per informarlo sul file che invierò tra poco
-                string headerStr = "Content-length:" + fs.Length.ToString() + "\r\nFilename:" + Filename + "\r\nChecksum:" + checksum + "\r\n";
-                header = new byte[bufferSize];
-                Array.Copy(Encoding.ASCII.GetBytes(headerStr), header, Encoding.ASCII.GetBytes(headerStr).Length);  //FIXME: e se il filename è troppo lungo?!
-                clientsocket.Client.Send(header);   //invio l'header tramite il canale socket
-                string streamReady = ReadStringFromStream();
+            //preparo una string header da inviare al server per informarlo sul file che invierò tra poco
+            string headerStr = "Content-length:" + fs.Length.ToString() + "\r\nFilename:" + Filename + "\r\nChecksum:" + checksum + "\r\n";
+            header = new byte[BUFFERSIZE];
+            Array.Copy(Encoding.ASCII.GetBytes(headerStr), header, Encoding.ASCII.GetBytes(headerStr).Length);  //FIXME: e se il filename è troppo lungo?!
+            clientsocket.Client.Send(header);   //invio l'header tramite il canale socket
+            string streamReady = ReadStringFromStream();
 
-                if (streamReady.Equals(OK + "File ricevuto correttamente") || streamReady.Equals(INFO + "File non modificato") || streamReady.Equals(ClientLogic.INFO + "file dim 0"))
+            if (streamReady.Equals(OK + "File ricevuto correttamente") || streamReady.Equals(INFO + "File non modificato") || streamReady.Equals(ClientLogic.INFO + "file dim 0"))
+            {
+                //chiudo il FileStream visto che non è necessario inviarlo
+                fs.Close();
+                fs.Dispose();
+                //return false;
+                inviato = false;
+            }
+            else
+            {
+                //invio tanti pezzettini di file quanto necessario
+                for (int i = 0; i < bufferCount; i++)
                 {
-                    //chiudo il FileStream visto che non è necessario inviarlo
-                    fs.Close();
-                    fs.Dispose();
-                    //return false;
-                    inviato = false;
+                    buffer = new byte[BUFFERSIZE];
+                    int size = fs.Read(buffer, 0, BUFFERSIZE);
+                    clientsocket.Client.SendTimeout = 30000;
+                    clientsocket.Client.Send(buffer, size, SocketFlags.Partial);
                 }
-                else
-                {
-                    //invio tanti pezzettini di file quanto necessario
-                    for (int i = 0; i < bufferCount; i++)
-                    {
-                        buffer = new byte[bufferSize];
-                        int size = fs.Read(buffer, 0, bufferSize);
-                        clientsocket.Client.SendTimeout = 30000;
-                        clientsocket.Client.Send(buffer, size, SocketFlags.Partial);
-                    }
-                    fs.Close();
-                    fs.Dispose();
-                    //return true;   //FIXME: magicnumber
-                    inviato = true;
-                }
+                fs.Close();
+                fs.Dispose();
+                inviato = true;
+            }
         }
         #endregion
 

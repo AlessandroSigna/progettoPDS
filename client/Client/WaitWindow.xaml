@@ -1,0 +1,12 @@
+﻿<Window x:Class="Client.WaitWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        ResizeMode="NoResize"
+        Title="WaitWindow" Height="100" Width="300"
+        WindowStyle ="None">
+    <Grid>
+        <Label Name = "LabelMessaggio" HorizontalAlignment="Center"/>
+        <ProgressBar Minimum="0" Maximum="100" x:Name="pbStatus" IsIndeterminate="True" Margin="49,44,49,20"/>
+
+    </Grid>
+</Window>
