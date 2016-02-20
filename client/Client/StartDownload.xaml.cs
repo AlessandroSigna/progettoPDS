@@ -17,8 +17,6 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
-using MahApps.Metro.Controls;
-using MahApps.Metro.Controls.Dialogs;
 using System.Net.NetworkInformation;
 
 namespace Client

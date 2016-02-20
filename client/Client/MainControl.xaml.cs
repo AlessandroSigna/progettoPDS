@@ -1,5 +1,4 @@
-﻿using MahApps.Metro.Controls;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
@@ -7,7 +6,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
-using MahApps.Metro.Controls.Dialogs;
 using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Data;
@@ -30,7 +28,7 @@ namespace Client
         //private int errore;
         private Object tempContent = null;
         Window parentWindow;
-        ProgressRing bar;
+        //ProgressRing bar;
 
         public MainControl()
         {
@@ -65,21 +63,21 @@ namespace Client
 
         private void showHideWaitBar(bool show)
         {
-            if (show)
-            {
-                parentWindow = (Window)this.Parent;
-                bar = new ProgressRing();  //FIXME: MetroWindow dependence
-                tempContent = parentWindow.Content;
-                bar.IsActive = true;
-                bar.Width = 100;
-                bar.Height = 100;
-                parentWindow.Content = bar;
-            }
-            else
-            {
-                bar.IsActive = false;
-                parentWindow.Content = tempContent;
-            }
+            //if (show)
+            //{
+            //    parentWindow = (Window)this.Parent;
+            //    bar = new ProgressRing();  //FIXME: MetroWindow dependence
+            //    tempContent = parentWindow.Content;
+            //    bar.IsActive = true;
+            //    bar.Width = 100;
+            //    bar.Height = 100;
+            //    parentWindow.Content = bar;
+            //}
+            //else
+            //{
+            //    bar.IsActive = false;
+            //    parentWindow.Content = tempContent;
+            //}
         }
 
         #endregion
