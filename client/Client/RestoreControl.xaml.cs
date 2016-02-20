@@ -234,6 +234,38 @@ namespace Client
             }
         }
 
+        private void FileSort(TreeViewItem tail, TreeViewItem node, TreeViewItem parent)
+        {
+            // se contiene il punto sarà un file
+            // se l'ultimo è un file si procede, altrimenti l'oggetto attuale che è un file andrà sicuramente dopo le cartelle.
+            if (tail.Header.ToString().Contains("."))
+            {
+                // Confronta l'oggetto attuale con quello in ultima posizione, se l'oggetto attuale succede alfabeticamente
+                // l'ultimo della lista, allora prenderà il suo posto, altrimenti sarà posizionato prima.
+                if (tail.Header.ToString().CompareTo(node.Header.ToString()) < 0)
+                {
+                    parent.Items.Insert(parent.Items.CurrentPosition + 1, node);
+                }
+                else
+                {
+                    parent.Items.MoveCurrentToPrevious();
+                    if (!parent.Items.IsCurrentBeforeFirst)
+                    {
+                        tail = (TreeViewItem)parent.Items.GetItemAt(parent.Items.CurrentPosition);
+                        FileSort(tail, node, parent);
+                    }
+                    else
+                    {
+                        parent.Items.Insert(parent.Items.CurrentPosition + 1, node);
+                    }
+                }
+            }
+            else
+            {
+                parent.Items.Insert(parent.Items.CurrentPosition + 1, node);
+            }
+        }
+
         /*
          * Metodo principale per il popolamento del TreeView
          * Analizza la stringa di subFileInfo e aggiunge folder e/o file come subitem al parentItem
@@ -310,7 +342,6 @@ namespace Client
                                 TreeViewItem temp = (TreeViewItem)parentItem.Items.CurrentItem;
 
                                 FolderSort(temp, folderItem, parentItem);
-
                             }
                         }
 
@@ -344,33 +375,7 @@ namespace Client
                         {
                             TreeViewItem temp = (TreeViewItem)parentItem.Items.CurrentItem;
 
-                            // se contiene il punto sarà un file
-                            // se l'ultimo è un file si procede, altrimenti l'oggetto attuale che è un file andrà sicuramente dopo le cartelle.
-                            if (temp.Header.ToString().Contains("."))
-                            {
-                                // Confronta l'oggetto attuale con quello in ultima posizione, se l'oggetto attuale succede alfabeticamente
-                                // l'ultimo della lista, allora prenderà il suo posto, altrimenti sarà posizionato prima.
-                                if (temp.Header.ToString().CompareTo(subItem.Header.ToString()) < 0)
-                                {
-                                    parentItem.Items.Insert(parentItem.Items.CurrentPosition + 1, subItem);
-                                }
-                                else // Non entra mai in questo else perché arrivano in ordine alfabetico
-                                {
-                                    // Per evitare out of range, controllo che sia disponibile la prima posizione, altrimenti inserisco nella posizione 0.
-                                    if (parentItem.Items.CurrentPosition != 0)
-                                    {
-                                        parentItem.Items.Insert(parentItem.Items.CurrentPosition - 1, subItem);
-                                    }
-                                    else
-                                    {
-                                        parentItem.Items.Insert(0, subItem);
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                parentItem.Items.Insert(parentItem.Items.CurrentPosition, subItem);
-                            }
+                            FileSort(temp, subItem, parentItem);
                         }
 
                     }
