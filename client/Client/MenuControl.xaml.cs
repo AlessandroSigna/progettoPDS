@@ -105,6 +105,7 @@ namespace Client
                     EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");   //cambio il colore del bottone
                     EffettuaBackup.Content = "Stop";    //e la scritta
                     FolderButton.IsEnabled = false;     //disabilito il bottone folder
+                    mw.clientLogic.cartellaMonitorata = backupFolder;
                     mw.clientLogic.WriteStringOnStream(ClientLogic.FOLDER + mw.clientLogic.username + "+" + backupFolder);  //invio al server la rootfolder
                     string retFolder = mw.clientLogic.ReadStringFromStream();
                     if (retFolder == ClientLogic.OK + "RootFolder Inserita")
@@ -556,6 +557,7 @@ namespace Client
                 FolderButton.IsEnabled = true;
                 EffettuaBackup.Visibility = Visibility.Visible;
                 FileUploading.Text = "Ultima sincronizzazione : " + DateTime.Now;
+                mw.clientLogic.cartellaMonitorata = null;
                 watcher.EnableRaisingEvents = false;
                 watcher.Dispose();
                 updating = false;

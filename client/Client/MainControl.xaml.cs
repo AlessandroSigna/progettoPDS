@@ -15,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Threading;
 
 namespace Client
 {
@@ -25,22 +26,13 @@ namespace Client
     {
         private ClientLogic client;
         private TcpClient clientsocket;
-        //private int errore;
-        private Object tempContent = null;
-        Window parentWindow;
-        //ProgressRing bar;
+        private WaitWindow waitWindow;
 
         public MainControl()
         {
             InitializeComponent();
             App.Current.MainWindow.Width = 400;
             App.Current.MainWindow.Height = 400;
-            //errore = errorePassed;
-            //if (errore == 1)    //FIXME: magic number + errore può essere solo == 1, farlo bool quindi?!
-            //{
-            //    ClientLogic.UpdateNotifyIconDisconnesso();
-            //    messaggioErrore();
-            //}
 
         }
 
@@ -48,8 +40,6 @@ namespace Client
         public void messaggioErrore(string errore = null)
         {
             ClientLogic.UpdateNotifyIconDisconnesso();
-            //Window mw = (Window)App.Current.MainWindow;
-            //await mw.ShowMessageAsync("Errore", "Impossibile raggiungere il server");
             if(errore != null)
             {
                 MessageBoxResult result = System.Windows.MessageBox.Show(errore, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -63,21 +53,17 @@ namespace Client
 
         private void showHideWaitBar(bool show)
         {
-            //if (show)
-            //{
-            //    parentWindow = (Window)this.Parent;
-            //    bar = new ProgressRing();  //FIXME: MetroWindow dependence
-            //    tempContent = parentWindow.Content;
-            //    bar.IsActive = true;
-            //    bar.Width = 100;
-            //    bar.Height = 100;
-            //    parentWindow.Content = bar;
-            //}
-            //else
-            //{
-            //    bar.IsActive = false;
-            //    parentWindow.Content = tempContent;
-            //}
+            if (show)
+            {
+                waitWindow = new WaitWindow("Connessione in corso...");
+                waitWindow.Show();
+                Connect.IsEnabled = false;
+            }
+            else
+            {
+                waitWindow.Dismiss();
+                Connect.IsEnabled = true;
+            }
         }
 
         #endregion
@@ -119,9 +105,9 @@ namespace Client
                 LoginRegisterControl login = new LoginRegisterControl();
                 App.Current.MainWindow.Content = login;
             } else {
-                showHideWaitBar(false);
                 messaggioErrore();
             }
+            showHideWaitBar(false);
         }
 
         private void Connect_MouseEnter(object sender, MouseEventArgs e)
