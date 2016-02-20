@@ -1327,6 +1327,11 @@ namespace BackupServer
         private string comandoRenameFile(string responseData)
         {
             SQLiteTransaction transazioneRename = mainWindow.m_dbConnection.BeginTransaction();
+            SQLiteDataReader dr= null;
+            SQLiteDataReader dr2 = null;
+            SQLiteDataReader drD = null;
+            SQLiteDataReader drD2 = null;
+
             try
             {
                 String[] parametri = responseData.Split('+');
@@ -1387,7 +1392,7 @@ namespace BackupServer
                     comandoPD.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comandoPD.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileNameOLD.Length).Value = fileNameOLD + "\\%";
                     comandoPD.Transaction = transazioneRename;
-                    SQLiteDataReader drD;
+                    //SQLiteDataReader drD;
                     String idfileD = "0";
 
                     try
@@ -1401,98 +1406,102 @@ namespace BackupServer
                     }
 
                     while (drD.Read())
+                    {
+                        //throw new Exception("Eccezione generata manualmente.");
+                        idfileD = Convert.ToString(drD["idfile"]);
+                        String fileNameOLDD = Convert.ToString(drD["percorsoFile"]);
+                        String fileNameNEWD = fileNameNEW + "\\" + fileNameOLDD.Substring(fileNameOLD.Length + 1);
+                        int lastVersionD = getLastVersion(user, folderRoot, fileNameOLDD);
+
+                        SQLiteCommand comandoPD1 = new SQLiteCommand(mainWindow.m_dbConnection);
+                        comandoPD1.CommandText = "INSERT INTO RENAMEFILEMATCH (username, folderBackup, idfile, percorsoFileOLD, percorsoFileNEW, lastVersionOLD, lastUpdate)" +
+                                            "VALUES (@username,@folderBackup,@idfile,@fileNameOLD,@fileNameNEW,@lastVersionOLD,@lastUpdate)";
+                        comandoPD1.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
+                        comandoPD1.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
+                        comandoPD1.Parameters.Add("@fileNameOLD", System.Data.DbType.String, fileNameOLD.Length).Value = fileNameOLDD;
+                        comandoPD1.Parameters.Add("@fileNameNEW", System.Data.DbType.String, fileNameNEW.Length).Value = fileNameNEWD;
+                        comandoPD1.Parameters.Add("@lastVersionOLD", System.Data.DbType.Int64, 5).Value = lastVersionD;
+                        comandoPD1.Parameters.Add("@lastUpdate", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
+                        comandoPD1.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = Int32.Parse(idfileD);
+                        comandoPD1.Transaction = transazioneRename;
+
+                        bool isBrokenD = false;
+                        do
                         {
-                            idfileD = Convert.ToString(drD["idfile"]);
-                            String fileNameOLDD = Convert.ToString(drD["percorsoFile"]);
-                            String fileNameNEWD = fileNameNEW + "\\" + fileNameOLDD.Substring(fileNameOLD.Length + 1);
-                            int lastVersionD = getLastVersion(user, folderRoot, fileNameOLDD);
-
-                            SQLiteCommand comandoPD1 = new SQLiteCommand(mainWindow.m_dbConnection);
-                            comandoPD1.CommandText = "INSERT INTO RENAMEFILEMATCH (username, folderBackup, idfile, percorsoFileOLD, percorsoFileNEW, lastVersionOLD, lastUpdate)" +
-                                                "VALUES (@username,@folderBackup,@idfile,@fileNameOLD,@fileNameNEW,@lastVersionOLD,@lastUpdate)";
-                            comandoPD1.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                            comandoPD1.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
-                            comandoPD1.Parameters.Add("@fileNameOLD", System.Data.DbType.String, fileNameOLD.Length).Value = fileNameOLDD;
-                            comandoPD1.Parameters.Add("@fileNameNEW", System.Data.DbType.String, fileNameNEW.Length).Value = fileNameNEWD;
-                            comandoPD1.Parameters.Add("@lastVersionOLD", System.Data.DbType.Int64, 5).Value = lastVersionD;
-                            comandoPD1.Parameters.Add("@lastUpdate", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
-                            comandoPD1.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = Int32.Parse(idfileD);
-                            comandoPD1.Transaction = transazioneRename;
-
-                            bool isBrokenD = false;
-                            do
-                            {
-                                try
-                                {
-                                    _readerWriterLock.EnterWriteLock();
-                                    if (_readerWriterLock.WaitingReadCount > 0)
-                                    {
-                                        isBrokenD = true;
-                                    }
-                                    else
-                                    {
-                                        if (comandoPD1.ExecuteNonQuery() != 1)
-                                        {
-                                            transazioneRename.Rollback();
-                                            transazioneRename.Dispose();
-                                            return ERRORE + "impossibile inserire match rinomina file";
-                                        }
-                                    }
-                                }
-                                finally
-                                {
-                                    _readerWriterLock.ExitWriteLock();
-
-                                }
-                                if (isBrokenD)
-                                {
-                                    Thread.Sleep(10);
-                                }
-                                else
-                                    isBrokenD = false;
-                            } while (isBrokenD);
-
-                            SQLiteCommand comandoD2 = new SQLiteCommand(mainWindow.m_dbConnection);
-                            comandoD2.CommandText = "SELECT idfile,file,dimFile,checksum FROM BACKUPHISTORY WHERE username=@username AND folderBackup=@folderBackup AND percorsoFile=@percorsoFile AND versione=@versione";
-                            comandoD2.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-                            comandoD2.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
-                            comandoD2.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileNameNEW.Length).Value = fileNameOLDD;
-                            comandoD2.Parameters.Add("@versione", System.Data.DbType.Int64, 10).Value = lastVersionD;
-                            comandoD2.Transaction = transazioneRename;
-                            SQLiteDataReader drD2;
-
                             try
                             {
-                                _readerWriterLock.EnterReadLock();
-                                drD2 = comandoD2.ExecuteReader();
+                                _readerWriterLock.EnterWriteLock();
+                                if (_readerWriterLock.WaitingReadCount > 0)
+                                {
+                                    isBrokenD = true;
+                                }
+                                else
+                                {
+                                    if (comandoPD1.ExecuteNonQuery() != 1)
+                                    {
+                                        transazioneRename.Rollback();
+                                        transazioneRename.Dispose();
+                                        return ERRORE + "impossibile inserire match rinomina file";
+                                    }
+                                }
                             }
                             finally
                             {
-                                _readerWriterLock.ExitReadLock();
-                            }
+                                _readerWriterLock.ExitWriteLock();
 
-                            Byte[] fileD = null;
-                            int dimFileD = 0;
-                            string checksum2D = string.Empty;
-                            while (drD2.Read())
-                            {
-                                fileD = (Byte[])drD2["file"];
-                                dimFileD = Convert.ToInt32(drD2["dimFile"]);
-                                checksum2D = Convert.ToString(drD2["checksum"]);
                             }
-                            drD2.Close();
+                            if (isBrokenD)
+                            {
+                                Thread.Sleep(10);
+                            }
+                            else
+                                isBrokenD = false;
+                        } while (isBrokenD);
 
-                            if (!inserisciFile(user, folderRoot, fileNameNEWD, lastVersionD + 1, fileD, dimFileD, checksum2D, null, idfileD))
-                            {
-                                transazioneRename.Rollback();
-                                transazioneRename.Dispose();
-                                Console.WriteLine(ERRORE + "Impossibile inserire file su DB");
-                                return ERRORE + "Impossibile inserire file su DB";
-                            }
+                        SQLiteCommand comandoD2 = new SQLiteCommand(mainWindow.m_dbConnection);
+                        comandoD2.CommandText = "SELECT idfile,file,dimFile,checksum FROM BACKUPHISTORY WHERE username=@username AND folderBackup=@folderBackup AND percorsoFile=@percorsoFile AND versione=@versione";
+                        comandoD2.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
+                        comandoD2.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
+                        comandoD2.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileNameNEW.Length).Value = fileNameOLDD;
+                        comandoD2.Parameters.Add("@versione", System.Data.DbType.Int64, 10).Value = lastVersionD;
+                        comandoD2.Transaction = transazioneRename;
+                        //SQLiteDataReader drD2;
+
+                        try
+                        {
+                            _readerWriterLock.EnterReadLock();
+                            drD2 = comandoD2.ExecuteReader();
+                        }
+                        finally
+                        {
+                            _readerWriterLock.ExitReadLock();
+                        }
+
+                        Byte[] fileD = null;
+                        int dimFileD = 0;
+                        string checksum2D = string.Empty;
+                        while (drD2.Read())
+                        {
+                            //throw new Exception("Eccezione generata manualmente.");
+                            fileD = (Byte[])drD2["file"];
+                            dimFileD = Convert.ToInt32(drD2["dimFile"]);
+                            checksum2D = Convert.ToString(drD2["checksum"]);
+
+                        }
+                        drD2.Close();
+
+                        if (!inserisciFile(user, folderRoot, fileNameNEWD, lastVersionD + 1, fileD, dimFileD, checksum2D, null, idfileD))
+                        {
+                            drD.Close();
+                            transazioneRename.Rollback();
+                            transazioneRename.Dispose();
+                            Console.WriteLine(ERRORE + "Impossibile inserire file su DB");
+                            return ERRORE + "Impossibile inserire file su DB";
+                        }
 
                         Console.WriteLine(OK + "Inserito match rinomina file");
 
-                        }
+                    }
                     drD.Close();
                     transazioneRename.Commit();
                     transazioneRename.Dispose();
@@ -1508,7 +1517,7 @@ namespace BackupServer
                     comandoP0.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                     comandoP0.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comandoP0.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileNameOLD.Length).Value = fileNameOLD;
-                    SQLiteDataReader dr2;
+                    //SQLiteDataReader dr2;
                     String idfile = "0";
                     try
                     {
@@ -1517,6 +1526,7 @@ namespace BackupServer
 
                         while (dr2.Read())
                         {
+                            //throw new Exception("Eccezione generata manualmente.");
                             idfile = Convert.ToString(dr2["idfile"]);
                         }
 
@@ -1586,7 +1596,7 @@ namespace BackupServer
                     comando2.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileNameNEW.Length).Value = fileNameOLD;
                     comando2.Parameters.Add("@versione", System.Data.DbType.Int64, 10).Value = lastVersion;
                     comando2.Transaction = transazioneRename;
-                    SQLiteDataReader dr;
+                    //SQLiteDataReader dr;
 
                     try
                     {
@@ -1603,6 +1613,7 @@ namespace BackupServer
                     string checksum2 = string.Empty;
                     while (dr.Read())
                     {
+                        //throw new Exception("Eccezione generata manualmente.");
                         file = (Byte[])dr["file"];
                         dimFile = Convert.ToInt32(dr["dimFile"]);
                         checksum2 = Convert.ToString(dr["checksum"]);
@@ -1625,6 +1636,18 @@ namespace BackupServer
             }
             catch
             {
+                if (dr != null && !dr.IsClosed)
+                    dr.Close();
+
+                if (dr2 != null && !dr2.IsClosed)
+                    dr2.Close();
+
+                if (drD != null && !drD.IsClosed)
+                    drD.Close();
+
+                if (drD2 != null && !drD2.IsClosed)
+                    drD2.Close();
+
                 transazioneRename.Rollback();
                 transazioneRename.Dispose();
                 return ERRORE + "impossibile inserire match rinomina file";
@@ -1636,6 +1659,10 @@ namespace BackupServer
         private string comandoFileCancellato(string responseData)
         {
             SQLiteTransaction transazioneDelete = mainWindow.m_dbConnection.BeginTransaction();
+
+            SQLiteDataReader dr2 = null;
+            SQLiteDataReader dr2D = null;
+
             try
             {
                 String[] parametri = responseData.Split('+');
@@ -1684,7 +1711,7 @@ namespace BackupServer
                 comandoP0.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                 comandoP0.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName;
                 comandoP0.Transaction = transazioneDelete;
-                SQLiteDataReader dr2;
+                //SQLiteDataReader dr2;
                 String idfile = "0";
                 try
                 {
@@ -1712,7 +1739,7 @@ namespace BackupServer
                     comandoP0D.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comandoP0D.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName + "\\%";
                     comandoP0D.Transaction = transazioneDelete;
-                    SQLiteDataReader dr2D;
+                    //SQLiteDataReader dr2D;
                     String idfileD = "0";
 
                     try
@@ -1734,12 +1761,14 @@ namespace BackupServer
 
                         if (inserisciFile(user, folderRoot, fileNameD, lastVersionD, null, 0, "", null, idfileD, "S"))
                         {
-                            transazioneDelete.Commit();
-                            transazioneDelete.Dispose();
+                            //transazioneDelete.Commit();
+                            //transazioneDelete.Dispose();
                             Console.WriteLine(OK + "File cancellatto correttamente");
+                            //return OK + "File cancellatti correttamente";
                         }
                         else
                         {
+                            dr2D.Close();
                             transazioneDelete.Rollback();
                             transazioneDelete.Dispose();
                             Console.WriteLine(ERRORE + "impossibile cancellare il file");
@@ -1748,10 +1777,9 @@ namespace BackupServer
                     }
 
                     dr2D.Close();
-
                     //throw new Exception("Eccezione generata manualmente.");
-                    //transazioneDelete.Commit();
-                    //transazioneDelete.Dispose();
+                    transazioneDelete.Commit();
+                    transazioneDelete.Dispose();
                     return OK + "File cancellatti correttamente";
                 }
                 else
@@ -1778,6 +1806,12 @@ namespace BackupServer
             }
             catch
             {
+                if (dr2 != null && !dr2.IsClosed)
+                    dr2.Close();
+
+                if (dr2D != null && !dr2D.IsClosed)
+                    dr2D.Close();
+
                 transazioneDelete.Rollback();
                 transazioneDelete.Dispose();
                 return ERRORE + "impossibile cancellare il file";
