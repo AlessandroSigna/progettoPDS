@@ -109,38 +109,6 @@ namespace Client
         }
 
         /*
-         * Restituisce il TreeViewItem costruendone l'header adatto per le RootFolder
-         * cioè con l'immagine corretta e con name nella label
-         */
-        private TreeViewItem GetRootFolderItem(string name)
-        {
-            TreeViewItem item = new TreeViewItem();
-            item.IsExpanded = false;
-
-            // create stack panel
-            StackPanel stack = new StackPanel();
-            stack.Orientation = Orientation.Horizontal;
-
-            // create Image
-            Image image = new Image();
-            image.Source = new BitmapImage
-                (new Uri("pack://application:,,/Images/home.png"));
-            image.Width = 20;
-            image.Height = 20;
-
-            Label lbl = new Label();
-            lbl.Content = name;
-
-            // Add into stack
-            stack.Children.Add(image);
-            stack.Children.Add(lbl);
-
-            // assign stack to header
-            item.Header = stack;
-            return item;
-        }
-
-        /*
          * Callback chiamata quando una rootFolder viene espansa
          */
         void folder_Expanded(object sender, RoutedEventArgs e)
@@ -178,7 +146,6 @@ namespace Client
             ItemTag tag = (ItemTag)parameters[0];
             TreeViewItem item = (TreeViewItem)parameters[1];
             List<String> folderContent = RetrieveFolderContent(tag.fullPath);
-
             foreach (String s in folderContent)
             {
                 Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<TreeViewItem, String>(AddSubItem), item, s); }));
