@@ -1,3 +1,33 @@
+Font standard.
+
+MainWindow: Dimensioni (400x250), Posizione nell'angolo in basso a sinistra con margine, icona, grigio chiaro.
+
+UserControl:
+Tasto indietro: icona disabilitata, icona abilitata, icona hover
+Tasto disconnetti: icona abilitata, icona hover
+
+MainControl: Indirizzo server, Porta server, Connetti. Progress bar: sovraimpressione con blur dietro. Connessione in corso...
+LoginRegisterControl: Login, Registrazione, Sfondo?
+LoginControl/RegistratiControl: 
+MenuControl: Sincronizza/Interrompi, Icona cartella Hover/Abilitata/Disabilitata, label, Icona Ripristina Hover/Abilitata/Disabilitata
+
+Restore: Icona, dimensione, posizione (al centro)
+RestoreControl: Icone fisse Root/Folder/File/Filecambiato/Fileeliminato, Ripristina, Annulla, cornice esplora risorse like
+Cerca Cartella: Titolo
+Start Download e DownloadFolder: uguali, pulsante annulla abilitato/disabilitato. Progress bar con valore.  Dimensione 400x150
+
+Server (Togliere dipendenze da MetroApp)
+
+MainWindow: Dimensioni (400x250)
+Content: Porta text field Abilitato/Disabilitato, DB Url label sfoglia/cartella abilitato/disabilitato, pulsante start/stop
+Scrivere file di log invece di stamparlo in text area?
+Pulsante Log File?
+
+
+Controllare icona su finestra, icona nella task bar, icona nella tray area
+
+_____________________________________________________________________________
+
 XL MainControl (Connetti)
 XL LoginRegisterControl
 XL LoginControl - XL RegistratiControl (Logga) (se la registrazione non va a buon fine torna a Login o Register Control con messaggio di errore)
