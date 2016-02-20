@@ -457,6 +457,8 @@ namespace BackupServer
 
             SQLiteTransaction transazioneLogin = mainWindow.m_dbConnection.BeginTransaction();
 
+            SQLiteDataReader reader = null;
+
             try
             {
                 //mi aspetto LOGIN + username
@@ -498,9 +500,10 @@ namespace BackupServer
                 try
                 {
                     _readerWriterLock.EnterReadLock();
-                    SQLiteDataReader reader = comandoP0.ExecuteReader();
+                    reader = comandoP0.ExecuteReader();
                     if (reader.Read()) 
                     {
+                        //throw new Exception("Eccezione manuale.");
                         pass = reader["password"].ToString();
                     }
                     reader.Close();
@@ -624,6 +627,9 @@ namespace BackupServer
             }
             catch (Exception exc)
             {
+                if (reader != null && !reader.IsClosed)
+                    reader.Close();
+
                 transazioneLogin.Rollback();
                 transazioneLogin.Dispose();
                 Console.WriteLine(exc.Message);
