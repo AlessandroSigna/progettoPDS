@@ -1,11 +1,9 @@
-﻿using MahApps.Metro.Controls;
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using MahApps.Metro.Controls.Dialogs;
 using System.Threading.Tasks;
 using System.Net.Sockets;
 using System.Net;
@@ -17,34 +15,33 @@ using System.Threading;
 
 namespace BackupServer
 {
-    public partial class MainWindow : MetroWindow
+    public partial class MainWindow
     {
         private System.Windows.Forms.NotifyIcon MyNotifyIcon;
         public Boolean avviato = false;
         public static String pathDB = "";
         public ServerLogic server;
         public SQLiteConnection m_dbConnection;
-        private CustomDialog _customDialog;
-        private Esci _exitwindow;
 
         public List<TcpClient> listaClient = new List<TcpClient>();
 
         public MainWindow()
         {
             InitializeComponent();
-            this.Left = SystemParameters.PrimaryScreenWidth - this.Width;
-            this.Top = SystemParameters.PrimaryScreenHeight - this.Height - 450;
+            this.Left = SystemParameters.PrimaryScreenWidth - this.Width - 100;
+            this.Top = SystemParameters.PrimaryScreenHeight - this.Height - 500;
+            TPorta.Text = "1010";
             MyNotifyIcon = new System.Windows.Forms.NotifyIcon();
-            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/disconnessoicon.ico");
+            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/applogoIcon.ico");
             MyNotifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(MyNotifyIcon_MouseClick);
-            MFDBD.IsChecked = true;
-            MFPortaD.IsChecked = true;
         }
 
         private void startStopClick(object sender, RoutedEventArgs e)
         {
             if (avviato == false)
             {
+                string pathDBtemp = TPathDB.Text;
+                pathDB = pathDBtemp;
                 startServer();
             }
             else
@@ -64,7 +61,7 @@ namespace BackupServer
             }
             else
             {
-                ErrorMessage.Text = "Inserire solo valori numerici";
+                ErrorMessage.Text = "Inserire solo valori numerici nel campo della porta.";
             }
         }
 
@@ -73,41 +70,17 @@ namespace BackupServer
             tb.Text = "";
         }
 
-        private void MFPortaD_Checked(object sender, RoutedEventArgs e)
-        {
-            TPorta.Text = "1234";
-            TPorta.IsReadOnly = true;
-            TPorta.Background = Brushes.LightGray;
-        }
-
-        private void MFPortaD_Unchecked(object sender, RoutedEventArgs e)
-        {
-            TPorta.Text = "";
-            TPorta.IsReadOnly = false;
-            TPorta.Background = Brushes.White;
-        }
-
-        private void MFDBD_Checked(object sender, RoutedEventArgs e)
-        {
-            pathDB = Directory.GetCurrentDirectory() + "\\DatabasePROVA.sqlite";
-        }
-
-        private void MFDBD_Unchecked(object sender, RoutedEventArgs e)
-        {
-            pathDB = "";
-        }
-
-        private void clickExit(object sender, RoutedEventArgs e)
-        {
-            this.Close();
-        }
         #endregion
 
         private void stopServer()
         {
-            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/disconnessoicon.ico");
+            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/applogoIcon.ico");
 
             ServerLogic.serverKO = true;
+            TPorta.IsEnabled = true;
+            TPathDB.IsEnabled = true;
+            TPorta.Background = Brushes.White;
+            TPathDB.Background = Brushes.White;
 
             foreach (TcpClient client in listaClient)
             {
@@ -170,28 +143,11 @@ namespace BackupServer
             tb.Text += DateTime.Now + " - Connessione al DB chiusa\n";
             tb.Text += DateTime.Now + " - Server arrestato\n";
             avviato = false;
-            if (!MFPortaD.IsChecked)
-            {
-                TPorta.IsReadOnly = false;
-                TPorta.Background = Brushes.White;
-            }
-            MFStartStop.Header = "Avvia Server";
-            MFSetting.IsEnabled = true;
             statusImage.BeginInit();
             statusImage.Source = new BitmapImage(new Uri(@"Images/startpremuto.png", UriKind.RelativeOrAbsolute));
             statusImage.EndInit();
-            messaggioArresto();
         }
 
-        private async void messaggioArresto()
-        {
-            await this.ShowMessageAsync("", "Server Arrestato Correttamente");
-        }
-
-        private async void messaggioErroreDB()
-        {
-            await this.ShowMessageAsync("", "ERRORE durante l'inizializzazione del DB");
-        }
 
         private void startServer()
         {
@@ -201,7 +157,7 @@ namespace BackupServer
             }
             catch
             {
-                ErrorMessage.Text = "Inserire solo valori numerici";
+                ErrorMessage.Text = "Inserire solo valori numerici nel campo della porta.";
                 TPorta.Text = "";
                 TPorta.BorderBrush = Brushes.Red;
                 return;
@@ -209,21 +165,31 @@ namespace BackupServer
 
             if (pathDB.Equals("") || pathDB == null)
             {
-                ErrorMessage.Text = "Seleziona il DB";
+                ErrorMessage.Text = "Seleziona il database.";
+                TPathDB.Text = "";
+                TPathDB.BorderBrush = Brushes.Red;
                 return;
             }
 
-            ErrorMessage.Text = "";
-            TPorta.BorderBrush = Brushes.Transparent;
-            tb.Text += DateTime.Now + " - ***DB selezionato: " + pathDB + "***\n";
 
             #region Controlli e creazione Database
-            if (!File.Exists(pathDB))
-                SQLiteConnection.CreateFile(pathDB);
+            if (!File.Exists(pathDB)) 
+            {
+                try 
+                {
+                    SQLiteConnection.CreateFile(pathDB);
+                }
+                catch
+                {
+                    ErrorMessage.Text = "Errore nell'url del database.";
+                    TPathDB.Text = "";
+                    TPathDB.BorderBrush = Brushes.Red;
+                    return;
+                }
+            }
 
             m_dbConnection = new SQLiteConnection("Data Source=" + pathDB + ";Version=3;Journal Mode=Off;Synchronous=Full;");
             m_dbConnection.Open();
-
             SQLiteTransaction transazioneINIT = m_dbConnection.BeginTransaction();
             try
             {
@@ -354,7 +320,6 @@ namespace BackupServer
             {
                 transazioneINIT.Rollback();
                 transazioneINIT.Dispose();
-                messaggioErroreDB();
                 tb.Text += DateTime.Now + " - ERRORE durante l'inizializzazione del DB\n";
                 return;
             }
@@ -371,20 +336,37 @@ namespace BackupServer
 
 
             #region Inizializzazione connessione tcp
-            serverSocket = new TcpListener(IPAddress.Any, porta);
-            serverSocket.Start();
+            try
+            {
+                serverSocket = new TcpListener(IPAddress.Any, porta);
+                serverSocket.Start();
 
-            server = new ServerLogic(ref serverSocket, porta, this);
-            ServerLogic.serverKO = false;
+                server = new ServerLogic(ref serverSocket, porta, this);
+                ServerLogic.serverKO = false;
+            }
+            catch
+            {
+                ErrorMessage.Text = "Il valore della porta non è corretto.";
+                TPorta.Text = "";
+                TPorta.BorderBrush = Brushes.Red;
+                return;
+            }
             #endregion
 
             tb.Text += DateTime.Now + " - Server avviato su porta " + porta + "\n";
-            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/connessoicon.ico");
+            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/applogoIcon.ico");
             avviato = true;
-            TPorta.IsReadOnly = true;
+
+
+            ErrorMessage.Text = "";
+            TPorta.BorderBrush = Brushes.Transparent;
+            TPathDB.BorderBrush = Brushes.Transparent;
+            TPorta.IsEnabled = false;
+            TPathDB.IsEnabled = false;
             TPorta.Background = Brushes.LightGray;
-            MFStartStop.Header = "Arresta Server";
-            MFSetting.IsEnabled = false;
+            TPathDB.Background = Brushes.LightGray;
+
+            tb.Text += DateTime.Now + " - ***DB selezionato: " + pathDB + "***\n";
         }
 
         internal void UpdateText(string message)
@@ -398,23 +380,12 @@ namespace BackupServer
 
         public int porta;
 
-        private void settingClick(object sender, RoutedEventArgs e)
-        {
-
-            SettingWindows win2 = new SettingWindows(ref pathDB);
-            win2.Owner = this;
-            win2.ShowDialog();
-
-
-        }
-
         #region Chiusura UI
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (avviato)
             {
                 e.Cancel = true;
-                messaggioDisconnetti();
 
             }
             else
@@ -422,30 +393,30 @@ namespace BackupServer
                 Application.Current.Shutdown();
             }
         }
-
-        private async void messaggioDisconnetti()
-        {
-            _customDialog = new CustomDialog();
-            _exitwindow = new Esci();
-            _exitwindow.BOk.Click += ButtonOkOnClick;
-            _exitwindow.BCancel.Click += ButtonCancelOnClick;
-            _customDialog.Content = _exitwindow;
-            await this.ShowMetroDialogAsync(_customDialog);
-        }
         #endregion
+
+        private void SelezionafileDB(object sender, RoutedEventArgs e)
+        {
+            Microsoft.Win32.OpenFileDialog sfoglia = new Microsoft.Win32.OpenFileDialog();
+            sfoglia.FileName = "DataBase";
+            sfoglia.DefaultExt = ".sqlite";
+            sfoglia.Filter = "File DataBase (.sqlite)|*.sqlite";
+            sfoglia.CheckFileExists = false;
+            Nullable<bool> result = sfoglia.ShowDialog();
+
+            if (result == true)
+            {
+                string filename = sfoglia.FileName;
+                TPathDB.Text = filename;
+            }
+
+        }
 
         #region UI di MainWindow
         private void ButtonOkOnClick(object sender, RoutedEventArgs e)
         {
-
-            this.HideMetroDialogAsync(_customDialog);
             stopServer();
             this.Close();
-        }
-
-        private void ButtonCancelOnClick(object sender, RoutedEventArgs e)
-        {
-            this.HideMetroDialogAsync(_customDialog);
         }
 
 
