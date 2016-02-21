@@ -4,11 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
-             d:DesignHeight="400" d:DesignWidth="400">
-    <Grid Name="Grid" OpacityMask="#FF654848" Margin="0,0,0,0" >
-        <Label x:Name="LabelPorta" Content="Porta Server" HorizontalAlignment="Left" Margin="56,196,0,0" VerticalAlignment="Top" Height="31" Width="130" BorderThickness="0" FontSize="17" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold"/>
-        <Label x:Name="LabelIndirizzo" Content="Indirizzo Server" HorizontalAlignment="Left" Margin="54,156,0,0" VerticalAlignment="Top" Height="29" Width="137" BorderThickness="0" FontSize="17" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold"/>
-        <TextBox x:Name="IpAddressBox" Text="192.168.1.3"  MaxLength ="15" HorizontalAlignment="Left" Height="27" Margin="191,156,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="140" FontSize="14" FontFamily="Yu Gothic UI Semibold" TextAlignment="Center" VerticalContentAlignment="Center" LostFocus="IpAddressBox_LostFocus">
+             d:DesignHeight="250" d:DesignWidth="400">
+    <Grid Name="Grid" OpacityMask="#FF654848" Margin="0,0,0,0" Background="{DynamicResource {x:Static SystemColors.GradientActiveCaptionBrushKey}}" >
+        <Label x:Name="LabelPorta" Content="Porta Server" HorizontalAlignment="Left" Margin="56,152,0,0" VerticalAlignment="Top" Height="31" Width="130" BorderThickness="0" FontSize="17" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold"/>
+        <Label x:Name="LabelIndirizzo" Content="Indirizzo Server" HorizontalAlignment="Left" Margin="49,118,0,0" VerticalAlignment="Top" Height="29" Width="137" BorderThickness="0" FontSize="17" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold"/>
+        <TextBox x:Name="IpAddressBox" Text="192.168.1.3"  MaxLength ="15" HorizontalAlignment="Left" Height="27" Margin="191,124,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="140" FontSize="14" FontFamily="Yu Gothic UI Semibold" TextAlignment="Center" VerticalContentAlignment="Center" LostFocus="IpAddressBox_LostFocus">
             <TextBox.Resources>
                 <Style TargetType="{x:Type Border}">
                     <Setter Property="CornerRadius" Value="10"/>
@@ -23,7 +23,7 @@
                 </ToolTip>
             </TextBox.ToolTip>
         </TextBox>
-        <TextBox x:Name="PortBox" Text="1234" MaxLength ="5" HorizontalAlignment="Left" Height="27" Margin="191,196,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontSize="14" FontFamily="Yu Gothic UI Semibold" TextAlignment="Center" VerticalContentAlignment="Center" LostFocus="PortBox_LostFocus" RenderTransformOrigin="0.942,0.481">
+        <TextBox x:Name="PortBox" Text="1234" MaxLength ="5" HorizontalAlignment="Left" Height="27" Margin="200,156,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontSize="14" FontFamily="Yu Gothic UI Semibold" TextAlignment="Center" VerticalContentAlignment="Center" LostFocus="PortBox_LostFocus" RenderTransformOrigin="0.942,0.481">
             <TextBox.Resources>
                 <Style TargetType="{x:Type Border}">
                     <Setter Property="CornerRadius" Value="10"/>
@@ -38,7 +38,7 @@
                 </ToolTip>
             </TextBox.ToolTip>
         </TextBox>
-        <Button x:Name="Connect" Content="Connetti" HorizontalAlignment="Left" Margin="115,237,0,0" VerticalAlignment="Top" Width="141" Height="34" FontFamily="Yu Gothic UI Semibold" FontSize="17" Opacity="0.9" Click="connect_button_Click" Background="#FF44E572" MouseEnter="Connect_MouseEnter" MouseLeave="Connect_MouseLeave">
+        <Button x:Name="Connect" Content="Connetti" HorizontalAlignment="Left" Margin="117,206,0,0" VerticalAlignment="Top" Width="141" Height="34" FontFamily="Yu Gothic UI Semibold" FontSize="17" Opacity="0.9" Click="connect_button_Click" Background="#FF44E572" MouseEnter="Connect_MouseEnter" MouseLeave="Connect_MouseLeave">
             <Button.Resources>
                 <Style TargetType="{x:Type Border}">
                     <Setter Property="CornerRadius" Value="10"/>
@@ -82,12 +82,5 @@
             </Button.Style>
         </Button>
         
-        <Grid.Background>
-            <ImageBrush>
-                <ImageBrush.ImageSource>
-                    <BitmapImage UriSource="/Images/cloudnuova.png"/>
-                </ImageBrush.ImageSource>
-            </ImageBrush>
-        </Grid.Background>
     </Grid>
 </UserControl>

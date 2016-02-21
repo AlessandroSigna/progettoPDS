@@ -38,11 +38,10 @@ namespace Client
             finestraChiamante.Effect = blur;
         }
 
-        internal void Dismiss()
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             finestraChiamante.Effect = null;
             finestraChiamante.Background = currentBrush;
-            this.Close();
         }
     }
 }

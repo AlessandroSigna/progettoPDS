@@ -4,5 +4,4 @@
         ResizeMode="CanMinimize"
         Icon="/Images/upload.png"
         WindowStartupLocation="CenterScreen"
-        Title="MyCloud" Height="400" Width="400" StateChanged="Window_StateChanged" Closing="Window_Closing">
-</Window>
+        Title="MyCloud" Height="290" Width="400" StateChanged="Window_StateChanged" Closing="Window_Closing"/>

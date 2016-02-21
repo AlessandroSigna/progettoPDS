@@ -29,8 +29,8 @@ namespace Client
         {
             InitializeComponent();
             Console.Out.WriteLine("MainWindow: Costruttore ");
-            this.Left = SystemParameters.PrimaryScreenWidth - this.Width;
-            this.Top = SystemParameters.PrimaryScreenHeight - this.Height - 40;
+            //this.Left = SystemParameters.PrimaryScreenWidth - this.Width;
+            //this.Top = SystemParameters.PrimaryScreenHeight - this.Height - 40;
             MainControl main = new MainControl();
             App.Current.MainWindow.Content = main;
             MyNotifyIcon = new System.Windows.Forms.NotifyIcon();

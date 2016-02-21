@@ -31,8 +31,8 @@ namespace Client
         public MainControl()
         {
             InitializeComponent();
-            App.Current.MainWindow.Width = 400;
-            App.Current.MainWindow.Height = 400;
+            //App.Current.MainWindow.Width = 400;
+            //App.Current.MainWindow.Height = 400;
 
         }
 
@@ -61,7 +61,7 @@ namespace Client
             }
             else
             {
-                waitWindow.Dismiss();
+                waitWindow.Close();
                 Connect.IsEnabled = true;
             }
         }
