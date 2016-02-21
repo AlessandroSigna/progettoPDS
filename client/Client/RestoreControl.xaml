@@ -5,69 +5,24 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Client"
              mc:Ignorable="d" 
-             d:DesignHeight="350" d:DesignWidth="400" Background="White">
-    <Grid>
+             d:DesignHeight="400" d:DesignWidth="400" Background="Transparent">
+    <Grid Name="contentGrid">
         <Grid.RowDefinitions>
             <RowDefinition Height="149*"/>
             <RowDefinition Height="26*"/>
         </Grid.RowDefinitions>
 
+        <Label x:Name="noFolder" Visibility="Visible" Content="Nessuna cartella salvata!"  HorizontalAlignment="Left" Margin="60,75,0,0" VerticalAlignment="Top" Height="47" Width="299" BorderThickness="0" FontSize="24"  FontWeight="Bold" />
 
-        <Popup Name="MyPopup" Placement="Mouse">
-            <Grid Height="56" Width="254" Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
-                <Label Content="Scaricando informazioni dal server..." HorizontalAlignment="Center"/>
-                <ProgressBar Minimum="0" Maximum="100" x:Name="pbStatus" IsIndeterminate="True" Margin="49,27,49,10"/>
-            </Grid>
-        </Popup>
-        <Label x:Name="noFolder" Visibility="Visible" Content="Nessuna cartella salvata!"  HorizontalAlignment="Left" Margin="60,75,0,0" VerticalAlignment="Top" Height="47" Width="299" BorderThickness="0" FontSize="24" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold" Foreground="Red" />
-
-        <Button x:Name="ConfirmButton" Content="Ripristina" HorizontalAlignment="Center" Margin="253,5,0,0" VerticalAlignment="Top" Width="147" Height="38" FontFamily="Yu Gothic UI Semibold" FontSize="13" Opacity="0.9" Background="#F5FFFA" IsEnabled="False" MouseEnter="ConfirmButton_MouseEnter" MouseLeave="ConfirmButton_MouseLeave" Click="ConfirmButton_Click" Grid.Row="1">
-            <Button.Resources>
-                <Style TargetType="{x:Type Border}">
-                    <Setter Property="CornerRadius" Value="10"/>
-                </Style>
-            </Button.Resources>
-            <Button.Style>
-
-                <Style TargetType="{x:Type Button}">
-                    <Setter Property="Template">
-
-                        <Setter.Value>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Border TextBlock.Foreground="{TemplateBinding Foreground}"
-        							x:Name="Border"
-        							CornerRadius="10"
-        							BorderBrush="DarkBlue"
-        							Background="{TemplateBinding Background}"
-        							BorderThickness="2" Margin="0,0,4.2,6.4">
-                                    <VisualStateManager.VisualStateGroups>
-                                        <VisualStateGroup x:Name="CommonStates">
-                                            <VisualStateGroup.Transitions>
-                                                <VisualTransition GeneratedDuration="0:0:0.5" />
-                                                <VisualTransition GeneratedDuration="0"
-        											To="Pressed" />
-                                            </VisualStateGroup.Transitions>
-                                            <VisualState x:Name="Normal" />
-                                            <VisualState x:Name="MouseOver"/>
-                                            <VisualState x:Name="Pressed"/>
-                                            <VisualState x:Name="Disabled"/>
-                                        </VisualStateGroup>
-                                    </VisualStateManager.VisualStateGroups>
-                                    <ContentPresenter Margin="2"
-        								HorizontalAlignment="Center"
-        								VerticalAlignment="Center"
-        								RecognizesAccessKey="True" />
-                                </Border>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </Button.Style>
+        <Button x:Name="ConfirmButton" Content="Ripristina" HorizontalAlignment="Center" VerticalAlignment="Top" Width="120" Height="35" FontSize="14"  IsEnabled="False" Click="ConfirmButton_Click" Grid.Row="1">
         </Button>
+        
+        <Button x:Name="AnnullaButton" Content="Annulla" HorizontalAlignment="Right" VerticalAlignment="Top" Width="120" Height="35" FontSize="14"  Click="AnnullaButton_Click" Grid.Row="1" Margin="0,0,10,0">
+        </Button>
+        
         <TreeView x:Name="foldersTree"
           SelectedItemChanged="foldersItem_SelectedItemChanged" Background="#FFFFFFFF"
-          BorderBrush="#FFFFFFFF"
-          Foreground="#FFFFFFFF" Margin="10" RenderTransformOrigin="0.5,0.5">
+          BorderBrush="Black" Margin="10,40,10,10" RenderTransformOrigin="0.5,0.5">
             <TreeView.Resources>
                 <Style TargetType="{x:Type TreeViewItem}">
                     <Setter Property="HeaderTemplate">

@@ -57,12 +57,12 @@ namespace Client
             {
                 waitWindow = new WaitWindow("Connessione in corso...");
                 waitWindow.Show();
-                Connect.IsEnabled = false;
+                contentGrid.IsEnabled = false;
             }
             else
             {
                 waitWindow.Close();
-                Connect.IsEnabled = true;
+                contentGrid.IsEnabled = true;
             }
         }
 

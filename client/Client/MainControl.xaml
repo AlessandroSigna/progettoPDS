@@ -5,7 +5,8 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="250" d:DesignWidth="400">
-    <Grid Name="Grid" OpacityMask="#FF654848" Margin="0,0,0,0" Background="{DynamicResource {x:Static SystemColors.GradientActiveCaptionBrushKey}}" >
+    <Grid Name="contentGrid" Margin="0,0,0,0" >
+
         <Label x:Name="LabelPorta" Content="Porta Server" HorizontalAlignment="Left" Margin="56,152,0,0" VerticalAlignment="Top" Height="31" Width="130" BorderThickness="0" FontSize="17" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold"/>
         <Label x:Name="LabelIndirizzo" Content="Indirizzo Server" HorizontalAlignment="Left" Margin="49,118,0,0" VerticalAlignment="Top" Height="29" Width="137" BorderThickness="0" FontSize="17" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold"/>
         <TextBox x:Name="IpAddressBox" Text="192.168.1.3"  MaxLength ="15" HorizontalAlignment="Left" Height="27" Margin="191,124,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="140" FontSize="14" FontFamily="Yu Gothic UI Semibold" TextAlignment="Center" VerticalContentAlignment="Center" LostFocus="IpAddressBox_LostFocus">
@@ -38,49 +39,7 @@
                 </ToolTip>
             </TextBox.ToolTip>
         </TextBox>
-        <Button x:Name="Connect" Content="Connetti" HorizontalAlignment="Left" Margin="117,206,0,0" VerticalAlignment="Top" Width="141" Height="34" FontFamily="Yu Gothic UI Semibold" FontSize="17" Opacity="0.9" Click="connect_button_Click" Background="#FF44E572" MouseEnter="Connect_MouseEnter" MouseLeave="Connect_MouseLeave">
-            <Button.Resources>
-                <Style TargetType="{x:Type Border}">
-                    <Setter Property="CornerRadius" Value="10"/>
-                </Style>
-            </Button.Resources>
-            <Button.Style>
+        <Button x:Name="Connect" Content="Connetti" VerticalAlignment="Bottom" Height="34" Click="connect_button_Click" Margin="129,0,129,19" FontSize="14" IsDefault="True"/>
 
-                <Style TargetType="{x:Type Button}">
-                    <Setter Property="Template">
-
-                        <Setter.Value>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Border TextBlock.Foreground="{TemplateBinding Foreground}"
-        							x:Name="Border"
-        							CornerRadius="10"
-        							BorderBrush="DarkGreen"
-        							Background="{TemplateBinding Background}"
-        							BorderThickness="2">
-                                    <VisualStateManager.VisualStateGroups>
-                                        <VisualStateGroup x:Name="CommonStates">
-                                            <VisualStateGroup.Transitions>
-                                                <VisualTransition GeneratedDuration="0:0:0.5" />
-                                                <VisualTransition GeneratedDuration="0"
-        											To="Pressed" />
-                                            </VisualStateGroup.Transitions>
-                                            <VisualState x:Name="Normal" />
-                                            <VisualState x:Name="MouseOver"/>
-                                            <VisualState x:Name="Pressed"/>
-                                            <VisualState x:Name="Disabled"/>
-                                        </VisualStateGroup>
-                                    </VisualStateManager.VisualStateGroups>
-                                    <ContentPresenter Margin="2"
-        								HorizontalAlignment="Center"
-        								VerticalAlignment="Center"
-        								RecognizesAccessKey="True" />
-                                </Border>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </Button.Style>
-        </Button>
-        
     </Grid>
 </UserControl>

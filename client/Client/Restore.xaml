@@ -2,7 +2,8 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         ResizeMode="NoResize"
-        Icon="/Images/upload.png"        
+        Icon="/Images/upload.png"  
+        Background="#FFF6F6FF"
         Title="MYCLOUD - Restore" Height="400" Width="400"
         WindowStartupLocation="CenterScreen" Closing="Window_Closing">
 </Window>
