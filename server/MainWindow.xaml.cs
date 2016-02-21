@@ -439,20 +439,6 @@ namespace BackupServer
             }
         }
 
-        private void clear_MouseEnter(object sender, MouseEventArgs e)
-        {
-            BrushConverter bc = new BrushConverter();
-            BClear.Background = (Brush)bc.ConvertFrom("#FFFFCC");
-
-        }
-
-        private void clear_MouseLeave(object sender, MouseEventArgs e)
-        {
-            BrushConverter bc = new BrushConverter();
-            BClear.Background = (Brush)bc.ConvertFrom("#FFFF99");
-
-        }
-
         private void startStop_MouseEnter(object sender, MouseEventArgs e)
         {
             if (!avviato)
@@ -483,6 +469,14 @@ namespace BackupServer
                 statusImage.Source = new BitmapImage(new Uri(@"Images/stop.png", UriKind.RelativeOrAbsolute));
                 statusImage.EndInit();
             }
+        }
+
+        private void BSfoglia_MouseEnter(object sender, MouseEventArgs e)
+        {
+        }
+
+        private void BSfoglia_MouseLeave(object sender, MouseEventArgs e)
+        {
         }
 
         private void autoScroll(object sender, TextChangedEventArgs e)

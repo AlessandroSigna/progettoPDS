@@ -50,7 +50,7 @@
 
         <Button x:Name="BSfoglia" HorizontalAlignment="Left" Margin="288,41,0,0" VerticalAlignment="Top" Width="40" Height="50" Click="SelezionafileDB" Grid.Column="1" FontWeight="Bold">
             <StackPanel Orientation="Horizontal" Margin="0">
-                <Image x:Name="Folder"  Source="Images/FolderBlack.png" Height="33" Width="37" RenderTransformOrigin="0.5,0.5" />
+                <Image x:Name="folderImage"  Source="Images/FolderBlack.png" Height="33" Width="37" RenderTransformOrigin="0.5,0.5" />
             </StackPanel>
             <Button.Style>
 
@@ -77,7 +77,7 @@
             </Button.Style>
         </Button>
 
-        <Button x:Name="BClear" Content="Pulisci" HorizontalAlignment="Left" Margin="267,156,0,0" VerticalAlignment="Top" Width="75" Click="clear_Click" Background="#FFFF99" MouseEnter="clear_MouseEnter" MouseLeave="clear_MouseLeave" Height="22" Grid.Column="1"></Button>
+        <Button x:Name="BClear" Content="Pulisci" HorizontalAlignment="Left" Margin="267,156,0,0" VerticalAlignment="Top" Width="75" Click="clear_Click" Height="22" Grid.Column="1"></Button>
 
         <Label x:Name="LPorta" Content="Porta:" Margin="28,13,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.435,0.882"  HorizontalAlignment="Left" Width="51" Grid.ColumnSpan="2" />
 
