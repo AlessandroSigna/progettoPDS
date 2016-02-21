@@ -48,6 +48,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>applogoIcon.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="MahApps.Metro, Version=1.1.2.0, Culture=neutral, PublicKeyToken=f4fb5a3c4d1e5b4f, processorArchitecture=MSIL">
       <HintPath>packages\MahApps.Metro.1.1.2.0\lib\net45\MahApps.Metro.dll</HintPath>
@@ -137,10 +140,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\upload.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\uploadIcon.ico" />
+    <Resource Include="Images\applogo.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\start.png" />
@@ -149,19 +149,19 @@
     <Resource Include="Images\stop.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\CloudNuova.png" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\Connessoicon.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <Resource Include="Images\disconnessoicon.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Images\startPremuto.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\stopPremuto.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="applogoIcon.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\FolderBlack.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\FolderWhite.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

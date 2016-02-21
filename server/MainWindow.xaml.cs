@@ -30,10 +30,83 @@ namespace BackupServer
             InitializeComponent();
             this.Left = SystemParameters.PrimaryScreenWidth - this.Width - 100;
             this.Top = SystemParameters.PrimaryScreenHeight - this.Height - 500;
+
+            TAddressL.IsEnabled = false;
+            TAddressL.Background = Brushes.LightGray;
+            TAddressL.BorderBrush = Brushes.Transparent;
+            TAddressL.Text = getLocalIpV4Address();
+
+            TAddressP.IsEnabled = false;
+            TAddressP.Background = Brushes.LightGray;
+            TAddressP.BorderBrush = Brushes.Transparent;
+            TAddressP.Text = getPublicIpV4Address();
+
             TPorta.Text = "1010";
             MyNotifyIcon = new System.Windows.Forms.NotifyIcon();
             MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/applogoIcon.ico");
             MyNotifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(MyNotifyIcon_MouseClick);
+        }
+
+        private string getPublicIpV4Address()
+        {
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+            {
+                string url = "http://checkip.dyndns.org";
+                System.Net.WebRequest req = System.Net.WebRequest.Create(url);
+                System.Net.WebResponse resp = req.GetResponse();
+                System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
+                string response = sr.ReadToEnd().Trim();
+                string[] a = response.Split(':');
+                string a2 = a[1].Substring(1);
+                string[] a3 = a2.Split('<');
+                string a4 = a3[0];
+                return a4;
+            }
+            else
+            {
+                //TAddressP.IsEnabled = true;
+                //TAddressP.Background = Brushes.White;
+                //TAddressP.BorderBrush = Brushes.Gray;
+                return "Non connesso.";
+            }
+
+        }
+
+        private string getLocalIpV4Address()
+        {
+            string IP = "";
+
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+            {
+                var host = Dns.GetHostEntry(Dns.GetHostName());
+                foreach (var ip in host.AddressList)
+                {
+                    if (ip.AddressFamily == AddressFamily.InterNetwork)
+                    {
+                        IP = ip.ToString();
+                    }
+                }
+
+                if (IP.Equals(""))
+                {
+                    //TAddressL.IsEnabled = true;
+                    //TAddressL.Background = Brushes.White;
+                    //TAddressL.BorderBrush = Brushes.Gray;
+                    return "Non trovato.";
+                }
+                else
+                {
+                    return IP;
+                }
+            }
+            else
+            {
+                //TAddressL.IsEnabled = true;
+                //TAddressL.Background = Brushes.White;
+                //TAddressL.BorderBrush = Brushes.Gray;
+                return "Non connesso.";
+            }
+
         }
 
         private void startStopClick(object sender, RoutedEventArgs e)
@@ -51,19 +124,6 @@ namespace BackupServer
         }
 
         #region UI e controlli su input dell'utente
-        //Metodo Che controlla se  sono inseriti solo numeri non lettere o punteggiatura.
-        private void NumericText_Validate(object sender, TextCompositionEventArgs e)
-        {
-            if (Char.IsNumber(e.Text, 0))
-            {
-                ErrorMessage.Text = "";
-
-            }
-            else
-            {
-                ErrorMessage.Text = "Inserire solo valori numerici nel campo della porta.";
-            }
-        }
 
         private void clear_Click(object sender, RoutedEventArgs e)
         {
@@ -79,6 +139,7 @@ namespace BackupServer
             ServerLogic.serverKO = true;
             TPorta.IsEnabled = true;
             TPathDB.IsEnabled = true;
+            BSfoglia.IsEnabled = true;
             TPorta.Background = Brushes.White;
             TPathDB.Background = Brushes.White;
 
@@ -363,6 +424,7 @@ namespace BackupServer
             TPathDB.BorderBrush = Brushes.Transparent;
             TPorta.IsEnabled = false;
             TPathDB.IsEnabled = false;
+            BSfoglia.IsEnabled = false;
             TPorta.Background = Brushes.LightGray;
             TPathDB.Background = Brushes.LightGray;
 
@@ -473,10 +535,16 @@ namespace BackupServer
 
         private void BSfoglia_MouseEnter(object sender, MouseEventArgs e)
         {
+            folderImage.BeginInit();
+            folderImage.Source = new BitmapImage(new Uri(@"Images/FolderWhite.png", UriKind.RelativeOrAbsolute));
+            folderImage.EndInit();
         }
 
         private void BSfoglia_MouseLeave(object sender, MouseEventArgs e)
         {
+            folderImage.BeginInit();
+            folderImage.Source = new BitmapImage(new Uri(@"Images/FolderBlack.png", UriKind.RelativeOrAbsolute));
+            folderImage.EndInit();
         }
 
         private void autoScroll(object sender, TextChangedEventArgs e)

@@ -55,7 +55,7 @@ namespace BackupServer
         public const string ENDLIST = "+ENDLIST+"; //+ENDSYN+username
         public const string ECHO_REQUEST = "+ECHO_REQUEST+";
 
-        public const int TIME_OUT = 15000;
+        public const int TIME_OUT = 120000;
 
         #endregion
 
