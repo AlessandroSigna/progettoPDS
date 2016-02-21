@@ -35,6 +35,7 @@ namespace Client
         public const string ECDH = "+ECDH+";   //key agreement per proteggere la registrazione
         public const string LOGIN = "+LOGIN+";
         public const string LOGOUT = "+LOGOUT+";
+        public const string ECHO_REQUEST = "+ECHO_REQUEST+";
         public const string STOP = "+STOP+";
         public const string DISCONETTI = "+DISCO+";//obsoleto
         public const string DISCONNETTICLIENT = "+DISCOCLIENT+"; //chiude lo stream di comunicazione con il client (utente non loggato)
@@ -53,6 +54,9 @@ namespace Client
         public const string GETFOLDERUSER = "+GETFOLDUSER+"; // +GETFOLDUSER+user
         public const string FLP = "+FLP+";
         public const string CONNESSIONE_CHIUSA_SERVER = "Connessione chiusa dal server";
+        
+        public const int POLLING = 30; // uguale alla metà del timer del server
+
         #endregion
 
         public volatile Boolean monitorando;    //true mentre si osserva la rootDir in attesa di cambiamenti
@@ -114,6 +118,7 @@ namespace Client
             try
             {
                 clientsocket.Connect(ip, porta);
+                Echo_Request();
             }
             catch
             {
@@ -147,6 +152,7 @@ namespace Client
                 }
                 else
                 {
+                    Echo_Request();
                     mc.Esito_Connect(true);
                 }
             } 
@@ -575,6 +581,87 @@ namespace Client
         #endregion
 
         #region Metodi di Disconnesione e Logout
+        internal void Echo_Request()
+        {
+            workertransaction = new BackgroundWorker();
+            workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Echo_Request);
+            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_Echo_RequestCompleted);
+            workertransaction.RunWorkerAsync();
+
+        }
+
+        private void Workertransaction_Echo_Request(object sender, DoWorkEventArgs e)
+        {
+            bool start = true;
+            int start_instant = 0;
+            DateTime d1 = DateTime.Now;
+            DateTime d2 = DateTime.Now;
+            TimeSpan ts = d2 - d1;
+            int time = 0;
+
+            while (start) {
+                if (clientsocket.Connected)
+                {
+                    if (time > start_instant + POLLING)
+                    {
+                        throw new Exception("Problema nella sincronizzazione client server.");
+                    }
+
+
+                    if (time == start_instant + POLLING)
+                    {
+                        WriteStringOnStream(ECHO_REQUEST);
+
+                        String message = ReadStringFromStream();
+                        if (message.Contains(OK))
+                        {
+                            d2 = DateTime.Now;
+                            ts = d2 - d1;
+                            start_instant = ts.Minutes * 60 + ts.Seconds;
+                        }
+                    }
+
+                    // Il client non aspetta all'infinito perché c'è già un timeout se non riceve risposta dal server per troppo tempo.
+                    //if (ts.Minutes * 60 + ts.Seconds == start_instant + TIME_OUT)
+                    //{
+                    //    start = false;
+                    //}
+                }
+                else
+                {
+                    e.Cancel = true;
+                }
+
+                d2 = DateTime.Now;
+                ts = d2 - d1;
+                time = ts.Minutes * 60 + ts.Seconds;
+            }
+            //e.Cancel = true;
+        }
+
+        private void Workertransaction_Echo_RequestCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            try
+            {
+                if (e.Error != null)
+                {
+                    DisconnectAndClose();
+                    mw.restart(true, e.Error.Message);
+                }
+                if (e.Cancelled)
+                {
+                    //mw.restart(true, "Il server non risponde.");
+                    DisconnectAndClose(false);
+                }
+            }
+            catch (Exception exc)
+            {
+                DisconnectAndClose();
+                mw.restart(true, exc.Message);
+            }
+        }
+
+
         internal void Logout(MenuControl menuc)
         {
             workertransaction = new BackgroundWorker();

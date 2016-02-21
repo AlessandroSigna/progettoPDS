@@ -27,6 +27,7 @@ namespace BackupServer
         private const int BUFFERSIZE = 1024;
         private const int CHALLENGESIZE = 64;
         public const string OK = "+OK+";
+        public const string RESTART = "+RESTART+";
         public const string ERRORE = "+ERR+";
         public const string STOP = "+STOP+";
         public const string REGISTRAZIONE = "+REG+";
@@ -52,6 +53,10 @@ namespace BackupServer
         public const string NUMFILE = "+NUMFL+";
         public const string FLP = "+FLP+";
         public const string ENDLIST = "+ENDLIST+"; //+ENDSYN+username
+        public const string ECHO_REQUEST = "+ECHO_REQUEST+";
+
+        public const int TIME_OUT = 60;
+
         #endregion
 
         public static bool serverKO = true;
@@ -662,6 +667,19 @@ namespace BackupServer
             catch
             {
                 return false;
+            }
+        }
+
+        private string comandoECHO(string responseData, TcpClient clientsocket)
+        {
+            try
+            {
+                writeStringOnStream(clientsocket, OK);
+                return RESTART;
+            }
+            catch
+            {
+                return ERRORE + "Errore durante l'echo reply";
             }
         }
 
@@ -2694,6 +2712,7 @@ namespace BackupServer
 
             while (!serverKO && !chiudere)
             {
+                String risposta;
 
                 while (!serverKO && !chiudere && stream.DataAvailable)
                 {
@@ -2702,13 +2721,16 @@ namespace BackupServer
                     Int32 bytes = stream.Read(data, 0, data.Length);
 
                     responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
-                    String risposta;
 
                     String tmp = responseData.Substring(1, responseData.Length - 1);
                     String comando = responseData.Substring(0, tmp.IndexOf('+') + 2);
 
                     switch (comando)
                     {
+                        case ECHO_REQUEST:
+                            risposta = comandoECHO(responseData, clientsocket);
+                            nowrite = false;
+                            break;
                         case ECDH:
                             risposta = comandoECDH(responseData, clientsocket);
                             nowrite = false;
@@ -2810,7 +2832,12 @@ namespace BackupServer
                             nowrite = false;
                             break;
                     }
-                    d1 = DateTime.Now;
+
+                    if (risposta == RESTART)
+                    {
+                        d1 = DateTime.Now;
+                    }
+                    
                     mainWindow.tb.Dispatcher.Invoke(new BackupServer.MainWindow.UpdateTextCallback(mainWindow.UpdateText), new object[] { DateTime.Now + " - " + risposta + "\n" });
                     if (!nowrite)
                     {
@@ -2830,9 +2857,10 @@ namespace BackupServer
 
                 DateTime d2 = DateTime.Now;
                 TimeSpan ts = d2 - d1;
-                if (ts.Minutes*60+ts.Seconds > 300)
+                if (ts.Minutes * 60 + ts.Seconds > TIME_OUT)
+                {
                     chiudere = true;
-
+                }
             }
             mainWindow.tb.Dispatcher.Invoke(new BackupServer.MainWindow.UpdateTextCallback(mainWindow.UpdateText), new object[] { DateTime.Now + " - Client Disconnesso" + "\n" });
             stream.Close();
