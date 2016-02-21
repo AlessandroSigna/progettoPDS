@@ -21,20 +21,11 @@ namespace Client
     /// </summary>
     public partial class RegistratiControl : UserControl
     {
-        string mess;
 
-        public RegistratiControl(string message)
+        public RegistratiControl()
         {
             InitializeComponent();
             App.Current.MainWindow.Title = "Registrazione";
-            //((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true;
-
-            //mess = message;
-            //if (mess != null)
-            //{
-            //    messaggioErrore(mess);
-            //}
-            //mess = null;
             //deve essere la finestra a customizzare l'evento per il click sul back button
             //perché è la finestra stessa a sapere quale è la finestra precedente
             BackButtonControl.BackButton.Click += Back_Click;
@@ -112,7 +103,7 @@ namespace Client
         #region Button Back
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            LoginRegisterControl main = new LoginRegisterControl();
+            LoginControl main = new LoginControl();
             App.Current.MainWindow.Content = main;
         }
         #endregion

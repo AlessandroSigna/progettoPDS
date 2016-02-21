@@ -90,7 +90,7 @@
 
         <Label x:Name="LDB" Content="Database:" Margin="9,52,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.435,0.882"  HorizontalAlignment="Left" Width="70" Grid.ColumnSpan="2" />
 
-        <TextBox x:Name="TPathDB" HorizontalAlignment="Left" Height="23" Margin="24,55,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="264" Grid.Column="1" >
+        <TextBox x:Name="TPathDB" HorizontalAlignment="Left" Height="23" Margin="24,55,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="264" Grid.Column="1">
             <TextBox.Resources>
                 <Style TargetType="{x:Type Border}">
                 </Style>

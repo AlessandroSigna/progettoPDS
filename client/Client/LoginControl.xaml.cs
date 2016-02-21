@@ -142,6 +142,13 @@ namespace Client
             //Login.Background = (Brush)bc.ConvertFrom("#33CCFF");
 
         }
+
+
+        private void NuovoUtente_Click(object sender, RoutedEventArgs e)
+        {
+            RegistratiControl main = new RegistratiControl();
+            App.Current.MainWindow.Content = main;
+        }
         #endregion
     }
 }

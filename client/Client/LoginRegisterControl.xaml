@@ -3,115 +3,17 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" Height="400" Width="400"
+             mc:Ignorable="d" Height="250" Width="400"
              xmlns:Client="clr-namespace:Client">
-    <Grid OpacityMask="#FF654848" Margin="0,0,0,30" >
-        <Grid.Background>
-            <ImageBrush>
-                <ImageBrush.ImageSource>
-                    <BitmapImage UriSource="/Images/cloudnuova.png"/>
-                </ImageBrush.ImageSource>
-            </ImageBrush>
-        </Grid.Background>
+    <Grid>
+
         <Client:DisconnettiButtonUC></Client:DisconnettiButtonUC>
         <Client:BackButtonUC x:Name="BackButtonControl" IsEnabled="False"></Client:BackButtonUC>
-        <Button x:Name="Login" Content="Login" HorizontalAlignment="Left" Margin="92,159,0,0" VerticalAlignment="Top" Width="211" Height="34" FontFamily="Yu Gothic UI Semibold" FontSize="17" Opacity="0.9" Click="Login_Click" Background="#FF44E572" MouseEnter="Login_MouseEnter" MouseLeave="Login_MouseLeave">
-            <Button.Resources>
-                <Style TargetType="{x:Type Border}">
-                    <Setter Property="CornerRadius" Value="10"/>
-                </Style>
-            </Button.Resources>
-            <Button.Style>
-
-                <Style TargetType="Button">
-                    <Setter Property="Template">
-
-                        <Setter.Value>
-                            <ControlTemplate TargetType="Button">
-                                <Border TextBlock.Foreground="{TemplateBinding Foreground}"
-										x:Name="Border"
-										CornerRadius="10"
-										BorderBrush="DarkGreen"
-										Background="{TemplateBinding Background}"
-										BorderThickness="2">
-                                    <VisualStateManager.VisualStateGroups>
-                                        <VisualStateGroup x:Name="CommonStates">
-                                            <VisualStateGroup.Transitions>
-                                                <VisualTransition GeneratedDuration="0:0:0.5" />
-                                                <VisualTransition GeneratedDuration="0"
-																  To="Pressed" />
-                                            </VisualStateGroup.Transitions>
-                                            <VisualState x:Name="Normal" />
-                                            <VisualState x:Name="MouseOver">
-                                            </VisualState>
-                                            <VisualState x:Name="Pressed">
-                                            </VisualState>
-                                            <VisualState x:Name="Disabled">
-                                            </VisualState>
-                                        </VisualStateGroup>
-                                    </VisualStateManager.VisualStateGroups>
-                                    <ContentPresenter Margin="2"
-													  HorizontalAlignment="Center"
-													  VerticalAlignment="Center"
-													  RecognizesAccessKey="True" />
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </Button.Style>
-        </Button>
-        <Button x:Name="Registrati" Content="Registrati" HorizontalAlignment="Left" Margin="92,221,0,0" VerticalAlignment="Top" Width="211" Height="32" FontFamily="Yu Gothic UI Semibold" FontSize="17" Opacity="0.9" Background="#FFF5F804" MouseEnter="Registrati_MouseEnter" MouseLeave="Registrati_MouseLeave" Click="Registrati_Click">
-            <Button.Resources>
-                <Style TargetType="{x:Type Border}">
-                    <Setter Property="CornerRadius" Value="10"/>
-                </Style>
-            </Button.Resources>
-            <Button.Style>
-
-                <Style TargetType="Button">
-                    <Setter Property="Template">
-
-                        <Setter.Value>
-                            <ControlTemplate TargetType="Button">
-                                <Border TextBlock.Foreground="{TemplateBinding Foreground}"
-										x:Name="Border"
-										CornerRadius="10"
-										BorderBrush="Yellow"
-										Background="{TemplateBinding Background}"
-										BorderThickness="2">
-                                    <VisualStateManager.VisualStateGroups>
-                                        <VisualStateGroup x:Name="CommonStates">
-                                            <VisualStateGroup.Transitions>
-                                                <VisualTransition GeneratedDuration="0:0:0.5" />
-                                                <VisualTransition GeneratedDuration="0"
-																  To="Pressed" />
-                                            </VisualStateGroup.Transitions>
-                                            <VisualState x:Name="Normal" />
-                                            <VisualState x:Name="MouseOver">
-                                            </VisualState>
-                                            <VisualState x:Name="Pressed">
-                                            </VisualState>
-                                            <VisualState x:Name="Disabled">
-                                            </VisualState>
-                                        </VisualStateGroup>
-                                    </VisualStateManager.VisualStateGroups>
-                                    <ContentPresenter Margin="2"
-													  HorizontalAlignment="Center"
-													  VerticalAlignment="Center"
-													  RecognizesAccessKey="True" />
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </Button.Style>
+        <Button x:Name="Login" Content="Login" HorizontalAlignment="Center" VerticalAlignment="Center" Width="212" Height="34" FontSize="14" Click="Login_Click" Margin="93,108,95,108">
         </Button>
 
-        
+        <Button x:Name="Registrati" Content="Registrati" HorizontalAlignment="Center"  VerticalAlignment="Center" Width="211" Height="32" FontSize="14" Click="Registrati_Click" Margin="93,163,96,55">
+        </Button>
+
     </Grid>
 </UserControl>

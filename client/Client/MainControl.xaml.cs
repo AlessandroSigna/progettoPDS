@@ -102,7 +102,7 @@ namespace Client
                 // In questo caso a connessione stabilita il ClientLogic deve comunicarlo a MainControl che poi instanzia
                 // LoginRegisterControl:
 
-                LoginRegisterControl login = new LoginRegisterControl();
+                LoginControl login = new LoginControl();
                 App.Current.MainWindow.Content = login;
             } else {
                 messaggioErrore();

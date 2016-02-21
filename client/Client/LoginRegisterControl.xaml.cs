@@ -55,7 +55,7 @@ namespace Client
         #region Button Registrati
         private void Registrati_Click(object sender, RoutedEventArgs e)
         {
-            RegistratiControl main = new RegistratiControl(null);
+            RegistratiControl main = new RegistratiControl();
             App.Current.MainWindow.Content = main;
         }
 

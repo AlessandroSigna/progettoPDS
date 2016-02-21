@@ -32,7 +32,7 @@ namespace BackupServer
             this.Top = SystemParameters.PrimaryScreenHeight - this.Height - 500;
             TPorta.Text = "1010";
             MyNotifyIcon = new System.Windows.Forms.NotifyIcon();
-            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/applogoIcon.ico");
+            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/uploadIcon.ico");
             MyNotifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(MyNotifyIcon_MouseClick);
         }
 
@@ -74,7 +74,7 @@ namespace BackupServer
 
         private void stopServer()
         {
-            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/applogoIcon.ico");
+            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/uploadIcon.ico");
 
             ServerLogic.serverKO = true;
             TPorta.IsEnabled = true;
@@ -354,7 +354,7 @@ namespace BackupServer
             #endregion
 
             tb.Text += DateTime.Now + " - Server avviato su porta " + porta + "\n";
-            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/applogoIcon.ico");
+            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/uploadIcon.ico");
             avviato = true;
 
 
