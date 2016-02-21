@@ -52,9 +52,9 @@ namespace Client
                 fileName = file;
                 versione = versionP;
                 root = rootF;
-                App.Current.MainWindow.Width = 300;
-                App.Current.MainWindow.Height = 300;
-                downloadName.Content = System.IO.Path.GetFileName(file); ;
+                App.Current.MainWindow.Width = 400;
+                App.Current.MainWindow.Height = 190;
+                downloadName.Content = System.IO.Path.GetFileName(file);
                 idFile = sIdFile;
                 this.restoreControl = restoreControl;       //per ripassargli il controllo
                 RiceviFile();
@@ -191,6 +191,28 @@ namespace Client
                 }
                 //ricevuto tutto. Mando ACK
                 clientLogic.WriteStringOnStream(ClientLogic.OK);
+            }
+        }
+        #endregion
+
+        #region Stop Button
+        private void Stop_Click(object sender, RoutedEventArgs e)
+        {
+            StopRestore();
+        }
+
+        public void StopRestore()
+        {
+            try
+            {
+                downloading = false;
+                Start.IsEnabled = false;
+                Start.Visibility = Visibility.Hidden;
+                WaitFol.Visibility = Visibility.Visible;
+            }
+            catch
+            {
+                ExitStub();
             }
         }
         #endregion

@@ -31,8 +31,8 @@ namespace Client
         public MainControl()
         {
             InitializeComponent();
-            App.Current.MainWindow.Width = 400;
-            App.Current.MainWindow.Height = 400;
+            //App.Current.MainWindow.Width = 400;
+            //App.Current.MainWindow.Height = 400;
 
         }
 
@@ -57,12 +57,12 @@ namespace Client
             {
                 waitWindow = new WaitWindow("Connessione in corso...");
                 waitWindow.Show();
-                Connect.IsEnabled = false;
+                contentGrid.IsEnabled = false;
             }
             else
             {
-                waitWindow.Dismiss();
-                Connect.IsEnabled = true;
+                waitWindow.Close();
+                contentGrid.IsEnabled = true;
             }
         }
 

@@ -888,9 +888,9 @@ namespace Client
         // Riscrivere come ReadArrayByte
         public string ReadStringFromStream()
         {
-            //TcpState statoConn = GetState(clientsocket);
-            //if (statoConn == TcpState.Established)
-            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
+            TcpState statoConn = GetState(clientsocket);
+            if (statoConn == TcpState.Established)
+            //if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 NetworkStream stream = clientsocket.GetStream();
                 stream.ReadTimeout = 30000;

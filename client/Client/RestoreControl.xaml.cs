@@ -32,6 +32,7 @@ namespace Client
         public string SelectedImagePath { get; set; }
         public static HeaderToImageConverter ConverterInstance = new HeaderToImageConverter();
         private BackgroundWorker workertransaction;
+        private WaitWindow waitWindow;
 
         #region Costruttore
         /*
@@ -44,8 +45,8 @@ namespace Client
                 InitializeComponent();
                 clientlogic = clientLogic;
                 restoreWindow = mainw;
-                App.Current.MainWindow.Width = 400;
-                App.Current.MainWindow.Height = 400;
+                //App.Current.MainWindow.Width = 400;
+                //App.Current.MainWindow.Height = 400;
                 String[] rootFolders = RetrieveRootFolders();
                 if (rootFolders == null)
                 {
@@ -57,11 +58,13 @@ namespace Client
                     noFolder.Visibility = Visibility.Visible;
                     foldersTree.Visibility = Visibility.Hidden;
                     ConfirmButton.Visibility = Visibility.Hidden;
+                    AnnullaButton.Visibility = Visibility.Hidden;
                 }
                 else
                 {
                     noFolder.Visibility = Visibility.Hidden;
                     foldersTree.Visibility = Visibility.Visible;
+                    AnnullaButton.Visibility = Visibility.Visible;
                     CreateTree(rootFolders);
                 }
 
@@ -120,7 +123,10 @@ namespace Client
                 if (item.Items.Count == 1 && item.Items[0] == dummyNode)
                 {
                     //entro qui solo quando la root folder viene espansa la prima volta
-                    MyPopup.IsOpen = true;
+                    waitWindow = new WaitWindow("Scaricando informazioni dal server...");
+                    waitWindow.Show();
+                    contentGrid.IsEnabled = false;
+
                     item.Items.Clear();
 
                     //ho bisogno del worker per mantenere la UI responsive
@@ -163,7 +169,8 @@ namespace Client
                     return;
                 }
 
-                MyPopup.IsOpen = false;
+                waitWindow.Close();
+                contentGrid.IsEnabled = true;
             }
             catch
             {
@@ -402,22 +409,22 @@ namespace Client
                 if (tag.tipo == ItemType.FileVersion && tag.dimFile == 0)    //caso file cancellato
                 {
                     ConfirmButton.IsEnabled = false;
-                    BrushConverter bc = new BrushConverter();
-                    ConfirmButton.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+                    //BrushConverter bc = new BrushConverter();
+                    //ConfirmButton.Background = (Brush)bc.ConvertFrom("#F5FFFA");
                 }
                 else if (tag.tipo == ItemType.FileVersion || tag.tipo == ItemType.RootFolder || tag.tipo == ItemType.Folder)
                 {
 
                     ConfirmButton.IsEnabled = true;
-                    BrushConverter bc = new BrushConverter();
-                    ConfirmButton.Background = (Brush)bc.ConvertFrom("#FF44E572");
+                    //BrushConverter bc = new BrushConverter();
+                    //ConfirmButton.Background = (Brush)bc.ConvertFrom("#FF44E572");
 
                 }
                 else
                 {
                     ConfirmButton.IsEnabled = false;
-                    BrushConverter bc = new BrushConverter();
-                    ConfirmButton.Background = (Brush)bc.ConvertFrom("#F5FFFA");
+                    //BrushConverter bc = new BrushConverter();
+                    //ConfirmButton.Background = (Brush)bc.ConvertFrom("#F5FFFA");
                 }
             }
             catch
@@ -595,7 +602,7 @@ namespace Client
         }
         #endregion
 
-        #region Button
+        #region Buttons
         private void ConfirmButton_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -617,25 +624,11 @@ namespace Client
             }
         }
 
-        private void ConfirmButton_MouseEnter(object sender, MouseEventArgs e)
+
+        private void AnnullaButton_Click(object sender, RoutedEventArgs e)
         {
-            if (ConfirmButton.IsEnabled)
-            {
-                BrushConverter bc = new BrushConverter();
-                ConfirmButton.Background = (Brush)bc.ConvertFrom("#F5FFFA");
-            }
+            restoreWindow.Close();
         }
-
-        private void ConfirmButton_MouseLeave(object sender, MouseEventArgs e)
-        {
-            if (ConfirmButton.IsEnabled)
-            {
-                BrushConverter bc = new BrushConverter();
-                ConfirmButton.Background = (Brush)bc.ConvertFrom("#FF44E572");
-            }
-        }
-
-
         #endregion
 
         #region Metodi helper e varie

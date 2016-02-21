@@ -3,63 +3,16 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             mc:Ignorable="d" Background="White" Height="215" Width="500">
-    <Grid Margin="0,0,0,0.2" HorizontalAlignment="Left" Width="500">
-        <Rectangle Margin="0,0,0,0">
-            <Rectangle.Fill>
-                <LinearGradientBrush StartPoint="1,0" EndPoint="1,1">
-                    <GradientStop Color="#FFFF66" Offset="0" />
-                    <GradientStop Color="#FFFFCC" Offset="0.90" />
-                </LinearGradientBrush>
-            </Rectangle.Fill>
-        </Rectangle>
-        <Label Padding="7,0,0,0"  x:Name="downloadName" HorizontalAlignment="Left" Margin="32,130,0,0" VerticalAlignment="Top" Height="22" Width="434" FontSize="12" FontFamily="Tahoma" FontWeight="Bold" Foreground="Blue" />
-        <ProgressBar Name="pbStatus" Minimum="0" Maximum="100" Visibility="Visible" Margin="32,98,34,90" Height="Auto" />
-        <Label Name="label" Content="Downloading..." HorizontalAlignment="Left" Margin="32,30,0,0" VerticalAlignment="Top" Height="38" Width="252" FontSize="20" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold" Foreground="Blue" />
-        <Button x:Name="Start" Content="Stop" HorizontalAlignment="Left" Margin="359,30,0,0" VerticalAlignment="Top" Width="107" Height="34" FontFamily="Yu Gothic UI Semibold" FontSize="14" Opacity="0.9" Background="#FF44E572" MouseEnter="File_MouseEnter" MouseLeave="File_MouseLeave" Click="Stop_Click">
-            <Button.Resources>
-                <Style TargetType="{x:Type Border}">
-                    <Setter Property="CornerRadius" Value="10"/>
-                </Style>
-            </Button.Resources>
-            <Button.Style>
+             mc:Ignorable="d" Background="Transparent" Height="150" Width="400">
+    <Grid Margin="0,0,0,0.2" HorizontalAlignment="Left">
 
-                <Style TargetType="{x:Type Button}">
-                    <Setter Property="Template">
+        <Label Padding="7,0,0,0"  x:Name="downloadName" HorizontalAlignment="Left" Margin="32,106,0,0" VerticalAlignment="Top" Height="22" Width="334" FontSize="12" />
+        <ProgressBar Name="pbStatus" Minimum="0" Maximum="100" Visibility="Visible" Height="24" VerticalAlignment="Center" HorizontalAlignment="Center" Width="334" RenderTransformOrigin="0.5,0.5" Margin="32,77,34,48.8" />
+        <Label Name="label" Content="Downloading..." HorizontalAlignment="Left" Margin="32,30,0,0" VerticalAlignment="Top" Height="38" Width="214" FontSize="18" FontWeight="Bold"/>
+        <Button x:Name="Start" Content="Interrompi" HorizontalAlignment="Left" Margin="259,30,0,0" VerticalAlignment="Top" Width="107" Height="34" FontSize="14" Click="Stop_Click">
 
-                        <Setter.Value>
-                            <ControlTemplate TargetType="{x:Type Button}">
-                                <Border TextBlock.Foreground="{TemplateBinding Foreground}"
-        							x:Name="Border"
-        							CornerRadius="10"
-        							BorderBrush="DarkGreen"
-        							Background="{TemplateBinding Background}"
-        							BorderThickness="2">
-                                    <VisualStateManager.VisualStateGroups>
-                                        <VisualStateGroup x:Name="CommonStates">
-                                            <VisualStateGroup.Transitions>
-                                                <VisualTransition GeneratedDuration="0:0:0.5" />
-                                                <VisualTransition GeneratedDuration="0"
-        											To="Pressed" />
-                                            </VisualStateGroup.Transitions>
-                                            <VisualState x:Name="Normal" />
-                                            <VisualState x:Name="MouseOver"/>
-                                            <VisualState x:Name="Pressed"/>
-                                            <VisualState x:Name="Disabled"/>
-                                        </VisualStateGroup>
-                                    </VisualStateManager.VisualStateGroups>
-                                    <ContentPresenter Margin="2"
-        								HorizontalAlignment="Center"
-        								VerticalAlignment="Center"
-        								RecognizesAccessKey="True" />
-                                </Border>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </Button.Style>
         </Button>
-        <Label Padding="7,0,0,0" Visibility="Hidden" Content="Attendere..."  x:Name="WaitFol" HorizontalAlignment="Left" Margin="350,38,0,0" VerticalAlignment="Top" Height="34" Width="130" FontSize="14" FontFamily="Tahoma" FontWeight="Bold" Foreground="Blue" />
+        <Label Padding="7,0,0,0" Visibility="Hidden" Content="Attendere..."  x:Name="WaitFol" HorizontalAlignment="Left" Margin="259,38,0,0" VerticalAlignment="Top" Height="26" Width="107" FontSize="14" FontWeight="Bold" />
 
     </Grid>
 </UserControl>

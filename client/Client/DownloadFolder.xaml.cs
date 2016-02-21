@@ -53,8 +53,8 @@ namespace Client
                 clientLogic = clientlogic;
                 this.folderToBeRestored = folderToBeRestored;
                 this.restoreControl = restoreControl;
-                App.Current.MainWindow.Width = 500;
-                App.Current.MainWindow.Height = 215;
+                App.Current.MainWindow.Width = 400;
+                App.Current.MainWindow.Height = 190;
                 //creo una cartella dentro la cartella scelta dall'utente dove collezionare i file che verranno ripristinati
                 //questa nuova cartella avrà lo stesso nome della (sotto)cartella che si vuole ripristinare
                 string folderCreated = folderToBeRestored.Substring(folderToBeRestored.LastIndexOf((@"\")) + 1);
