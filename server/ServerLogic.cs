@@ -55,7 +55,7 @@ namespace BackupServer
         public const string ENDLIST = "+ENDLIST+"; //+ENDSYN+username
         public const string ECHO_REQUEST = "+ECHO_REQUEST+";
 
-        public const int TIME_OUT = 60;
+        public const int TIME_OUT = 15000;
 
         #endregion
 
@@ -2708,135 +2708,152 @@ namespace BackupServer
             bool nowrite = false;   //true se NON si deve scrivere al client una risposta
             LinkedList<string> fileReceived = new LinkedList<string>();
 
-            DateTime d1 = DateTime.Now;
+            //DateTime d1 = DateTime.Now;
 
-            while (!serverKO && !chiudere)
-            {
-                String risposta;
+            //while (!serverKO && !chiudere)
+            //{
+            //    String risposta;
 
-                while (!serverKO && !chiudere && stream.DataAvailable)
+                while (!serverKO && !chiudere) //&& stream.DataAvailable)
                 {
                     Byte[] data = new Byte[512];
                     String responseData = String.Empty;
-                    Int32 bytes = stream.Read(data, 0, data.Length);
+                    Int32 bytes = 0;
+                    String risposta = "";
+                    String tmp;
+                    String comando = "";
 
-                    responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
+                    stream.ReadTimeout = TIME_OUT;
 
-                    String tmp = responseData.Substring(1, responseData.Length - 1);
-                    String comando = responseData.Substring(0, tmp.IndexOf('+') + 2);
-
-                    switch (comando)
+                    try
                     {
-                        case ECHO_REQUEST:
-                            risposta = comandoECHO(responseData, clientsocket);
-                            nowrite = false;
-                            break;
-                        case ECDH:
-                            risposta = comandoECDH(responseData, clientsocket);
-                            nowrite = false;
-                            break;
-                        case LOGIN:
-                            risposta = comandoLogin(responseData, clientsocket);
-                            nowrite = false;
-                            break;
-                        case LOGOUT:
-                            risposta = comandoLogout(responseData);
-                            nowrite = false;
-                            break;
-                        case DISCONETTI:    //è un alias di LOGOUT - ora obsoleto - si deve trasformare in: chiudo lo stream senza fare il logout perché ancora non sono loggato
-                            Boolean risultato = comandoDisconnetti(responseData);
-                            if (risultato)
-                            {
+                        bytes = stream.Read(data, 0, data.Length);
+                        responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
+                        tmp = responseData.Substring(1, responseData.Length - 1);
+                        comando = responseData.Substring(0, tmp.IndexOf('+') + 2);
+                    }
+                    catch (Exception e)
+                    {
+                        risposta = ERRORE + e.Message;
+                        chiudere = true;
+                    }
+
+                    if (!comando.Equals(""))
+                    {
+                        switch (comando)
+                        {
+                            case ECHO_REQUEST:
+                                risposta = comandoECHO(responseData, clientsocket);
+                                nowrite = false;
+                                break;
+                            case ECDH:
+                                risposta = comandoECDH(responseData, clientsocket);
+                                nowrite = false;
+                                break;
+                            case LOGIN:
+                                risposta = comandoLogin(responseData, clientsocket);
+                                nowrite = false;
+                                break;
+                            case LOGOUT:
+                                risposta = comandoLogout(responseData);
+                                nowrite = false;
+                                break;
+                            case DISCONETTI:    //è un alias di LOGOUT - ora obsoleto - si deve trasformare in: chiudo lo stream senza fare il logout perché ancora non sono loggato
+                                Boolean risultato = comandoDisconnetti(responseData);
+                                if (risultato)
+                                {
+                                    chiudere = true;
+                                    risposta = OK + "Client Disconnesso";
+                                }
+                                else
+                                    risposta = ERRORE + "Errore durante la  Disconnessione";
+
+                                break;
+                            case FOLDER:
+                                fileReceived = new LinkedList<string>();
+                                risposta = comandoFolder(responseData);
+                                nowrite = false;
+                                break;
+                            case FILE:
+                                risposta = comandoFile(responseData, clientsocket, fileReceived);
+                                nowrite = false;
+                                break;
+                            case LISTFILES:
+                                risposta = comandoGetListaFile(clientsocket, responseData);
+                                nowrite = false;
+                                break;
+                            case GETVFILE:
+                                risposta = comandoGetVersioniFile(clientsocket, responseData);
+                                nowrite = false;
+                                break;
+                            case GETFILEV:
+                                risposta = comandoGetFileVersione(clientsocket, responseData);
+                                nowrite = false;
+                                try
+                                {
+                                    //Directory.Delete(Directory.GetCurrentDirectory() + "\\tmp", true);
+                                }
+                                catch
+                                {
+
+                                }
+                                break;
+                            case RENAMEFILE:
+                                risposta = comandoRenameFile(responseData);
+                                nowrite = false;
+                                break;
+                            case CANC:
+                                risposta = comandoFileCancellato(responseData);
+                                nowrite = false;
+                                break;
+                            case ENDSYNC:
+                                risposta = ENDSYNC + "OK - Fine Sync";
+                                comandoEndSync(responseData, fileReceived);
+                                nowrite = true;
+                                break;
+                            case GETFOLDERUSER:
+                                risposta = comandoGetFoldersUser(responseData);
+                                nowrite = false;
+                                break;
+                            case DISCONNETTIUTENTE:  //chiusura dello stream con logout - Utile per disconnetti da MenuControl
+                                risposta = comandoLogout(responseData);
                                 chiudere = true;
-                                risposta = OK + "Client Disconnesso";
-                            }
-                            else
-                                risposta = ERRORE + "Errore durante la  Disconnessione";
+                                nowrite = true;
+                                break;
+                            case DISCONNETTICLIENT:  //chiusura dello stream senza logout
+                                risposta = "Client richiede la disconnessione";
+                                chiudere = true;
+                                nowrite = true;
+                                break;
+                            case RESTORE:
+                                risposta = comandoRestore(clientsocket, responseData);
+                                nowrite = false;
+                                try
+                                {
+                                    //Directory.Delete(Directory.GetCurrentDirectory() + "\\tmp", true);
+                                }
+                                catch
+                                {
 
-                            break;
-                        case FOLDER:
-                            fileReceived = new LinkedList<string>();
-                            risposta = comandoFolder(responseData);
-                            nowrite = false;
-                            break;
-                        case FILE:
-                            risposta = comandoFile(responseData, clientsocket, fileReceived);
-                            nowrite = false;
-                            break;
-                        case LISTFILES:
-                            risposta = comandoGetListaFile(clientsocket, responseData);
-                            nowrite = false;
-                            break;
-                        case GETVFILE:
-                            risposta = comandoGetVersioniFile(clientsocket, responseData);
-                            nowrite = false;
-                            break;
-                        case GETFILEV:
-                            risposta = comandoGetFileVersione(clientsocket, responseData);
-                            nowrite = false;
-                            try
-                            {
-                                //Directory.Delete(Directory.GetCurrentDirectory() + "\\tmp", true);
-                            }
-                            catch
-                            {
+                                }
+                                break;
+                            case EXITDOWNLOAD:
+                                risposta = "Download terminato";
+                                nowrite = true;
+                                chiudere = true;
+                                break;
+                            default:
+                                risposta = ERRORE + "Comando non valido TOP";
+                                nowrite = false;
+                                break;
+                        }
 
-                            }
-                            break;
-                        case RENAMEFILE:
-                            risposta = comandoRenameFile(responseData);
-                            nowrite = false;
-                            break;
-                        case CANC:
-                            risposta = comandoFileCancellato(responseData);
-                            nowrite = false;
-                            break;
-                        case ENDSYNC:
-                            risposta = ENDSYNC + "OK - Fine Sync";
-                            comandoEndSync(responseData, fileReceived);
-                            nowrite = true;
-                            break;
-                        case GETFOLDERUSER:
-                            risposta = comandoGetFoldersUser(responseData);
-                            nowrite = false;
-                            break;
-                        case DISCONNETTIUTENTE:  //chiusura dello stream con logout - Utile per disconnetti da MenuControl
-                            risposta = comandoLogout(responseData);
-                            chiudere = true;
-                            nowrite = true;
-                            break;
-                        case DISCONNETTICLIENT:  //chiusura dello stream senza logout
-                            risposta = "Client richiede la disconnessione";
-                            chiudere = true;
-                            nowrite = true;
-                            break;
-                        case RESTORE:
-                            risposta = comandoRestore(clientsocket, responseData);
-                            nowrite = false;
-                            try
-                            {
-                                //Directory.Delete(Directory.GetCurrentDirectory() + "\\tmp", true);
-                            }
-                            catch
-                            {
-
-                            }
-                            break;
-                        case EXITDOWNLOAD:
-                            risposta = "Download terminato";
-                            nowrite = true;
-                            chiudere = true;
-                            break;
-                        default:
-                            risposta = ERRORE + "Comando non valido TOP";
-                            nowrite = false;
-                            break;
                     }
 
-                    if (risposta == RESTART)
-                    {
-                        d1 = DateTime.Now;
-                    }
+                    //if (risposta == RESTART)
+                    //{
+                    //    d1 = DateTime.Now;
+                    //}
                     
                     mainWindow.tb.Dispatcher.Invoke(new BackupServer.MainWindow.UpdateTextCallback(mainWindow.UpdateText), new object[] { DateTime.Now + " - " + risposta + "\n" });
                     if (!nowrite)
@@ -2855,13 +2872,13 @@ namespace BackupServer
                     }
                 }
 
-                DateTime d2 = DateTime.Now;
-                TimeSpan ts = d2 - d1;
-                if (ts.Minutes * 60 + ts.Seconds > TIME_OUT)
-                {
-                    chiudere = true;
-                }
-            }
+                //DateTime d2 = DateTime.Now;
+                //TimeSpan ts = d2 - d1;
+                //if (ts.Minutes * 60 + ts.Seconds > TIME_OUT)
+                //{
+                //    chiudere = true;
+                //}
+            //}
             mainWindow.tb.Dispatcher.Invoke(new BackupServer.MainWindow.UpdateTextCallback(mainWindow.UpdateText), new object[] { DateTime.Now + " - Client Disconnesso" + "\n" });
             stream.Close();
             stream.Dispose();
