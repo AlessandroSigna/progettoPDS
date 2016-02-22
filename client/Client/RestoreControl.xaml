@@ -14,11 +14,9 @@
 
         <Label x:Name="noFolder" Visibility="Visible" Content="Nessuna cartella salvata!"  HorizontalAlignment="Left" Margin="60,75,0,0" VerticalAlignment="Top" Height="47" Width="299" BorderThickness="0" FontSize="24"  FontWeight="Bold" />
 
-        <Button x:Name="ConfirmButton" Content="Ripristina" HorizontalAlignment="Center" VerticalAlignment="Top" Width="120" Height="35" FontSize="14"  IsEnabled="False" Click="ConfirmButton_Click" Grid.Row="1">
-        </Button>
+        <Button x:Name="ConfirmButton" Content="Ripristina" HorizontalAlignment="Center" VerticalAlignment="Top" Width="120" Height="38"  IsEnabled="False" Click="ConfirmButton_Click" Grid.Row="1"></Button>
         
-        <Button x:Name="AnnullaButton" Content="Annulla" HorizontalAlignment="Right" VerticalAlignment="Top" Width="120" Height="35" FontSize="14"  Click="AnnullaButton_Click" Grid.Row="1" Margin="0,0,10,0">
-        </Button>
+        <Button x:Name="AnnullaButton" Content="Annulla" HorizontalAlignment="Right" VerticalAlignment="Top" Width="120" Height="38" Click="AnnullaButton_Click" Grid.Row="1" Margin="0,0,10,0"></Button>
         
         <TreeView x:Name="foldersTree"
           SelectedItemChanged="foldersItem_SelectedItemChanged" Background="#FFFFFFFF"

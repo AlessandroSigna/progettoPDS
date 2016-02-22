@@ -27,7 +27,7 @@
         <Client:BackButtonUC x:Name="BackButtonControl" d:IsHidden="True"/>
         <Client:DisconnettiButtonUC d:IsHidden="True"/>
 
-        <Button x:Name="Registrati" Content="Registrati" HorizontalAlignment="Center"  VerticalAlignment="Center" Width="216" Height="38" FontSize="14" Click="Registrati_Click" Grid.Row="1">
+        <Button x:Name="Registrati" Content="Registrati" IsDefault="True" HorizontalAlignment="Center"  VerticalAlignment="Center" Width="120" Height="38" Click="Registrati_Click" Grid.Row="1">
            
         </Button>
 

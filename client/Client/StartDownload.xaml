@@ -6,13 +6,11 @@
              mc:Ignorable="d" Background="Transparent" Height="150" Width="400">
     <Grid Margin="0,0,0,0.2" HorizontalAlignment="Left">
 
-        <Label Padding="7,0,0,0"  x:Name="downloadName" HorizontalAlignment="Left" Margin="32,106,0,0" VerticalAlignment="Top" Height="22" Width="334" FontSize="12" />
+        <Label Padding="7,0,0,0"  x:Name="downloadName" HorizontalAlignment="Left" Margin="32,106,0,0" VerticalAlignment="Top" Height="22" Width="334" />
         <ProgressBar Name="pbStatus" Minimum="0" Maximum="100" Visibility="Visible" Height="24" VerticalAlignment="Center" HorizontalAlignment="Center" Width="334" RenderTransformOrigin="0.5,0.5" Margin="32,77,34,48.8" />
-        <Label Name="label" Content="Downloading..." HorizontalAlignment="Left" Margin="32,30,0,0" VerticalAlignment="Top" Height="38" Width="214" FontSize="18" FontWeight="Bold"/>
-        <Button x:Name="Start" Content="Interrompi" HorizontalAlignment="Left" Margin="259,30,0,0" VerticalAlignment="Top" Width="107" Height="34" FontSize="14" Click="Stop_Click">
-
-        </Button>
-        <Label Padding="7,0,0,0" Visibility="Hidden" Content="Attendere..."  x:Name="WaitFol" HorizontalAlignment="Left" Margin="259,38,0,0" VerticalAlignment="Top" Height="26" Width="107" FontSize="14" FontWeight="Bold" />
+        <Label Name="label" Content="Downloading..." HorizontalAlignment="Left" Margin="32,30,0,0" VerticalAlignment="Top" Height="38" Width="214" />
+        <Button x:Name="Start" Content="Interrompi" HorizontalAlignment="Left" Margin="246,30,0,0" VerticalAlignment="Top" Width="120" Height="38" Click="Stop_Click"></Button>
+        <Label Padding="7,0,0,0" Visibility="Hidden" Content="Attendere..."  x:Name="WaitFol" HorizontalAlignment="Left" Margin="259,38,0,0" VerticalAlignment="Top" Height="26" Width="107" />
 
     </Grid>
 </UserControl>
