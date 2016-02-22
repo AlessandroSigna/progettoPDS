@@ -104,11 +104,11 @@ namespace Client
             errorePassword.Visibility = Visibility.Visible;
         }
 
-
         private void Username_GotFocus(object sender, RoutedEventArgs e)
         {
             erroreUsername.Visibility = Visibility.Hidden;
         }
+
         private void Username_LostFocus(object sender, RoutedEventArgs e)
         {
             IsValidUsername(Username.Text);

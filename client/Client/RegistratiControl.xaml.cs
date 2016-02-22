@@ -37,40 +37,107 @@ namespace Client
             //await mw.showmessageasync("errore", mess);
             MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+        #region Controlli username e password
+        private Boolean IsValidUsername(String username)
+        {
+            if (username == null || username.Equals(""))
+            {
+                mostraErroreUsername("Campo username vuoto.");
+                return false;
+            }
+            else if (Username.Text.Contains("+") || Username.Text.Contains("(") || Username.Text.Contains(")") || Username.Text.Contains("{") || Username.Text.Contains("}") || Username.Text.Contains("'"))
+            {
+                mostraErroreUsername("Lo username contiene uno o piu' caratteri invalidi: + () {} '");
+                return false;
+            }
+            else if (Username.Text.Length > 15)
+            {
+                mostraErroreUsername("La lunghezza dello username deve essere inferiore a 15 caratteri.");
+                return false;
+            }
+            else
+            {
+                BrushConverter bc = new BrushConverter();
+                Username.BorderBrush = (Brush)bc.ConvertFrom("#FFABADB3");
+                Username.BorderThickness = new Thickness(1);
+                return true;
+            }
+        }
+
+        private Boolean IsValidPassword(String password)
+        {
+            if (password == null || password.Equals("") || password.Length < 5 || password.Length > 15)
+            {
+                mostraErrorePassword("La lunghezza della password deve essere compresa tra 5 e 15 caratteri.");
+                return false;
+            }
+            else if (password.Contains("+") || password.Contains("(") || password.Contains(")") || password.Contains("{") || password.Contains("}") || password.Contains("'"))
+            {
+                mostraErrorePassword("La password contiene uno o piu' caratteri invalidi: + () {} '");
+                return false;
+            }
+            else
+            {
+                BrushConverter bc = new BrushConverter();
+                Password.BorderBrush = (Brush)bc.ConvertFrom("#FFABADB3");
+                Password.BorderThickness = new Thickness(1);
+                return true;
+            }
+        }
+
+        private void mostraErroreUsername(String errore)
+        {
+
+            Username.BorderBrush = Brushes.Red;
+            Username.BorderThickness = new Thickness(2);
+            erroreUsername.Content = errore;
+            erroreUsername.Visibility = Visibility.Visible;
+        }
+
+        private void mostraErrorePassword(String errore)
+        {
+
+            Password.BorderBrush = Brushes.Red;
+            Password.BorderThickness = new Thickness(2);
+            errorePassword.Content = errore;
+            errorePassword.Visibility = Visibility.Visible;
+        }
+
+        private void Username_GotFocus(object sender, RoutedEventArgs e)
+        {
+            erroreUsername.Visibility = Visibility.Hidden;
+        }
+
+        private void Username_LostFocus(object sender, RoutedEventArgs e)
+        {
+            IsValidUsername(Username.Text);
+        }
+
+        private void Password_GotFocus(object sender, RoutedEventArgs e)
+        {
+            errorePassword.Visibility = Visibility.Hidden;
+        }
+
+        private void Password_LostFocus(object sender, RoutedEventArgs e)
+        {
+            IsValidPassword(Password.Password);
+        }
+        #endregion
 
         #region Button Registrati
         private void Registrati_Click(object sender, RoutedEventArgs e)
         {
+            string username = Username.Text;
+            string password = Password.Password;
+            Boolean usernameIsValid = IsValidUsername(username);
+            Boolean passwordIsValid = IsValidPassword(password);
 
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
+            if (usernameIsValid && passwordIsValid)
+            {
+                MainWindow mw = (MainWindow)App.Current.MainWindow;
 
-            if (Username.Text == null || Username.Text.Equals("") || Password.Password == null || Password.Password.Equals(""))
-            {
-                Registrati_Esito(false, "Campi username e/o password vuoti.");
-            }
-            else if (Username.Text.Contains("+") || Username.Text.Contains("(") || Username.Text.Contains(")") || Username.Text.Contains("{") || Username.Text.Contains("}") || Username.Text.Contains("'"))
-            {
-                Registrati_Esito(false, "Lo username contiene uno o piu' caratteri invalidi: + () {} '");
-            }
-            else if (Password.Password.Contains("+") || Password.Password.Contains("(") || Password.Password.Contains(")") || Password.Password.Contains("{") || Password.Password.Contains("}") || Password.Password.Contains("'"))
-            {
-                Registrati_Esito(false, "La password contiene uno o piu' caratteri invalidi: + () {} '");
-            }
-            else if (Username.Text.Length > 15)
-            {
-                Registrati_Esito(false, "La lunghezza dello username deve essere inferiore a 15 caratteri.");
-            }
-            else if (Password.Password.Length < 5 || Password.Password.Length > 15)
-            {
-                Registrati_Esito(false, "La lunghezza della password deve essere compresa tra 5 e 15 caratteri.");
-            }
-            else
-            {
                 mw.clientLogic.Registrati(Username.Text, Password.Password, this);
             }
-            //MenuControl main = new MenuControl();
-            //App.Current.MainWindow.Content = main;
-
         }
 
         public void Registrati_Esito(bool esito, string messaggio = null)
@@ -78,11 +145,15 @@ namespace Client
             // If else per gestire la risposta del server, analizzata da clientLogic,
             // usata qui per decidere quale sarà la prossima finestra
 
-            if (esito) {
+            if (esito)
+            {
                 MenuControl main = new MenuControl();
                 App.Current.MainWindow.Content = main;
-            } else {
-                messaggioerrore(messaggio);
+            }
+            else
+            {
+                mostraErroreUsername("");
+                mostraErrorePassword(messaggio);
             }
         }
 
