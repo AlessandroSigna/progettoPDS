@@ -49,7 +49,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>applogoIcon.ico</ApplicationIcon>
+    <ApplicationIcon>imageres_1040.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="MahApps.Metro, Version=1.1.2.0, Culture=neutral, PublicKeyToken=f4fb5a3c4d1e5b4f, processorArchitecture=MSIL">
@@ -140,9 +140,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="Images\applogo.png" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Images\start.png" />
   </ItemGroup>
   <ItemGroup>
@@ -155,13 +152,24 @@
     <Resource Include="Images\stopPremuto.png" />
   </ItemGroup>
   <ItemGroup>
-    <Resource Include="applogoIcon.ico" />
-  </ItemGroup>
-  <ItemGroup>
     <Resource Include="Images\FolderBlack.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Images\FolderWhite.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="imageres_1040.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\imageres_1040.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\Folder.png" />
+    <Resource Include="Images\SfondoIcona.png" />
+    <Resource Include="Images\StartServer.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Images\StopServer.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
