@@ -9,24 +9,23 @@
     <Grid >
 
         <Grid.RowDefinitions>
-            <RowDefinition Height="33*"/>
-            <RowDefinition Height="17*"/>
+            <RowDefinition Height="87*"/>
+            <RowDefinition Height="38*"/>
 
         </Grid.RowDefinitions>
-        <Label x:Name="LabelPass" Content="Password" HorizontalAlignment="Left" Margin="47,128,0,0" VerticalAlignment="Top" Height="31" Width="84" BorderThickness="0" FontSize="14" FontWeight="Bold" Grid.Row="0"/>
-        <Label x:Name="LabelUser" Content="Username" HorizontalAlignment="Left" Margin="47,74,0,0" VerticalAlignment="Top" Height="29" Width="84" BorderThickness="0" FontSize="14" FontWeight="Bold" Grid.Row="0"/>
+        <Label x:Name="LabelPass" Content="Password:" HorizontalAlignment="Left" Margin="50,116,0,0" VerticalAlignment="Top" Width="110" HorizontalContentAlignment="Right" Grid.Row="0"/>
+        <Label x:Name="LabelUser" Content="Username:" HorizontalAlignment="Left" Margin="50,66,0,0" VerticalAlignment="Top" Width="110" HorizontalContentAlignment="Right" Grid.Row="0"/>
 
-        <TextBox x:Name="Username" Height="27" Margin="172,74,0,0" VerticalAlignment="Top" FontSize="14" Grid.Row="0" VerticalContentAlignment="Center" HorizontalAlignment="Left" Width="173" >
-        </TextBox>
+        <TextBox x:Name="Username" Height="19" Margin="190,69,0,0" VerticalAlignment="Top" Grid.Row="0" VerticalContentAlignment="Center" HorizontalAlignment="Left" Width="140" GotFocus="Username_GotFocus" LostFocus="Username_LostFocus"></TextBox>
 
-        <PasswordBox x:Name="Password"  HorizontalAlignment="Left" Height="27" Margin="172,128,0,0"  VerticalAlignment="Top" Width="173" FontSize="12" VerticalContentAlignment="Center" Grid.Row="0">
-        </PasswordBox>
+        <PasswordBox x:Name="Password"  HorizontalAlignment="Left" Height="19" Margin="190,119,0,0"  VerticalAlignment="Top" Width="140" VerticalContentAlignment="Center" Grid.Row="0" GotFocus="Password_GotFocus" LostFocus="Password_LostFocus"></PasswordBox>
 
-        <Button x:Name="Login" Content="Login" HorizontalAlignment="Left" Margin="20,20,0,0" VerticalAlignment="Top" Width="150" Height="38" FontSize="14" Click="Login_Click" IsDefault="True" Grid.Row="1">
-        </Button>
+        <Label x:Name="erroreUsername" Foreground="Red" Visibility="Hidden" Content="Scrivi il tuo errore" HorizontalAlignment="Center" Grid.Row="0" VerticalAlignment="Top" Margin="0,88,0,0"></Label>
+        <Label x:Name="errorePassword" Foreground="Red" Visibility="Hidden" Content="Scrivi il tuo errore" HorizontalAlignment="Center" Grid.Row="0" VerticalAlignment="Top" Margin="0,138,0,0"></Label>
 
-        <Button x:Name="NuovoUtente" Content="Nuovo Utente?" HorizontalAlignment="Right" Margin="0,20,20,0" VerticalAlignment="Top" Width="150" Height="38" FontSize="14" Click="NuovoUtente_Click" Grid.Row="1">
-        </Button>
+        <Button x:Name="Login" Content="Login" HorizontalAlignment="Left" Margin="45,20,0,0" VerticalAlignment="Top" Width="120" Height="38" Click="Login_Click" IsDefault="True" Grid.Row="1"></Button>
+
+        <Button x:Name="NuovoUtente" Content="Nuovo Utente?" Margin="0,20,45,0" VerticalAlignment="Top" Height="38" Click="NuovoUtente_Click" Grid.Row="1" HorizontalAlignment="Right" Width="120"/>
 
         <Client:BackButtonUC IsEnabled="False" x:Name="BackButtonControl" d:IsHidden="True"/>
         <Client:DisconnettiButtonUC d:IsHidden="True"/>

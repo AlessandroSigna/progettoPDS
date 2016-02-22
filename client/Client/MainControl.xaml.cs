@@ -84,15 +84,13 @@ namespace Client
                 client = new ClientLogic(clientsocket, IPAddress.Parse(ip), int.Parse(port), mw, this);
                 mw.clientLogic = client;
             }
-            else
-            {
-                Console.Out.WriteLine("No addr");
-            }
 
         }
 
         public void Esito_Connect(bool esito)
         {
+
+            showHideWaitBar(false);
             if (esito) {
                 // Il passaggio a LoginRegisterControl non avviene qui, ma in ClientLogic,
                 // dopo che viene stabilita la connessione.
@@ -104,31 +102,25 @@ namespace Client
                 LoginControl login = new LoginControl();
                 App.Current.MainWindow.Content = login;
             } else {
-                messaggioErrore();
+                messaggioErrore("Impossibile raggiungere il server.");
             }
-            showHideWaitBar(false);
-        }
-
-        private void Connect_MouseEnter(object sender, MouseEventArgs e)
-        {
-            BrushConverter bc = new BrushConverter();
-            Connect.Background = (Brush)bc.ConvertFrom("#F5FFFA");
-
-        }
-
-        private void Connect_MouseLeave(object sender, MouseEventArgs e)
-        {
-            BrushConverter bc = new BrushConverter();
-            Connect.Background = (Brush)bc.ConvertFrom("#FF44E572");
-
         }
         #endregion
 
         #region Controlli indirizzo e porta
 
+        private void PortBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            errorePorta.Visibility = Visibility.Hidden;
+        }
         private void PortBox_LostFocus(object sender, RoutedEventArgs e)
         {
             IsValidPort(PortBox.Text);
+        }
+
+        private void IpAddressBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            erroreIndirizzo.Visibility = Visibility.Hidden;
         }
 
         private void IpAddressBox_LostFocus(object sender, RoutedEventArgs e)
@@ -143,7 +135,8 @@ namespace Client
                 IPAddress address;
                 if (IPAddress.TryParse(addr, out address))
                 {
-                    IpAddressBox.BorderBrush = Brushes.Green;
+                    BrushConverter bc = new BrushConverter();
+                    IpAddressBox.BorderBrush = (Brush)bc.ConvertFrom("#FFABADB3");
                     IpAddressBox.BorderThickness = new Thickness(1);
                     return true;
                 }
@@ -151,6 +144,8 @@ namespace Client
                 {
                     IpAddressBox.BorderBrush = Brushes.Red;
                     IpAddressBox.BorderThickness = new Thickness(2);
+                    erroreIndirizzo.Content = "Inserire un indirizzo IP nel formato A.B.C.D";
+                    erroreIndirizzo.Visibility = Visibility.Visible;
                     return false;
                 }
             }
@@ -158,6 +153,8 @@ namespace Client
             {
                 IpAddressBox.BorderBrush = Brushes.Red;
                 IpAddressBox.BorderThickness = new Thickness(2);
+                erroreIndirizzo.Content = "Inserire un indirizzo IP nel formato A.B.C.D";
+                erroreIndirizzo.Visibility = Visibility.Visible;
                 return false;
             }
         }
@@ -171,7 +168,8 @@ namespace Client
                 int port = int.Parse(addr);
                 if (port > 0 && port < 65536)
                 {
-                    PortBox.BorderBrush = Brushes.Green;
+                    BrushConverter bc = new BrushConverter();
+                    PortBox.BorderBrush = (Brush)bc.ConvertFrom("#FFABADB3");
                     PortBox.BorderThickness = new Thickness(1);
                     return true;
                 }
@@ -179,6 +177,8 @@ namespace Client
                 {
                     PortBox.BorderBrush = Brushes.Red;
                     PortBox.BorderThickness = new Thickness(2);
+                    errorePorta.Content = "Inserire una porta TCP [1-65535]";
+                    errorePorta.Visibility = Visibility.Visible;
                     return false;
                 }
             }
@@ -186,12 +186,13 @@ namespace Client
             {
                 PortBox.BorderBrush = Brushes.Red;
                 PortBox.BorderThickness = new Thickness(2);
+                errorePorta.Content = "Inserire una porta TCP [1-65535]";
+                errorePorta.Visibility = Visibility.Visible;
                 return false;
             }
 
         }
         #endregion
-
 
     }
 }

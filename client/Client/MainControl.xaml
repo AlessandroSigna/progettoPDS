@@ -7,29 +7,21 @@
              d:DesignHeight="250" d:DesignWidth="400">
     <Grid Name="contentGrid" >
 
-        <Label x:Name="LabelPorta" Content="Porta Server" HorizontalAlignment="Left" Margin="56,152,0,0" VerticalAlignment="Top" Height="31" Width="130" FontSize="14" />
-        <Label x:Name="LabelIndirizzo" Content="Indirizzo Server" HorizontalAlignment="Left" Margin="49,104,0,0" VerticalAlignment="Top" Height="29" Width="137" FontSize="14" />
-        <TextBox x:Name="IpAddressBox" Text="192.168.1.3"  MaxLength ="15" HorizontalAlignment="Left" Height="27" Margin="191,104,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="140" FontSize="14" FontFamily="Yu Gothic UI Semibold" TextAlignment="Center" VerticalContentAlignment="Center" LostFocus="IpAddressBox_LostFocus">
-            <TextBox.ToolTip>
-                <ToolTip DataContext="{Binding Path=PlacementTarget, RelativeSource={x:Static RelativeSource.Self}}">
-                    <StackPanel>
-                        <Label FontWeight="Bold" Content="Info"/>
-                        <Label Content="Inserire un indirizzo IP nel formato x.x.x.x"/>
-                    </StackPanel>
-                </ToolTip>
-            </TextBox.ToolTip>
-        </TextBox>
-        <TextBox x:Name="PortBox" Text="1234" MaxLength ="5" HorizontalAlignment="Left" Height="27" Margin="191,156,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="140" FontSize="14" FontFamily="Yu Gothic UI Semibold" TextAlignment="Center" VerticalContentAlignment="Center" LostFocus="PortBox_LostFocus" RenderTransformOrigin="0.942,0.481">
-            <TextBox.ToolTip>
-                <ToolTip DataContext="{Binding Path=PlacementTarget, RelativeSource={x:Static RelativeSource.Self}}">
-                    <StackPanel>
-                        <Label FontWeight="Bold" Content="Info"/>
-                        <Label Content="Inserire una porta TCP [1-65535]"/>
-                    </StackPanel>
-                </ToolTip>
-            </TextBox.ToolTip>
-        </TextBox>
-        <Button x:Name="Connect" Content="Connetti" VerticalAlignment="Bottom" Height="34" Click="connect_button_Click" Margin="129,0,129,19" FontSize="14" IsDefault="True"/>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="87*"/>
+            <RowDefinition Height="38*"/>
+
+        </Grid.RowDefinitions>
+        <Label x:Name="LabelPorta" Content="Porta Server:" HorizontalAlignment="Left" VerticalAlignment="Top" Width="110" HorizontalContentAlignment="Right" Grid.Row="0" Margin="50,116,0,0"/>
+        <Label x:Name="LabelIndirizzo" Content="Indirizzo Server:" HorizontalAlignment="Left" VerticalAlignment="Top" Width="110" HorizontalContentAlignment="Right" Grid.Row="0" Margin="50,66,0,0"/>
+        
+        <TextBox x:Name="IpAddressBox" Text="192.168.1.3"  MaxLength ="15" HorizontalAlignment="Left" Margin="190,69,0,0" VerticalAlignment="Top" Width="140" Height="19" TextAlignment="Center" VerticalContentAlignment="Center" GotFocus="IpAddressBox_GotFocus" LostFocus="IpAddressBox_LostFocus" Grid.Row="0" BorderBrush="#FFABADB3" ></TextBox>
+        <TextBox x:Name="PortBox" Text="1010" MaxLength ="5" HorizontalAlignment="Left" Height="19" Margin="190,119,0,0" VerticalAlignment="Top" Width="140" TextAlignment="Center" VerticalContentAlignment="Center" GotFocus="PortBox_GotFocus" LostFocus="PortBox_LostFocus" Grid.Row="0"></TextBox>
+        
+        <Label x:Name="erroreIndirizzo" Foreground="Red" Visibility="Hidden" Content="Scrivi il tuo errore" HorizontalAlignment="Center" Grid.Row="0" VerticalAlignment="Top" Margin="0,88,0,0"></Label>
+        <Label x:Name="errorePorta" Foreground="Red" Visibility="Hidden" Content="Scrivi il tuo errore" HorizontalAlignment="Center" Grid.Row="0" VerticalAlignment="Top" Margin="0,138,0,0"></Label>
+
+        <Button x:Name="Connect" Content="Connetti" VerticalAlignment="Center" Height="34" Click="connect_button_Click" IsDefault="True" Grid.Row="1" HorizontalAlignment="Center" Width="120"/>
 
     </Grid>
 </UserControl>

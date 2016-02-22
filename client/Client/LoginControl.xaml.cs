@@ -23,7 +23,6 @@ namespace Client
     public partial class LoginControl : UserControl
     {
         private static Regex sUserNameAllowedRegEx = new Regex(@"^[a-zA-Z]{1}[a-zA-Z0-9]{3,23}[^.-]$", RegexOptions.Compiled);
-        private string mess;
 
         #region Costruttore ed Errore
         public LoginControl()
@@ -32,42 +31,111 @@ namespace Client
             App.Current.MainWindow.Title = "Login";
         }
 
-        private /*async*/ void messaggioErrore(string mess)
+        private void messaggioErrore(string mess)
         {
-            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            //await mw.ShowMessageAsync("Errore", mess);
             MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
 
         }
         #endregion
 
-        #region Login Button
-        private void Login_Click(object sender, RoutedEventArgs e)
+        #region Controlli username e password
+        private Boolean IsValidUsername(String username)
         {
-            //if (string.IsNullOrEmpty(Username.Text) || !sUserNameAllowedRegEx.IsMatch(Username.Text))  
-            // controllo da fare alla fine
-
-            if (Username.Text == null || Username.Text.Equals("") || Password.Password == null || Password.Password.Equals(""))
+            if (username == null || username.Equals("") )
             {
-                Esito_Login(false, "Campi username e/o password vuoti.");
+                mostraErroreUsername("Campo username vuoto.");
+                return false;
             }
             else if (Username.Text.Contains("+") || Username.Text.Contains("(") || Username.Text.Contains(")") || Username.Text.Contains("{") || Username.Text.Contains("}") || Username.Text.Contains("'"))
             {
-                Esito_Login(false, "Lo username contiene uno o piu' caratteri invalidi: + () {} '");
-            }
-            else if (Password.Password.Contains("+") || Password.Password.Contains("(") || Password.Password.Contains(")") || Password.Password.Contains("{") || Password.Password.Contains("}") || Password.Password.Contains("'"))
-            {
-                Esito_Login(false, "La password contiene uno o piu' caratteri invalidi: + () {} '");
+                mostraErroreUsername("Lo username contiene uno o piu' caratteri invalidi: + () {} '");
+                return false;
             }
             else if (Username.Text.Length > 15)
             {
-                Esito_Login(false, "La lunghezza dello username deve essere inferiore a 15 caratteri.");
-            }
-            else if (Password.Password.Length < 5 || Password.Password.Length > 15)
-            {
-                Esito_Login(false, "La lunghezza della password deve essere compresa tra 5 e 15 caratteri.");
+                mostraErroreUsername("La lunghezza dello username deve essere inferiore a 15 caratteri.");
+                return false;
             }
             else
+            {
+                BrushConverter bc = new BrushConverter();
+                Username.BorderBrush = (Brush)bc.ConvertFrom("#FFABADB3");
+                Username.BorderThickness = new Thickness(1);
+                return true; 
+            }
+        }
+
+        private Boolean IsValidPassword(String password)
+        {
+            if (password == null || password.Equals("") || password.Length < 5 || password.Length > 15)
+            {
+                mostraErrorePassword("La lunghezza della password deve essere compresa tra 5 e 15 caratteri.");
+                return false;
+            }
+            else if (password.Contains("+") || password.Contains("(") || password.Contains(")") || password.Contains("{") || password.Contains("}") || password.Contains("'"))
+            {
+                mostraErrorePassword("La password contiene uno o piu' caratteri invalidi: + () {} '");
+                return false;
+            }
+            else
+            {
+                BrushConverter bc = new BrushConverter();
+                Password.BorderBrush = (Brush)bc.ConvertFrom("#FFABADB3");
+                Password.BorderThickness = new Thickness(1);
+                return true;
+            }
+        }
+
+        private void mostraErroreUsername(String errore)
+        {
+
+            Username.BorderBrush = Brushes.Red;
+            Username.BorderThickness = new Thickness(2);
+            erroreUsername.Content = errore;
+            erroreUsername.Visibility = Visibility.Visible;
+        }
+
+        private void mostraErrorePassword(String errore)
+        {
+
+            Password.BorderBrush = Brushes.Red;
+            Password.BorderThickness = new Thickness(2);
+            errorePassword.Content = errore;
+            errorePassword.Visibility = Visibility.Visible;
+        }
+
+
+        private void Username_GotFocus(object sender, RoutedEventArgs e)
+        {
+            erroreUsername.Visibility = Visibility.Hidden;
+        }
+        private void Username_LostFocus(object sender, RoutedEventArgs e)
+        {
+            IsValidUsername(Username.Text);
+        }
+
+        private void Password_GotFocus(object sender, RoutedEventArgs e)
+        {
+            errorePassword.Visibility = Visibility.Hidden;
+        }
+
+        private void Password_LostFocus(object sender, RoutedEventArgs e)
+        {
+            IsValidPassword(Password.Password);
+        }
+        #endregion
+
+
+        #region Login Button
+        private void Login_Click(object sender, RoutedEventArgs e)
+        {
+
+            string username = Username.Text;
+            string password = Password.Password;
+            Boolean usernameIsValid = IsValidUsername(username);
+            Boolean passwordIsValid = IsValidPassword(password);
+
+            if (usernameIsValid && passwordIsValid)
             {
                 MainWindow mw = (MainWindow)App.Current.MainWindow;
                 mw.clientLogic.Login(Username.Text, Password.Password, this);
@@ -95,7 +163,8 @@ namespace Client
                 MenuControl main = new MenuControl();
                 App.Current.MainWindow.Content = main;
             } else {
-                messaggioErrore(messaggio);
+                mostraErroreUsername("");
+                mostraErrorePassword(messaggio);
             }
         }
 

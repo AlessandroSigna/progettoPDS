@@ -321,7 +321,15 @@ namespace Client
                 else if (e.Cancelled)
                 {
                     //mw.restart(true, "Username e/o Password Errati");
-                    MessageBoxResult result = System.Windows.MessageBox.Show("Username e/o Password Errati", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+                    var content = App.Current.MainWindow.Content;
+                    if (content is LoginControl)
+                    {
+                        ((LoginControl)content).Esito_Login(false, "Username e/o Password Errati");
+                    }
+                    else
+                    {
+                        MessageBoxResult result = System.Windows.MessageBox.Show("Username e/o Password Errati", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
                 }
                 else
                 {
