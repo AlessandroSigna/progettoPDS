@@ -1017,7 +1017,6 @@ namespace Client
                 MenuControl menuc = (MenuControl)mw.Content;
                 menuc.pbStatus.Value = 0;
                 menuc.pbStatus.Visibility = Visibility.Hidden;
-                menuc.Wait.Visibility = Visibility.Hidden;
                 menuc.EffettuaBackup.IsEnabled = true;
                 menuc.EffettuaBackup.Visibility = Visibility.Visible;
                 menuc.RestoreFile.IsEnabled = true;

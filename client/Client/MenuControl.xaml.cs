@@ -57,7 +57,7 @@ namespace Client
             mw = (MainWindow)App.Current.MainWindow;
             //mw.clientLogic.event_1 = new AutoResetEvent(false); ??
             updating = false;
-            BackButtonControl.BackButton.Click += Back_Click;
+            //BackButtonControl.BackButton.Click += Back_Click;
         }
 
         #region Backup
@@ -504,7 +504,6 @@ namespace Client
                     //per poi operare in base al contesto verificando il valore di alcuni flag - Workertransaction_WaitedCompleted
                     EffettuaBackup.Visibility = Visibility.Hidden;
                     EffettuaBackup.IsEnabled = false;
-                    Wait.Visibility = Visibility.Visible;
                     //messaggioStop();
                     BackgroundWorker worker = new BackgroundWorker();
                     worker.DoWork += new DoWorkEventHandler(Workertransaction_Waited);
@@ -552,7 +551,6 @@ namespace Client
             {
                 pbStatus.Value = 0;
                 pbStatus.Visibility = Visibility.Hidden;
-                Wait.Visibility = Visibility.Hidden;
                 EffettuaBackup.IsEnabled = true;
                 FolderButton.IsEnabled = true;
                 EffettuaBackup.Visibility = Visibility.Visible;

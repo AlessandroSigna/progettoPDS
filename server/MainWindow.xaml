@@ -19,64 +19,15 @@
             </TextBox.Foreground>
         </TextBox>
 
-        <Button x:Name="sfondoPlay" HorizontalAlignment="Left" Margin="406,0,0,172" VerticalAlignment="Bottom" Width="51" Height="50" Click="startStopClick" Grid.Column="1" FontWeight="Bold" >
-            <StackPanel Orientation="Horizontal" Margin="0">
-                <Image x:Name="sfondoImagePlay"  Source="Images/SfondoIcona.png" Height="40" Width="40" RenderTransformOrigin="0.5,0.5" Cursor="Hand" Visibility="Hidden"/>
-            </StackPanel>
-            <Button.Style>
+        <StackPanel Orientation="Horizontal" Margin="411,-85,38,85" Grid.Column="1">
+            <Image x:Name="sfondoImagePlay"  Source="Images/SfondoIcona.png" Height="40" Width="40" RenderTransformOrigin="0.5,0.5" Cursor="Hand" Margin="0,92" Visibility="Hidden"/>
+        </StackPanel>
+            
 
-                <Style TargetType="Button">
-                    <Setter Property="Template">
+        <StackPanel Orientation="Horizontal" Margin="411,2,35,82" Grid.Column="1">
+            <Image x:Name="sfondoImageFolder"  Source="Images/SfondoIcona.png" Height="40" Width="40" RenderTransformOrigin="0.5,0.5" Cursor="Hand" Visibility="Hidden"/>
+        </StackPanel>
 
-                        <Setter.Value>
-                            <ControlTemplate TargetType="Button">
-                                <Border TextBlock.Foreground="{TemplateBinding Foreground}" x:Name="Border" Background="Transparent">
-                                    <VisualStateManager.VisualStateGroups>
-                                        <VisualStateGroup x:Name="CommonStates">
-                                            <VisualStateGroup.Transitions>
-                                                <VisualTransition GeneratedDuration="0:0:0.5" />
-                                                <VisualTransition GeneratedDuration="0" To="Pressed" />
-                                            </VisualStateGroup.Transitions>
-                                        </VisualStateGroup>
-                                    </VisualStateManager.VisualStateGroups>
-                                    <ContentPresenter Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
-                                </Border>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </Button.Style>
-        </Button>
-
-        <Button x:Name="sfondoFolder" HorizontalAlignment="Left" Margin="406,0,0,126" VerticalAlignment="Bottom" Width="51" Height="50" Click="startStopClick" Grid.Column="1" FontWeight="Bold" >
-            <StackPanel Orientation="Horizontal" Margin="0">
-                <Image x:Name="sfondoImageFolder"  Source="Images/SfondoIcona.png" Height="40" Width="40" RenderTransformOrigin="0.5,0.5" Cursor="Hand" Visibility="Hidden"/>
-            </StackPanel>
-            <Button.Style>
-
-                <Style TargetType="Button">
-                    <Setter Property="Template">
-
-                        <Setter.Value>
-                            <ControlTemplate TargetType="Button">
-                                <Border TextBlock.Foreground="{TemplateBinding Foreground}" x:Name="Border" Background="Transparent">
-                                    <VisualStateManager.VisualStateGroups>
-                                        <VisualStateGroup x:Name="CommonStates">
-                                            <VisualStateGroup.Transitions>
-                                                <VisualTransition GeneratedDuration="0:0:0.5" />
-                                                <VisualTransition GeneratedDuration="0" To="Pressed" />
-                                            </VisualStateGroup.Transitions>
-                                        </VisualStateGroup>
-                                    </VisualStateManager.VisualStateGroups>
-                                    <ContentPresenter Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
-                                </Border>
-                            </ControlTemplate>
-                        </Setter.Value>
-                    </Setter>
-                </Style>
-            </Button.Style>
-        </Button>
-        
         <Button x:Name="startStop" HorizontalAlignment="Left" Margin="410,0,0,172" VerticalAlignment="Bottom" Width="40" Height="50" Click="startStopClick" Grid.Column="1" FontWeight="Bold" MouseEnter="startStop_MouseEnter" MouseLeave="startStop_MouseLeave">
             <StackPanel Orientation="Horizontal" Margin="0">
                 <Image x:Name="statusImage"  Source="Images/StartServer.png" Height="40" Width="40" RenderTransformOrigin="0.5,0.5" Cursor="Hand" />
