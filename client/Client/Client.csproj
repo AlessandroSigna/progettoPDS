@@ -33,6 +33,9 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>imageres_1040.ico</ApplicationIcon>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="MahApps.Metro, Version=1.1.2.0, Culture=neutral, PublicKeyToken=f4fb5a3c4d1e5b4f, processorArchitecture=MSIL">
       <HintPath>..\packages\MahApps.Metro.1.1.2.0\lib\net45\MahApps.Metro.dll</HintPath>
@@ -234,6 +237,7 @@
   <ItemGroup>
     <Resource Include="Images\user.png" />
     <Resource Include="Images\auth.png" />
+    <Content Include="Images\back.png" />
     <Resource Include="Images\BackBlack.png" />
     <Resource Include="Images\Back.png" />
     <Content Include="Images\backLight.png" />
@@ -257,6 +261,7 @@
     <Resource Include="Images\fileadd.png" />
     <Resource Include="Images\SfondoIcona.png" />
     <Resource Include="Images\StartServer.png" />
+    <Resource Include="Images\Restore.png" />
     <Resource Include="Images\Disconnect.png" />
     <Resource Include="Images\imageres_1040.ico" />
     <Resource Include="Images\tree_disckdrive.ico" />

@@ -57,6 +57,11 @@ namespace Client
             mw = (MainWindow)App.Current.MainWindow;
             //mw.clientLogic.event_1 = new AutoResetEvent(false); ??
             updating = false;
+
+            BrushConverter bc = new BrushConverter();
+            EffettuaBackup.Foreground = (Brush)bc.ConvertFrom("#dadada");
+            EffettuaBackup.IsEnabled = false;
+
             BackButtonControl.BackButton.Click += Back_Click;
         }
 
@@ -67,6 +72,12 @@ namespace Client
          */
         private void Select_Folder(object sender, RoutedEventArgs e)
         {
+            if (!BackupError.Text.Equals(""))
+            {
+                BackupError.Text = "";
+                BackupDir.BorderBrush = Brushes.Gray;
+            }
+
             try
             {
                 FolderBrowserDialog fbd = new FolderBrowserDialog();    //finestra di sistema per selezionare la cartella
@@ -78,8 +89,8 @@ namespace Client
                     backupFolder = fbd.SelectedPath;
                     //mw.clientLogic.backupFolder = path;
                     BrushConverter bc = new BrushConverter();
+                    EffettuaBackup.Foreground = (Brush)bc.ConvertFrom("Black");
                     EffettuaBackup.IsEnabled = true;
-                    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
                 }
             }
             catch
@@ -95,15 +106,21 @@ namespace Client
          */
         private void EffettuaBackup_Click(object sender, RoutedEventArgs e)
         {
+            if (!FolderURLCheck(BackupDir.Text))
+                return;
+
             try
             {
                 MainWindow mw = (MainWindow)App.Current.MainWindow;
                 if (!mw.clientLogic.monitorando)
                 {
+                    BackupDir.BorderBrush = Brushes.Transparent;
+                    BackupDir.IsEnabled = false;
+                    BackupDir.Background = Brushes.Transparent;
+
                     //inizio a monitorare e a inviare al server lo stato attuale della cartella
                     BrushConverter bc = new BrushConverter();
-                    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");   //cambio il colore del bottone
-                    EffettuaBackup.Content = "Stop";    //e la scritta
+                    EffettuaBackup.Content = "Arresta";    //e la scritta
                     FolderButton.IsEnabled = false;     //disabilito il bottone folder
                     mw.clientLogic.cartellaMonitorata = backupFolder;
                     mw.clientLogic.WriteStringOnStream(ClientLogic.FOLDER + mw.clientLogic.username + "+" + backupFolder);  //invio al server la rootfolder
@@ -151,37 +168,6 @@ namespace Client
             }
         }
 
-        private void EffettuaBackup_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            if (backupFolder != null && !mw.clientLogic.monitorando)
-            {
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F5FFFA");
-            }
-            else if (backupFolder != null && mw.clientLogic.monitorando)
-            {
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F6CECE");
-            }
-
-        }
-
-        private void EffettuaBackup_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            MainWindow mw = (MainWindow)App.Current.MainWindow;
-            if (backupFolder != null && !mw.clientLogic.monitorando)
-            {
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
-            }
-            else if (backupFolder != null && mw.clientLogic.monitorando)
-            {
-                BrushConverter bc = new BrushConverter();
-                EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FA5858");
-            }
-
-        }
         #endregion
 
         #region Gestione modifiche ai file - Watcher
@@ -502,7 +488,9 @@ namespace Client
                     //al posto del bottone EffettuaBackup compare una Label Wait
                     //attendo di accedere alle risorse in modo pulito - Workertransaction_Waited
                     //per poi operare in base al contesto verificando il valore di alcuni flag - Workertransaction_WaitedCompleted
-                    EffettuaBackup.Visibility = Visibility.Hidden;
+                    //EffettuaBackup.Visibility = Visibility.Hidden;
+                    BrushConverter bc = new BrushConverter();
+                    EffettuaBackup.Foreground = (Brush)bc.ConvertFrom("#dadada");
                     EffettuaBackup.IsEnabled = false;
                     //messaggioStop();
                     BackgroundWorker worker = new BackgroundWorker();
@@ -512,9 +500,10 @@ namespace Client
                 }
                 else
                 {
-                    BrushConverter bc = new BrushConverter();
-                    EffettuaBackup.Background = (Brush)bc.ConvertFrom("#F5FFFA");
-                    EffettuaBackup.Content = "Start";
+                    EffettuaBackup.Content = "Sincronizza";
+                    BackupDir.IsEnabled = true;
+                    BackupDir.Background = Brushes.White;
+                    BackupDir.BorderBrush = Brushes.Gray;
                     FolderButton.IsEnabled = true;
                     if (watcher != null)
                     {
@@ -642,32 +631,6 @@ namespace Client
             }
         }
 
-        private void RestoreFile_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            if (RestoreFile.IsEnabled)
-            {
-                BrushConverter bc = new BrushConverter();
-                RestoreFile.Background = (Brush)bc.ConvertFrom("#99FFFF");
-            }
-            else
-            {
-                RestoreFile.Background = Brushes.LightGray;
-            }
-        }
-
-        private void RestoreFile_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            if (RestoreFile.IsEnabled)
-            {
-                BrushConverter bc = new BrushConverter();
-                RestoreFile.Background = (Brush)bc.ConvertFrom("#33CCFF");
-            }
-            else
-            {
-                RestoreFile.Background = Brushes.LightGray;
-            }
-
-        }
         #endregion
 
         #region Logout e Disconnessione
@@ -829,6 +792,39 @@ namespace Client
         {
             txt.Text = "Ultima sincronizzazione : " + DateTime.Now;
         }
+
+        private void Backup_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (FolderURLCheck(BackupDir.Text))
+                BackupDir.BorderBrush = Brushes.Gray;
+        }
+
+        private void Backup_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (!BackupError.Text.Equals(""))
+                BackupError.Text = "";
+        }
+
+        private void Folder_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            sfondoFolder.Visibility = System.Windows.Visibility.Visible;
+        }
+
+        private void Folder_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            sfondoFolder.Visibility = System.Windows.Visibility.Hidden;
+        }
+
+
+        private void RestoreFile_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            sfondoRestore.Visibility = System.Windows.Visibility.Visible;
+        }
+
+        private void RestoreFile_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+            sfondoRestore.Visibility = System.Windows.Visibility.Hidden;
+        }
         #endregion
 
         #region Gestione Errori e Messaggi
@@ -863,6 +859,26 @@ namespace Client
             MessageBoxResult result = System.Windows.MessageBox.Show("Blocca il monitoraggio per effettuare un restore", "Errore", MessageBoxButton.OK, MessageBoxImage.Stop);
         }
         #endregion
+
+        private bool FolderURLCheck(string url)
+        {
+
+            if (url.Equals("") || url == null)
+            {
+                BackupError.Text = "Seleziona la cartella da sincronizzare.";
+                BackupDir.BorderBrush = Brushes.Red;
+                return false;
+            }
+
+            if (!File.Exists(url))
+            {
+                BackupError.Text = "La cartella selezionata non esiste.";
+                BackupDir.BorderBrush = Brushes.Red;
+                return false;
+            }
+
+            return true;
+        }
 
 
     }
