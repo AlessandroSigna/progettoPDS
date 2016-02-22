@@ -2776,6 +2776,10 @@ namespace BackupServer
                                 break;
                             case LOGOUT:
                                 risposta = comandoLogout(responseData);
+                                if (risposta.Contains(OK))
+                                {
+                                    username = null;
+                                }
                                 nowrite = false;
                                 break;
                             case DISCONETTI:    //è un alias di LOGOUT - ora obsoleto - si deve trasformare in: chiudo lo stream senza fare il logout perché ancora non sono loggato

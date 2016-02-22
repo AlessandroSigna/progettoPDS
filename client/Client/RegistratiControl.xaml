@@ -24,12 +24,10 @@
         <Label x:Name="erroreUsername" Foreground="Red" Visibility="Hidden" Content="Scrivi il tuo errore" HorizontalAlignment="Center" Grid.Row="0" VerticalAlignment="Top" Margin="0,88,0,0"></Label>
         <Label x:Name="errorePassword" Foreground="Red" Visibility="Hidden" Content="Scrivi il tuo errore" HorizontalAlignment="Center" Grid.Row="0" VerticalAlignment="Top" Margin="0,138,0,0"></Label>
 
-        <Client:BackButtonUC x:Name="BackButtonControl" d:IsHidden="True"/>
-        <Client:DisconnettiButtonUC d:IsHidden="True"/>
+        <Client:BackButtonUC x:Name="BackButtonControl" VerticalAlignment="Top" HorizontalAlignment="Left"/>
+        <Client:DisconnettiButtonUC VerticalAlignment="Top" HorizontalAlignment="Left" Margin="50,0,0,0"/>
 
-        <Button x:Name="Registrati" Content="Registrati" IsDefault="True" HorizontalAlignment="Center"  VerticalAlignment="Center" Width="120" Height="38" Click="Registrati_Click" Grid.Row="1">
-           
-        </Button>
+        <Button x:Name="Registrati" Content="Registrati" IsDefault="True" HorizontalAlignment="Center"  VerticalAlignment="Center" Width="120" Height="38" Click="Registrati_Click" Grid.Row="1"></Button>
 
     </Grid>
 </UserControl>

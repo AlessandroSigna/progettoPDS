@@ -254,6 +254,8 @@
     <Resource Include="Images\homeon.png" />
     <Resource Include="Images\filedel.png" />
     <Resource Include="Images\fileadd.png" />
+    <Resource Include="Images\SfondoIcona.png" />
+    <Resource Include="Images\StartServer.png" />
     <Content Include="Images\upload.png" />
     <Resource Include="Images\uploadIcon.ico" />
   </ItemGroup>

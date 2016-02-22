@@ -9,8 +9,8 @@
     <Grid >
 
 
-        <Client:DisconnettiButtonUC></Client:DisconnettiButtonUC>
-        <Client:BackButtonUC x:Name="BackButtonControl"></Client:BackButtonUC>
+        <Client:DisconnettiButtonUC VerticalAlignment="Top" HorizontalAlignment="Left" Margin="50,0,0,0"/>
+        <Client:BackButtonUC x:Name="BackButtonControl" VerticalAlignment="Top" HorizontalAlignment="Left"/>
 
 
         <Button x:Name ="FolderButton" VerticalAlignment="Top" HorizontalAlignment="Left" Height="49" Width="52" Margin="338,111,0,0"  Click="Select_Folder">
@@ -125,6 +125,7 @@
         <TextBox x:Name="FileUploading" Text="" Background="Transparent" IsReadOnly="True" HorizontalAlignment="Left" Margin="36,88,0,0" VerticalAlignment="Top" Height="23" Width="329" BorderThickness="0" FontSize="9"  />
         <ProgressBar Name="pbStatus" Minimum="0" Maximum="100" Margin="127,51,10,169" />
         <TextBox x:Name="BackupDir" Margin="59,116,67,101" />
+
 
 
     </Grid>
