@@ -56,7 +56,7 @@ namespace Client
         public const string FLP = "+FLP+";
         public const string CONNESSIONE_CHIUSA_SERVER = "Connessione chiusa dal server";
         
-        public const int POLLING = 20; // (secondi) uguale alla metà del timer del server
+        public const int POLLING = 4; // (secondi) uguale alla metà del timer del server
 
         #endregion
 
@@ -826,12 +826,12 @@ namespace Client
 
         public static void UpdateNotifyIconDisconnesso()
         {
-            MainWindow.MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/disconnessoicon.ico");
+            MainWindow.MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/imageres_1040.ico");
         }
 
         public static void UpdateNotifyIconConnesso()
         {
-            MainWindow.MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/connessoicon.ico");
+            MainWindow.MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/imageres_1040.ico");
         }
 
         /*
@@ -842,6 +842,12 @@ namespace Client
          */
         public void DisconnectAndClose(bool disconnect = true)
         {
+
+            if (timer != null)
+            {
+                timer.Dispose();
+                timer = null;
+            }
             if (clientsocket.Connected)
             {
                 if (disconnect)

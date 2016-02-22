@@ -90,7 +90,7 @@ namespace Client
         {
 
             Username.BorderBrush = Brushes.Red;
-            Username.BorderThickness = new Thickness(2);
+            Username.BorderThickness = new Thickness(1);
             erroreUsername.Content = errore;
             erroreUsername.Visibility = Visibility.Visible;
         }
@@ -99,7 +99,7 @@ namespace Client
         {
 
             Password.BorderBrush = Brushes.Red;
-            Password.BorderThickness = new Thickness(2);
+            Password.BorderThickness = new Thickness(1);
             errorePassword.Content = errore;
             errorePassword.Visibility = Visibility.Visible;
         }

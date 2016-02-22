@@ -55,7 +55,7 @@ namespace BackupServer
         public const string ENDLIST = "+ENDLIST+"; //+ENDSYN+username
         public const string ECHO_REQUEST = "+ECHO_REQUEST+";
 
-        public const int TIME_OUT = 40000; //(ms) timeout per la read sullo stream (mi aspetto un messaggio di hearthbeat ogni 20 sec)
+        public const int TIME_OUT = 8000; //(ms) timeout per la read sullo stream (mi aspetto un messaggio di hearthbeat ogni 20 sec)
 
         #endregion
 
@@ -147,11 +147,11 @@ namespace BackupServer
         // Chiamati da readStringFromStream
         #region Metodi handler comandi
 
-        private string comandoECDH(string responseData, TcpClient clientsocket)
+        private string comandoECDH(string responseData, TcpClient clientsocket, out String username)
         {
             // Tutti i comandi relativi alla gestione della transazione sono commentati e per questo anche il rollback è scritto
             // ma commentato.
-            
+            username = null;
             Console.WriteLine(responseData);
             try
             {
@@ -189,7 +189,7 @@ namespace BackupServer
                 CngKey k = CngKey.Import(clientPublicKey, CngKeyBlobFormat.EccPublicBlob);
                 byte[] serverKey = serverECDH.DeriveKeyMaterial(k);
                 Console.WriteLine("ServerSimmetricKey " + BitConverter.ToString(serverKey));
-                return registrazioneSicura(serverKey, clientsocket);
+                return registrazioneSicura(serverKey, clientsocket, out username);
             }
             catch
             {
@@ -197,9 +197,9 @@ namespace BackupServer
             }
         }
 
-        private string registrazioneSicura(byte[] simmetricKey, TcpClient clientsocket)
+        private string registrazioneSicura(byte[] simmetricKey, TcpClient clientsocket, out String username)
         {
-
+            username = null;
             SQLiteTransaction transazioneReg = mainWindow.m_dbConnection.BeginTransaction();
 
             try
@@ -355,7 +355,7 @@ namespace BackupServer
                 //throw new Exception("Eccezione generata manualmente.");
                 transazioneReg.Commit();
                 transazioneReg.Dispose();
-
+                username = user;
                 return OK + "Registrazione avvenuta correttamente!";
             }
             catch
@@ -2728,6 +2728,10 @@ namespace BackupServer
                     try
                     {
                         bytes = stream.Read(data, 0, data.Length);
+                        if (bytes == 0)
+                        {
+                            throw new Exception("Network Exception");
+                        }
                         responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
                         if (responseData.Contains(ECHO_REQUEST))
                         {
@@ -2763,7 +2767,7 @@ namespace BackupServer
                                 nowrite = false;
                                 break;
                             case ECDH:
-                                risposta = comandoECDH(responseData, clientsocket);
+                                risposta = comandoECDH(responseData, clientsocket, out username);
                                 nowrite = false;
                                 break;
                             case LOGIN:

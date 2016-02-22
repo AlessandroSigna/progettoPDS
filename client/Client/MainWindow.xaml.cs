@@ -34,7 +34,7 @@ namespace Client
             MainControl main = new MainControl();
             App.Current.MainWindow.Content = main;
             MyNotifyIcon = new System.Windows.Forms.NotifyIcon();
-            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/uploadicon.ico");
+            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/imageres_1040.ico");
             MyNotifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(MyNotifyIcon_MouseClick);
         }
 

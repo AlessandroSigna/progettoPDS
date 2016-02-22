@@ -562,26 +562,26 @@ namespace Client
                     if (tag.tipo == ItemType.File)
                     {
 
-                        Uri uri = new Uri("pack://application:,,,/Images/file.png");
+                        Uri uri = new Uri("pack://application:,,,/Images/tree_file.ico");
                         BitmapImage source = new BitmapImage(uri);
                         return source;
                     }
                     else if (tag.tipo == ItemType.FileVersion)
                     {
-                        String uriPath = tag.dimFile == 0 ? "pack://application:,,,/Images/filedel.png" : "pack://application:,,,/Images/fileadd.png";
+                        String uriPath = tag.dimFile == 0 ? "pack://application:,,,/Images/tree_filered.ico" : "pack://application:,,,/Images/tree_filegreen.ico";
                         Uri uri = new Uri(uriPath);
                         BitmapImage source = new BitmapImage(uri);
                         return source;
                     }
                     else if (tag.tipo == ItemType.Folder)
                     {
-                        Uri uri = new Uri("pack://application:,,,/Images/folder.png");
+                        Uri uri = new Uri("pack://application:,,,/Images/tree_folder.ico");
                         BitmapImage source = new BitmapImage(uri);
                         return source;
                     }
                     else //if (tag.tipo == ItemType.RootFolder)
                     {
-                        Uri uri = new Uri("pack://application:,,,/Images/home.png");
+                        Uri uri = new Uri("pack://application:,,,/Images/tree_disckdrive2.ico");
                         BitmapImage source = new BitmapImage(uri);
                         return source;
                     }
@@ -589,7 +589,7 @@ namespace Client
                 catch
                 {
                     //in caso di eccezione in questa fase attribuisco all'item un'immagine di default
-                    Uri uri = new Uri("pack://application:,,,/Images/file.png");
+                    Uri uri = new Uri("pack://application:,,,/Images/tree_file.ico");
                     BitmapImage source = new BitmapImage(uri);
                     return source;
                 }
