@@ -36,18 +36,12 @@ namespace Client
 
         private void Back_MouseEnter(object sender, MouseEventArgs e)
         {
-
-            backImage.BeginInit();
-            backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
-            backImage.EndInit();
+            sfondoImageBack.Visibility = Visibility.Visible;
         }
 
         private void Back_MouseLeave(object sender, MouseEventArgs e)
         {
-
-            backImage.BeginInit();
-            backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
-            backImage.EndInit();
+            sfondoImageBack.Visibility = Visibility.Hidden;
         }
     }
 }

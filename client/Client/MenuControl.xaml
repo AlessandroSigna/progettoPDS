@@ -173,7 +173,7 @@
         </Button>
         <Label x:Name="Backup_Copy" Content="Cartella di Restore" HorizontalAlignment="Left" VerticalAlignment="Top" Height="31" Width="155" BorderThickness="0" FontSize="15" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold" Margin="37,248,0,0"/>
 
-        <Client:DisconnettiButtonUC></Client:DisconnettiButtonUC>
-        <Client:BackButtonUC x:Name="BackButtonControl"></Client:BackButtonUC>
+        <Client:DisconnettiButtonUC VerticalAlignment="Top" HorizontalAlignment="Left" Margin="50,0,0,0"/>
+        <Client:BackButtonUC x:Name="BackButtonControl" VerticalAlignment="Top" HorizontalAlignment="Left"/>
     </Grid>
 </UserControl>
