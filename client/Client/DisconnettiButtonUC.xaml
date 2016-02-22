@@ -12,7 +12,7 @@
 
         <Button x:Name="DisconnectButton" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Width="40" Height="40" Click="Disconnect_Click" MouseEnter="Disconnect_MouseEnter" MouseLeave="Disconnect_MouseLeave"  Cursor="Hand">
             <StackPanel Orientation="Horizontal" Margin="0">
-                <Image x:Name="disconnectImage"  Source="Images/home.png" Height="40" Width="40" />
+                <Image x:Name="disconnectImage"  Source="Images/disconnect.png" Height="40" Width="40" />
             </StackPanel>
             <Button.Style>
 

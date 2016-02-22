@@ -34,7 +34,7 @@ namespace Client
             MainControl main = new MainControl();
             App.Current.MainWindow.Content = main;
             MyNotifyIcon = new System.Windows.Forms.NotifyIcon();
-            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/uploadicon.ico");
+            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/imageres_1040.ico");
             MyNotifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(MyNotifyIcon_MouseClick);
         }
 
@@ -99,7 +99,12 @@ namespace Client
 
         public void restart(bool error, string messaggio = null)
         {
-            clientLogic.timer.Dispose();
+            Console.WriteLine("Restart");
+            if (clientLogic.timer != null)
+            {
+                clientLogic.timer.Dispose();
+                clientLogic.timer = null;
+            }
             MainControl main = new MainControl();
             App.Current.MainWindow.Content = main;
             App.Current.MainWindow.Title = "MyCloud";
