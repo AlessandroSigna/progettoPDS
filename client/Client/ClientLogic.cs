@@ -1032,8 +1032,8 @@ namespace Client
                 else if (e.Cancelled)
                 {
                     //Se l'invio file è stato annullato  lo si comunica all'utente nella TextBox FileUploading
-                    menuc.EffettuaBackup.Background = (Brush)bc.ConvertFrom("#FF44E572");
-                    menuc.EffettuaBackup.Content = "Start";
+                    menuc.EffettuaBackup.Content = "Sincronizza";
+                    menuc.EffettuaBackup.Foreground = (Brush)bc.ConvertFrom("Black");
                     menuc.FolderButton.IsEnabled = true;
                     menuc.FileUploading.Text = "Non tutti i dati sono aggiornati";
 
