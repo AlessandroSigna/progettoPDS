@@ -99,7 +99,12 @@ namespace Client
 
         public void restart(bool error, string messaggio = null)
         {
-            clientLogic.timer.Dispose();
+            Console.WriteLine("Restart");
+            if (clientLogic.timer != null)
+            {
+                clientLogic.timer.Dispose();
+                clientLogic.timer = null;
+            }
             MainControl main = new MainControl();
             App.Current.MainWindow.Content = main;
             App.Current.MainWindow.Title = "MyCloud";

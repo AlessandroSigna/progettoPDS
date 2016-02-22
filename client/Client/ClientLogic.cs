@@ -186,7 +186,7 @@ namespace Client
             }
             catch
             {
-                DisconnectAndClose();
+                DisconnectAndClose(false);
             }
         }
 
@@ -764,6 +764,11 @@ namespace Client
 
         internal void DisconnettiServer(Boolean esci)
         {
+            if (timer != null)
+            {
+                timer.Dispose();
+                timer = null;
+            }
             workertransaction = new BackgroundWorker();
             workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Disconnect);
             workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_DisconnectCompleted);
@@ -863,7 +868,10 @@ namespace Client
             //if (statoConn == TcpState.Established)
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
-                timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING)); //rinvio l'esecuzione della callback del timer di un minuto
+                if (timer != null)
+                {
+                    timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING)); //rinvio l'esecuzione della callback del timer di un minuto
+                }
                 NetworkStream stream = clientsocket.GetStream();
                 stream.WriteTimeout = 30000;
                 stream.Write(message, 0, message.Length);
@@ -883,8 +891,10 @@ namespace Client
             //if (statoConn == TcpState.Established)
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
-
-                timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING)); //rinvio l'esecuzione della callback del timer di un minuto
+                if (timer != null)
+                {
+                    timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING)); //rinvio l'esecuzione della callback del timer di un minuto
+                }
                 NetworkStream stream = clientsocket.GetStream();
                 stream.ReadTimeout = 30000;
                 if (stream.Read(buffer, 0, buffer.Length) == 0)
@@ -904,7 +914,10 @@ namespace Client
             //if (statoConn == TcpState.Established)
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
-                timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING)); //rinvio l'esecuzione della callback del timer di un minuto
+                if (timer != null)
+                {
+                    timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING)); //rinvio l'esecuzione della callback del timer di un minuto
+                }
                 NetworkStream stream = clientsocket.GetStream();
                 stream.WriteTimeout = 30000;
                 Byte[] data = System.Text.Encoding.ASCII.GetBytes(message); //preparo i dati per l'invio sul canale
@@ -923,8 +936,10 @@ namespace Client
             if (statoConn == TcpState.Established)
             //if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
-
-                timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING)); //rinvio l'esecuzione della callback del timer di un minuto
+                if (timer != null)
+                {
+                    timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING)); //rinvio l'esecuzione della callback del timer di un minuto
+                }
                 NetworkStream stream = clientsocket.GetStream();
                 stream.ReadTimeout = 30000;
                 Byte[] data = new Byte[512];
