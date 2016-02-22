@@ -33,7 +33,6 @@ namespace Client
             InitializeComponent();
             //App.Current.MainWindow.Width = 400;
             //App.Current.MainWindow.Height = 400;
-
         }
 
         #region Altri Metodi

@@ -55,7 +55,7 @@ namespace BackupServer
         public const string ENDLIST = "+ENDLIST+"; //+ENDSYN+username
         public const string ECHO_REQUEST = "+ECHO_REQUEST+";
 
-        public const int TIME_OUT = 120000;
+        public const int TIME_OUT = 40000; //(ms) timeout per la read sullo stream (mi aspetto un messaggio di hearthbeat ogni 20 sec)
 
         #endregion
 
@@ -2653,7 +2653,7 @@ namespace BackupServer
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 NetworkStream stream = clientsocket.GetStream();
-                stream.ReadTimeout = 30000;
+                stream.ReadTimeout = TIME_OUT;
                 Int32 bytes = stream.Read(buffer, 0, buffer.Length);
                 if (bytes > 0)
                 {
@@ -2706,8 +2706,8 @@ namespace BackupServer
             NetworkStream stream = clientsocket.GetStream();
             bool chiudere = false;  //condizione di uscita dal loop
             bool nowrite = false;   //true se NON si deve scrivere al client una risposta
+            String username = null; //conterrà lo username associato a clientsocket quando il client farà login
             LinkedList<string> fileReceived = new LinkedList<string>();
-
             //DateTime d1 = DateTime.Now;
 
             //while (!serverKO && !chiudere)
@@ -2729,13 +2729,29 @@ namespace BackupServer
                     {
                         bytes = stream.Read(data, 0, data.Length);
                         responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
-                        tmp = responseData.Substring(1, responseData.Length - 1);
-                        comando = responseData.Substring(0, tmp.IndexOf('+') + 2);
+                        if (responseData.Contains(ECHO_REQUEST))
+                        {
+                            mainWindow.tb.Dispatcher.Invoke(new BackupServer.MainWindow.UpdateTextCallback(mainWindow.UpdateText), new object[] { DateTime.Now + " - " + ECHO_REQUEST + "\n" });
+                            responseData = responseData.Replace(ECHO_REQUEST, "");     //pulisco response data nel caso in cui ECHO_REQUEST si sia accodata o premessa ad altri comandi
+                        }
+                        if (responseData == "")
+                        {
+                            comando = "";
+                        }
+                        else
+                        {
+                            tmp = responseData.Substring(1, responseData.Length - 1);
+                            comando = responseData.Substring(0, tmp.IndexOf('+') + 2);
+                        }
                     }
                     catch (Exception e)
                     {
+                        if (username != null)
+                        {
+                            comandoLogout(DISCONNETTIUTENTE + username);    //serve per eliminare l'utente crashato dagli utenti loggati
+                        }
                         risposta = ERRORE + e.Message;
-                        chiudere = true;
+                        chiudere = true;        //si comunica di chiudere il socket
                     }
 
                     if (!comando.Equals(""))
@@ -2752,6 +2768,10 @@ namespace BackupServer
                                 break;
                             case LOGIN:
                                 risposta = comandoLogin(responseData, clientsocket);
+                                if (risposta.Contains(OK))
+                                {
+                                    username = responseData.Substring(responseData.LastIndexOf(("+")) + 1);
+                                }
                                 nowrite = false;
                                 break;
                             case LOGOUT:
@@ -2848,6 +2868,10 @@ namespace BackupServer
                                 break;
                         }
 
+                    }
+                    else
+                    {
+                        continue;
                     }
 
                     //if (risposta == RESTART)

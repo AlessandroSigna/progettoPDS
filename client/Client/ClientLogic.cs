@@ -24,6 +24,7 @@ namespace Client
         public IPAddress ip;
         private MainWindow mw;
         private MainControl mc;
+        public System.Threading.Timer timer;   //timer per capire quando è opportuno mandare il messaggio di hearthbeat
 
         #region Costanti comandi
         private const int BUFFERSIZE = 1024;
@@ -55,7 +56,7 @@ namespace Client
         public const string FLP = "+FLP+";
         public const string CONNESSIONE_CHIUSA_SERVER = "Connessione chiusa dal server";
         
-        public const int POLLING = 60; // uguale alla metà del timer del server
+        public const int POLLING = 20; // (secondi) uguale alla metà del timer del server
 
         #endregion
 
@@ -91,10 +92,11 @@ namespace Client
             }
 
         }
-
+        private string me;
         #region Costruttori
         public ClientLogic(TcpClient clientSocketPassed, IPAddress ipPassed, int portPassed, MainWindow mainwindow, MainControl maincontrol)
         {
+            me = "Main";
             mw = mainwindow;
             mc = maincontrol;
             porta = portPassed;
@@ -110,6 +112,7 @@ namespace Client
 
         public ClientLogic(IPAddress iPAddress, int port, string backupFolder, string user)
         {
+            me = "Restore";
             this.clientsocket = new TcpClient();
             this.ip = iPAddress;
             this.porta = port;
@@ -118,7 +121,9 @@ namespace Client
             try
             {
                 clientsocket.Connect(ip, porta);
-                Echo_Request();
+                //Echo_Request();
+                timer = new System.Threading.Timer(TimerCallBack);
+                timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING));
             }
             catch
             {
@@ -152,7 +157,9 @@ namespace Client
                 }
                 else
                 {
-                    Echo_Request();
+                    //Echo_Request();
+                    timer = new System.Threading.Timer(TimerCallBack);
+                    timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING));
                     mc.Esito_Connect(true);
                 }
             } 
@@ -170,6 +177,18 @@ namespace Client
             }
         }
 
+        private void TimerCallBack(object obj)
+        {
+            try
+            {
+                Console.WriteLine(ECHO_REQUEST + me);
+                WriteStringOnStream(ECHO_REQUEST);
+            }
+            catch
+            {
+                DisconnectAndClose();
+            }
+        }
 
         public TcpState GetState(TcpClient tcpClient)
         {
@@ -581,85 +600,85 @@ namespace Client
         #endregion
 
         #region Metodi di Disconnesione e Logout
-        internal void Echo_Request()
-        {
-            workertransaction = new BackgroundWorker();
-            workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Echo_Request);
-            workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_Echo_RequestCompleted);
-            workertransaction.RunWorkerAsync();
+        //internal void Echo_Request()
+        //{
+        //    workertransaction = new BackgroundWorker();
+        //    workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Echo_Request);
+        //    workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_Echo_RequestCompleted);
+        //    workertransaction.RunWorkerAsync();
 
-        }
+        //}
 
-        private void Workertransaction_Echo_Request(object sender, DoWorkEventArgs e)
-        {
-            bool start = true;
-            int start_instant = 0;
-            DateTime d1 = DateTime.Now;
-            DateTime d2 = DateTime.Now;
-            TimeSpan ts = d2 - d1;
-            int time = 0;
+        //private void Workertransaction_Echo_Request(object sender, DoWorkEventArgs e)
+        //{
+        //    bool start = true;
+        //    int start_instant = 0;
+        //    DateTime d1 = DateTime.Now;
+        //    DateTime d2 = DateTime.Now;
+        //    TimeSpan ts = d2 - d1;
+        //    int time = 0;
 
-            while (start) {
-                if (clientsocket.Connected)
-                {
-                    if (time > start_instant + POLLING)
-                    {
-                        throw new Exception("Problema nella sincronizzazione client server.");
-                    }
+        //    while (start) {
+        //        if (clientsocket.Connected)
+        //        {
+        //            if (time > start_instant + POLLING)
+        //            {
+        //                throw new Exception("Problema nella sincronizzazione client server.");
+        //            }
 
 
-                    if (time == start_instant + POLLING)
-                    {
-                        WriteStringOnStream(ECHO_REQUEST);
+        //            if (time == start_instant + POLLING)
+        //            {
+        //                WriteStringOnStream(ECHO_REQUEST);
 
-                        String message = ReadStringFromStream();
-                        if (message.Contains(OK))
-                        {
-                            d2 = DateTime.Now;
-                            ts = d2 - d1;
-                            start_instant = ts.Minutes * 60 + ts.Seconds;
-                        }
-                    }
+        //                String message = ReadStringFromStream();
+        //                if (message.Contains(OK))
+        //                {
+        //                    d2 = DateTime.Now;
+        //                    ts = d2 - d1;
+        //                    start_instant = ts.Minutes * 60 + ts.Seconds;
+        //                }
+        //            }
 
-                    // Il client non aspetta all'infinito perché c'è già un timeout se non riceve risposta dal server per troppo tempo.
-                    //if (ts.Minutes * 60 + ts.Seconds == start_instant + TIME_OUT)
-                    //{
-                    //    start = false;
-                    //}
-                }
-                else
-                {
-                    e.Cancel = true;
-                }
+        //            // Il client non aspetta all'infinito perché c'è già un timeout se non riceve risposta dal server per troppo tempo.
+        //            //if (ts.Minutes * 60 + ts.Seconds == start_instant + TIME_OUT)
+        //            //{
+        //            //    start = false;
+        //            //}
+        //        }
+        //        else
+        //        {
+        //            e.Cancel = true;
+        //        }
 
-                d2 = DateTime.Now;
-                ts = d2 - d1;
-                time = ts.Minutes * 60 + ts.Seconds;
-            }
-            //e.Cancel = true;
-        }
+        //        d2 = DateTime.Now;
+        //        ts = d2 - d1;
+        //        time = ts.Minutes * 60 + ts.Seconds;
+        //    }
+        //    //e.Cancel = true;
+        //}
 
-        private void Workertransaction_Echo_RequestCompleted(object sender, RunWorkerCompletedEventArgs e)
-        {
-            try
-            {
-                if (e.Error != null)
-                {
-                    DisconnectAndClose();
-                    mw.restart(true, e.Error.Message);
-                }
-                if (e.Cancelled)
-                {
-                    //mw.restart(true, "Il server non risponde.");
-                    DisconnectAndClose(false);
-                }
-            }
-            catch (Exception exc)
-            {
-                DisconnectAndClose();
-                mw.restart(true, exc.Message);
-            }
-        }
+        //private void Workertransaction_Echo_RequestCompleted(object sender, RunWorkerCompletedEventArgs e)
+        //{
+        //    try
+        //    {
+        //        if (e.Error != null)
+        //        {
+        //            DisconnectAndClose();
+        //            mw.restart(true, e.Error.Message);
+        //        }
+        //        if (e.Cancelled)
+        //        {
+        //            //mw.restart(true, "Il server non risponde.");
+        //            DisconnectAndClose(false);
+        //        }
+        //    }
+        //    catch (Exception exc)
+        //    {
+        //        DisconnectAndClose();
+        //        mw.restart(true, exc.Message);
+        //    }
+        //}
 
 
         internal void Logout(MenuControl menuc)
@@ -836,6 +855,7 @@ namespace Client
             //if (statoConn == TcpState.Established)
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
+                timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING)); //rinvio l'esecuzione della callback del timer di un minuto
                 NetworkStream stream = clientsocket.GetStream();
                 stream.WriteTimeout = 30000;
                 stream.Write(message, 0, message.Length);
@@ -855,6 +875,8 @@ namespace Client
             //if (statoConn == TcpState.Established)
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
+
+                timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING)); //rinvio l'esecuzione della callback del timer di un minuto
                 NetworkStream stream = clientsocket.GetStream();
                 stream.ReadTimeout = 30000;
                 if (stream.Read(buffer, 0, buffer.Length) == 0)
@@ -874,6 +896,7 @@ namespace Client
             //if (statoConn == TcpState.Established)
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
+                timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING)); //rinvio l'esecuzione della callback del timer di un minuto
                 NetworkStream stream = clientsocket.GetStream();
                 stream.WriteTimeout = 30000;
                 Byte[] data = System.Text.Encoding.ASCII.GetBytes(message); //preparo i dati per l'invio sul canale
@@ -892,6 +915,8 @@ namespace Client
             if (statoConn == TcpState.Established)
             //if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
+
+                timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING)); //rinvio l'esecuzione della callback del timer di un minuto
                 NetworkStream stream = clientsocket.GetStream();
                 stream.ReadTimeout = 30000;
                 Byte[] data = new Byte[512];

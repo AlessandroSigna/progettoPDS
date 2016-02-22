@@ -5,16 +5,11 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              mc:Ignorable="d" 
              d:DesignHeight="250" d:DesignWidth="400">
-    <Grid Name="contentGrid" Margin="0,0,0,0" >
+    <Grid Name="contentGrid" >
 
-        <Label x:Name="LabelPorta" Content="Porta Server" HorizontalAlignment="Left" Margin="56,152,0,0" VerticalAlignment="Top" Height="31" Width="130" BorderThickness="0" FontSize="17" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold"/>
-        <Label x:Name="LabelIndirizzo" Content="Indirizzo Server" HorizontalAlignment="Left" Margin="49,118,0,0" VerticalAlignment="Top" Height="29" Width="137" BorderThickness="0" FontSize="17" FontFamily="Yu Gothic UI Semibold" FontWeight="Bold"/>
-        <TextBox x:Name="IpAddressBox" Text="192.168.1.3"  MaxLength ="15" HorizontalAlignment="Left" Height="27" Margin="191,124,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="140" FontSize="14" FontFamily="Yu Gothic UI Semibold" TextAlignment="Center" VerticalContentAlignment="Center" LostFocus="IpAddressBox_LostFocus">
-            <TextBox.Resources>
-                <Style TargetType="{x:Type Border}">
-                    <Setter Property="CornerRadius" Value="10"/>
-                </Style>
-            </TextBox.Resources>
+        <Label x:Name="LabelPorta" Content="Porta Server" HorizontalAlignment="Left" Margin="56,152,0,0" VerticalAlignment="Top" Height="31" Width="130" FontSize="14" />
+        <Label x:Name="LabelIndirizzo" Content="Indirizzo Server" HorizontalAlignment="Left" Margin="49,104,0,0" VerticalAlignment="Top" Height="29" Width="137" FontSize="14" />
+        <TextBox x:Name="IpAddressBox" Text="192.168.1.3"  MaxLength ="15" HorizontalAlignment="Left" Height="27" Margin="191,104,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="140" FontSize="14" FontFamily="Yu Gothic UI Semibold" TextAlignment="Center" VerticalContentAlignment="Center" LostFocus="IpAddressBox_LostFocus">
             <TextBox.ToolTip>
                 <ToolTip DataContext="{Binding Path=PlacementTarget, RelativeSource={x:Static RelativeSource.Self}}">
                     <StackPanel>
@@ -24,12 +19,7 @@
                 </ToolTip>
             </TextBox.ToolTip>
         </TextBox>
-        <TextBox x:Name="PortBox" Text="1234" MaxLength ="5" HorizontalAlignment="Left" Height="27" Margin="200,156,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" FontSize="14" FontFamily="Yu Gothic UI Semibold" TextAlignment="Center" VerticalContentAlignment="Center" LostFocus="PortBox_LostFocus" RenderTransformOrigin="0.942,0.481">
-            <TextBox.Resources>
-                <Style TargetType="{x:Type Border}">
-                    <Setter Property="CornerRadius" Value="10"/>
-                </Style>
-            </TextBox.Resources>
+        <TextBox x:Name="PortBox" Text="1234" MaxLength ="5" HorizontalAlignment="Left" Height="27" Margin="191,156,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="140" FontSize="14" FontFamily="Yu Gothic UI Semibold" TextAlignment="Center" VerticalContentAlignment="Center" LostFocus="PortBox_LostFocus" RenderTransformOrigin="0.942,0.481">
             <TextBox.ToolTip>
                 <ToolTip DataContext="{Binding Path=PlacementTarget, RelativeSource={x:Static RelativeSource.Self}}">
                     <StackPanel>

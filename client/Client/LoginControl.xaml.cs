@@ -29,12 +29,7 @@ namespace Client
         public LoginControl()
         {
             InitializeComponent();
-            //((MainWindow)App.Current.MainWindow).IsCloseButtonEnabled = true;
             App.Current.MainWindow.Title = "Login";
-
-            //deve essere la finestra a customizzare l'evento per il click sul back button
-            //perché è la finestra stessa a sapere quale è la finestra precedente
-            BackButtonControl.BackButton.Click += Back_Click;
         }
 
         private /*async*/ void messaggioErrore(string mess)
@@ -44,31 +39,6 @@ namespace Client
             MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
 
         }
-        #endregion
-
-        #region Back Button
-        private void Back_Click(object sender, RoutedEventArgs e)
-        {
-            LoginRegisterControl main = new LoginRegisterControl();
-            App.Current.MainWindow.Content = main;
-        }
-
-        //private void Back_MouseEnter(object sender, MouseEventArgs e)
-        //{
-
-        //    backImage.BeginInit();
-        //    backImage.Source = new BitmapImage(new Uri(@"Images/backLight.png", UriKind.RelativeOrAbsolute));
-        //    backImage.EndInit();
-        //}
-
-
-        //private void Back_MouseLeave(object sender, MouseEventArgs e)
-        //{
-        //    backImage.BeginInit();
-        //    backImage.Source = new BitmapImage(new Uri(@"Images/back.png", UriKind.RelativeOrAbsolute));
-        //    backImage.EndInit();
-        //}
-
         #endregion
 
         #region Login Button

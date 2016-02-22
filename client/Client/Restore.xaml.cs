@@ -79,6 +79,8 @@ namespace Client
                 }
                 //comunico al server che può chiudere il socket che avevamo aperto per la restore
                 clientlogic.WriteStringOnStream(ClientLogic.EXITDOWNLOAD);
+                //libero le risorse del timer
+                clientlogic.timer.Dispose();
                 //riallineo la MainWindow
                 App.Current.MainWindow = mw;
                 clientlogic.clientsocket.GetStream().Close();
