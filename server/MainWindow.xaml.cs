@@ -19,7 +19,6 @@ namespace BackupServer
     {
         private System.Windows.Forms.NotifyIcon MyNotifyIcon;
         public Boolean avviato = false;
-        public static String pathDB = "";
         public ServerLogic server;
         public SQLiteConnection m_dbConnection;
 
@@ -32,27 +31,50 @@ namespace BackupServer
             this.Top = SystemParameters.PrimaryScreenHeight - this.Height - 500;
 
             TAddressL.IsEnabled = false;
-            TAddressL.Background = Brushes.LightGray;
+            TAddressL.Background = Brushes.Transparent;
             TAddressL.BorderBrush = Brushes.Transparent;
             TAddressL.Text = getLocalIpV4Address();
 
             TAddressP.IsEnabled = false;
-            TAddressP.Background = Brushes.LightGray;
+            TAddressP.Background = Brushes.Transparent;
             TAddressP.BorderBrush = Brushes.Transparent;
-            TAddressP.Text = getPublicIpV4Address();
+            TAddressP.Text = "Calcolando...";
+            BackgroundWorker calcoloAddressP = new BackgroundWorker();
+            calcoloAddressP.DoWork += new DoWorkEventHandler(calcoloAddressP_DoWork);
+            calcoloAddressP.RunWorkerCompleted += new RunWorkerCompletedEventHandler(calcoloAddressP_RunWorkerCompleted);
+            calcoloAddressP.RunWorkerAsync();
+
+            TPathDB.Text = Directory.GetCurrentDirectory() + "\\DatabasePROVA.sqlite";
 
             TPorta.Text = "1010";
             MyNotifyIcon = new System.Windows.Forms.NotifyIcon();
-            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/applogoIcon.ico");
+            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/imageres_1040.ico");
             MyNotifyIcon.MouseClick += new System.Windows.Forms.MouseEventHandler(MyNotifyIcon_MouseClick);
         }
 
+        private void calcoloAddressP_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
+        {
+            if (e.Error != null)
+            {
+                TAddressP.Text = "Errore.";
+            }
+            else
+            {
+                TAddressP.Text = (string)e.Result;
+            }
+        }
+
+        private void calcoloAddressP_DoWork(object sender, DoWorkEventArgs e)
+        {
+            e.Result = getPublicIpV4Address();
+        }
         private string getPublicIpV4Address()
         {
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 string url = "http://checkip.dyndns.org";
                 System.Net.WebRequest req = System.Net.WebRequest.Create(url);
+                //throw new Exception("Eccezione manuale.");
                 System.Net.WebResponse resp = req.GetResponse();
                 System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
                 string response = sr.ReadToEnd().Trim();
@@ -64,9 +86,6 @@ namespace BackupServer
             }
             else
             {
-                //TAddressP.IsEnabled = true;
-                //TAddressP.Background = Brushes.White;
-                //TAddressP.BorderBrush = Brushes.Gray;
                 return "Non connesso.";
             }
 
@@ -89,9 +108,6 @@ namespace BackupServer
 
                 if (IP.Equals(""))
                 {
-                    //TAddressL.IsEnabled = true;
-                    //TAddressL.Background = Brushes.White;
-                    //TAddressL.BorderBrush = Brushes.Gray;
                     return "Non trovato.";
                 }
                 else
@@ -113,8 +129,12 @@ namespace BackupServer
         {
             if (avviato == false)
             {
-                string pathDBtemp = TPathDB.Text;
-                pathDB = pathDBtemp;
+                if (!PortaCheck(TPorta.Text))
+                    return;
+
+                if (!DBCheck(TPathDB.Text))
+                    return;
+
                 startServer();
             }
             else
@@ -134,7 +154,7 @@ namespace BackupServer
 
         private void stopServer()
         {
-            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/applogoIcon.ico");
+            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/imageres_1040.ico");
 
             ServerLogic.serverKO = true;
             TPorta.IsEnabled = true;
@@ -142,6 +162,8 @@ namespace BackupServer
             BSfoglia.IsEnabled = true;
             TPorta.Background = Brushes.White;
             TPathDB.Background = Brushes.White;
+            TPorta.BorderBrush = Brushes.Gray;
+            TPathDB.BorderBrush = Brushes.Gray;
 
             foreach (TcpClient client in listaClient)
             {
@@ -205,51 +227,19 @@ namespace BackupServer
             tb.Text += DateTime.Now + " - Server arrestato\n";
             avviato = false;
             statusImage.BeginInit();
-            statusImage.Source = new BitmapImage(new Uri(@"Images/startpremuto.png", UriKind.RelativeOrAbsolute));
+            statusImage.Source = new BitmapImage(new Uri(@"Images/StartServer.png", UriKind.RelativeOrAbsolute));
             statusImage.EndInit();
         }
 
 
         private void startServer()
         {
-            try
-            {
-                porta = int.Parse(TPorta.Text);
-            }
-            catch
-            {
-                ErrorMessage.Text = "Inserire solo valori numerici nel campo della porta.";
-                TPorta.Text = "";
-                TPorta.BorderBrush = Brushes.Red;
-                return;
-            }
-
-            if (pathDB.Equals("") || pathDB == null)
-            {
-                ErrorMessage.Text = "Seleziona il database.";
-                TPathDB.Text = "";
-                TPathDB.BorderBrush = Brushes.Red;
-                return;
-            }
-
+            
+            porta = int.Parse(TPorta.Text);
 
             #region Controlli e creazione Database
-            if (!File.Exists(pathDB)) 
-            {
-                try 
-                {
-                    SQLiteConnection.CreateFile(pathDB);
-                }
-                catch
-                {
-                    ErrorMessage.Text = "Errore nell'url del database.";
-                    TPathDB.Text = "";
-                    TPathDB.BorderBrush = Brushes.Red;
-                    return;
-                }
-            }
 
-            m_dbConnection = new SQLiteConnection("Data Source=" + pathDB + ";Version=3;Journal Mode=Off;Synchronous=Full;");
+            m_dbConnection = new SQLiteConnection("Data Source=" + TPathDB.Text + ";Version=3;Journal Mode=Off;Synchronous=Full;");
             m_dbConnection.Open();
             SQLiteTransaction transazioneINIT = m_dbConnection.BeginTransaction();
             try
@@ -389,7 +379,7 @@ namespace BackupServer
             transazioneINIT.Dispose();
 
             statusImage.BeginInit();
-            statusImage.Source = new BitmapImage(new Uri(@"Images/stoppremuto.png", UriKind.RelativeOrAbsolute));
+            statusImage.Source = new BitmapImage(new Uri(@"Images/StopServer.png", UriKind.RelativeOrAbsolute));
             statusImage.EndInit();
 
             tb.Text += DateTime.Now + " - DB Inizializzato correttamente\n";
@@ -407,28 +397,28 @@ namespace BackupServer
             }
             catch
             {
-                ErrorMessage.Text = "Il valore della porta non è corretto.";
-                TPorta.Text = "";
+                ErrorMessagePort.Text = "Il valore della porta non è corretto.";
                 TPorta.BorderBrush = Brushes.Red;
                 return;
             }
             #endregion
 
             tb.Text += DateTime.Now + " - Server avviato su porta " + porta + "\n";
-            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/applogoIcon.ico");
+            MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/imageres_1040.ico");
             avviato = true;
 
 
-            ErrorMessage.Text = "";
+            ErrorMessageDB.Text = "";
+            ErrorMessagePort.Text = "";
             TPorta.BorderBrush = Brushes.Transparent;
             TPathDB.BorderBrush = Brushes.Transparent;
             TPorta.IsEnabled = false;
             TPathDB.IsEnabled = false;
             BSfoglia.IsEnabled = false;
-            TPorta.Background = Brushes.LightGray;
-            TPathDB.Background = Brushes.LightGray;
+            TPorta.Background = Brushes.Transparent;
+            TPathDB.Background = Brushes.Transparent;
 
-            tb.Text += DateTime.Now + " - ***DB selezionato: " + pathDB + "***\n";
+            tb.Text += DateTime.Now + " - ***DB selezionato: " + TPathDB.Text + "***\n";
         }
 
         internal void UpdateText(string message)
@@ -447,8 +437,12 @@ namespace BackupServer
         {
             if (avviato)
             {
-                e.Cancel = true;
+                MessageBoxResult result = System.Windows.MessageBox.Show("Il server è ancora in esecuzione. \nVuoi interrompere ed uscire?", "Chiusura", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
+                if (result != MessageBoxResult.Yes)
+                {
+                    e.Cancel = true;
+                }
             }
             else
             {
@@ -459,6 +453,12 @@ namespace BackupServer
 
         private void SelezionafileDB(object sender, RoutedEventArgs e)
         {
+            if (!ErrorMessageDB.Text.Equals(""))
+            {
+                ErrorMessageDB.Text = "";
+                TPathDB.BorderBrush = Brushes.Gray;
+            }
+
             Microsoft.Win32.OpenFileDialog sfoglia = new Microsoft.Win32.OpenFileDialog();
             sfoglia.FileName = "DataBase";
             sfoglia.DefaultExt = ".sqlite";
@@ -503,53 +503,115 @@ namespace BackupServer
 
         private void startStop_MouseEnter(object sender, MouseEventArgs e)
         {
-            if (!avviato)
-            {
-                statusImage.BeginInit();
-                statusImage.Source = new BitmapImage(new Uri(@"Images/startpremuto.png", UriKind.RelativeOrAbsolute));
-                statusImage.EndInit();
-            }
-            else
-            {
-                statusImage.BeginInit();
-                statusImage.Source = new BitmapImage(new Uri(@"Images/stoppremuto.png", UriKind.RelativeOrAbsolute));
-                statusImage.EndInit();
-            }
+            sfondoImagePlay.Visibility = System.Windows.Visibility.Visible;
         }
 
         private void startStop_MouseLeave(object sender, MouseEventArgs e)
         {
-            if (!avviato)
-            {
-                statusImage.BeginInit();
-                statusImage.Source = new BitmapImage(new Uri(@"Images/start.png", UriKind.RelativeOrAbsolute));
-                statusImage.EndInit();
-            }
-            else
-            {
-                statusImage.BeginInit();
-                statusImage.Source = new BitmapImage(new Uri(@"Images/stop.png", UriKind.RelativeOrAbsolute));
-                statusImage.EndInit();
-            }
+            sfondoImagePlay.Visibility = System.Windows.Visibility.Hidden;
         }
 
         private void BSfoglia_MouseEnter(object sender, MouseEventArgs e)
         {
-            folderImage.BeginInit();
-            folderImage.Source = new BitmapImage(new Uri(@"Images/FolderWhite.png", UriKind.RelativeOrAbsolute));
-            folderImage.EndInit();
+            sfondoImageFolder.Visibility = System.Windows.Visibility.Visible;
         }
 
         private void BSfoglia_MouseLeave(object sender, MouseEventArgs e)
         {
-            folderImage.BeginInit();
-            folderImage.Source = new BitmapImage(new Uri(@"Images/FolderBlack.png", UriKind.RelativeOrAbsolute));
-            folderImage.EndInit();
+            sfondoImageFolder.Visibility = System.Windows.Visibility.Hidden;
         }
 
         private void autoScroll(object sender, TextChangedEventArgs e)
         {
             tb.ScrollToEnd();
+        }
+
+        private void PortBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (!ErrorMessagePort.Text.Equals(""))
+                ErrorMessagePort.Text = "";
+        }
+
+        private void DBBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if (!ErrorMessageDB.Text.Equals(""))
+                ErrorMessageDB.Text = "";
+        }
+
+        private void PortBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (PortaCheck(TPorta.Text))
+                TPorta.BorderBrush = Brushes.Gray;
+        }
+
+        private void DBBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (DBCheck(TPathDB.Text))
+                TPathDB.BorderBrush = Brushes.Gray; ;
+        }
+
+
+        private bool PortaCheck(string porta)
+        {
+            try
+            {
+                int temp_porta = int.Parse(porta);
+
+                if (temp_porta > 65535 || temp_porta < 1)
+                {
+                    ErrorMessagePort.Text = "Numero di porta non corretto.";
+                    TPorta.BorderBrush = Brushes.Red;
+                    return false;
+                }
+
+            }
+            catch
+            {
+                ErrorMessagePort.Text = "Inserire solo valori numerici nel campo della porta.";
+                TPorta.BorderBrush = Brushes.Red;
+                return false;
+            }
+
+            return true;
+        }
+
+        private bool DBCheck(string DB)
+        {
+            if (!DB.Contains("\\"))
+            {
+                TPathDB.Text = Directory.GetCurrentDirectory() + "\\" + DB;
+                DB = TPathDB.Text;
+            }
+
+            if (!DB.Contains(".sqlite"))
+            {
+                ErrorMessageDB.Text = "Database non valido.";
+                TPathDB.BorderBrush = Brushes.Red;
+                return false;
+            }
+
+            if (DB.Equals("") || DB == null)
+            {
+                ErrorMessageDB.Text = "Seleziona il database.";
+                TPathDB.BorderBrush = Brushes.Red;
+                return false;
+            }
+
+            if (!File.Exists(DB))
+            {
+                try
+                {
+                    SQLiteConnection.CreateFile(DB);
+                }
+                catch
+                {
+                    ErrorMessageDB.Text = "Errore nell'url del database.";
+                    TPathDB.BorderBrush = Brushes.Red;
+                    return false;
+                }
+            }
+
+            return true;
         }
         #endregion
     }
