@@ -57,7 +57,7 @@ namespace Client
             mw = (MainWindow)App.Current.MainWindow;
             //mw.clientLogic.event_1 = new AutoResetEvent(false); ??
             updating = false;
-            //BackButtonControl.BackButton.Click += Back_Click;
+            BackButtonControl.BackButton.Click += Back_Click;
         }
 
         #region Backup
