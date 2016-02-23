@@ -18,11 +18,14 @@ namespace BackupServer
     public partial class MainWindow
     {
         private System.Windows.Forms.NotifyIcon MyNotifyIcon;
+        private int porta;
         public Boolean avviato = false;
         public ServerLogic server;
         public SQLiteConnection m_dbConnection;
-
         public List<TcpClient> listaClient = new List<TcpClient>();
+        public TcpListener serverSocket;
+
+        #region Costruttore e inizializzazione finestra
 
         public MainWindow()
         {
@@ -68,13 +71,13 @@ namespace BackupServer
         {
             e.Result = getPublicIpV4Address();
         }
+
         private string getPublicIpV4Address()
         {
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 string url = "http://checkip.dyndns.org";
                 System.Net.WebRequest req = System.Net.WebRequest.Create(url);
-                //throw new Exception("Eccezione manuale.");
                 System.Net.WebResponse resp = req.GetResponse();
                 System.IO.StreamReader sr = new System.IO.StreamReader(resp.GetResponseStream());
                 string response = sr.ReadToEnd().Trim();
@@ -117,13 +120,14 @@ namespace BackupServer
             }
             else
             {
-                //TAddressL.IsEnabled = true;
-                //TAddressL.Background = Brushes.White;
-                //TAddressL.BorderBrush = Brushes.Gray;
                 return "Non connesso.";
             }
 
         }
+
+        #endregion
+
+        #region UI e controlli su input dell'utente
 
         private void startStopClick(object sender, RoutedEventArgs e)
         {
@@ -143,7 +147,6 @@ namespace BackupServer
             }
         }
 
-        #region UI e controlli su input dell'utente
 
         private void clear_Click(object sender, RoutedEventArgs e)
         {
@@ -152,6 +155,7 @@ namespace BackupServer
 
         #endregion
 
+        #region Start (inizializzazione DB e connessione) e Stop server
         private void stopServer()
         {
             MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/imageres_1040.ico");
@@ -421,16 +425,14 @@ namespace BackupServer
             tb.Text += DateTime.Now + " - ***DB selezionato: " + TPathDB.Text + "***\n";
         }
 
+#endregion
+
         internal void UpdateText(string message)
         {
             tb.Text += message;
         }
 
         public delegate void UpdateTextCallback(string message);
-
-        public TcpListener serverSocket;
-
-        public int porta;
 
         #region Chiusura UI
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
@@ -450,6 +452,8 @@ namespace BackupServer
             }
         }
         #endregion
+
+        #region UI di MainWindow
 
         private void SelezionafileDB(object sender, RoutedEventArgs e)
         {
@@ -474,7 +478,6 @@ namespace BackupServer
 
         }
 
-        #region UI di MainWindow
         private void ButtonOkOnClick(object sender, RoutedEventArgs e)
         {
             stopServer();

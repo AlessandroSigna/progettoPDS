@@ -60,18 +60,14 @@ namespace BackupServer
         #endregion
 
         public static bool serverKO = true;
-
-        // Lock per accesso ACID al database
         public static ReaderWriterLockSlim _readerWriterLock = new ReaderWriterLockSlim();
 
         public ServerLogic(ref TcpListener serverSocketPassed, int portPassed, MainWindow mw)
         {
             mainWindow = mw;
             port = portPassed;
-            //serverSocket = serverSocketPassed;
             serverSocket = mw.serverSocket; //serverSocket come argomento del costruttore, preso comunque direttamente da MainWindow
             
-            // Operazioni eseguite in thread separati per socket
             workertransaction = new BackgroundWorker();
             workertransaction.DoWork += new DoWorkEventHandler(workertransaction_DoWork);
             workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(workertransaction_RunWorkerCompleted);
@@ -81,9 +77,7 @@ namespace BackupServer
         #region Metodi di connessione
         void workertransaction_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            //Call method to hide wait screen
             Console.WriteLine("Run worker completed. ");
-
         }
         
         /*
@@ -122,13 +116,12 @@ namespace BackupServer
                 nuovoClientConnesso.DoWork += new DoWorkEventHandler(nuovoClientConnesso_DoWork);
                 nuovoClientConnesso.RunWorkerCompleted += new RunWorkerCompletedEventHandler(nuovoClientConnesso_RunWorkerCompleted);
                 nuovoClientConnesso.RunWorkerAsync(parameters);
-
-            }
+    }
         }
 
         private void nuovoClientConnesso_RunWorkerCompleted(object sender, RunWorkerCompletedEventArgs e)
         {
-            //writeStringOnStream(e.Result.ToString());
+            Console.WriteLine("Run Worker Completed.");
         }
 
         /*
@@ -139,18 +132,15 @@ namespace BackupServer
         {
             object[] parameters = e.Argument as object[];
             TcpClient clientsocket = (TcpClient)parameters[0];
-            // Legge i comandi. Internamente c'è un loop che viene interrotto opportunamente
             readStringFromStream(clientsocket);
         }
+
         #endregion
 
-        // Chiamati da readStringFromStream
         #region Metodi handler comandi
 
         private string comandoECDH(string responseData, TcpClient clientsocket, out String username)
         {
-            // Tutti i comandi relativi alla gestione della transazione sono commentati e per questo anche il rollback è scritto
-            // ma commentato.
             username = null;
             Console.WriteLine(responseData);
             try
@@ -158,7 +148,7 @@ namespace BackupServer
                 //mi aspetto dal client: ECDH + chiave pubblica client
                 String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
-                if (numParametri != 3)  //parametri[0] è sempre vuoto perché responseData inizia con +
+                if (numParametri != 3)
                 {
                     return ERRORE + "Numero di paramentri passati per ECDH errato: " + numParametri;
                 }
@@ -619,8 +609,6 @@ namespace BackupServer
                     {
                         Thread.Sleep(10);
                     }
-                    //else
-                    //    isBroken = false;
                 } while (isBroken);
 
                 //throw new Exception("Eccezione generata manualmente.");
@@ -637,14 +625,11 @@ namespace BackupServer
 
                 transazioneLogin.Rollback();
                 transazioneLogin.Dispose();
-                Console.WriteLine(exc.Message);
-                Console.WriteLine(exc.StackTrace);
                 return ERRORE + "Eccezione durante il login";
             }
         }
         #endregion
 
-        // Ridondante?
         private Boolean comandoDisconnetti(string responseData)
         {
             try
@@ -683,10 +668,6 @@ namespace BackupServer
             }
         }
 
-        // SELECT * FROM LASTFOLDERUTENTE WHERE username=@username
-        // INSERT INTO LASTFOLDERUTENTE (username,folderBackup,lastUpdate) VALUES(@username,@folderBackup,@lastUpdate)
-        // SELECT * FROM LASTFOLDERUTENTE WHERE username=@username AND folderBackup=@folderBackup
-        // UPDATE LASTFOLDERUTENTE SET folderBackup=@folderBackup WHERE username=@username
         private string comandoFolder(string responseData)
         {
             SQLiteTransaction transazioneFold = mainWindow.m_dbConnection.BeginTransaction();
@@ -929,11 +910,8 @@ namespace BackupServer
             }
         }
 
-        // SELECT percorsoFile,versione,dimFile,timestamp,idfile FROM BACKUPHISTORY
-        // Scrive lista
         private string comandoGetListaFile(TcpClient clientsocket, string responseData)
         {
-            //SQLiteTransaction transazioneLista = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
                 String[] parametri = responseData.Split('>');
@@ -942,8 +920,6 @@ namespace BackupServer
 
                 if (numParametri != 4)
                 {
-                    //transazioneLista.Rollback();
-                    //transazioneLista.Dispose();
                     return ERRORE + "Numero di paramentri passati per lista dei files errato";
                 }
 
@@ -953,23 +929,17 @@ namespace BackupServer
 
                 if (comando == null || !comando.Equals(LISTFILES.Replace('>', ' ').Trim()))
                 {
-                    //transazioneLista.Rollback();
-                    //transazioneLista.Dispose();
                     return ERRORE + "Comando errato";
                 }
                 if (user == null || user.Equals(""))
                 {
                     {
-                        //transazioneLista.Rollback();
-                        //transazioneLista.Dispose();
                         return ERRORE + "User non valido";
                     }
                 }
                 if (folderRoot == null || folderRoot.Equals(""))
                 {
                     {
-                        //transazioneLista.Rollback();
-                        //transazioneLista.Dispose();
                         return ERRORE + "folderRoot non valida";
                     }
                 }
@@ -978,7 +948,6 @@ namespace BackupServer
                 comando1.CommandText = "SELECT percorsoFile,versione,dimFile,timestamp,idfile FROM BACKUPHISTORY bh1 WHERE bh1.username=@username AND bh1.folderBackup=@folderBackup and not exists (select 1 from RENAMEFILEMATCH rfm where bh1.idfile=rfm.idfile and bh1.username=rfm.username and bh1.folderBackup=rfm.folderBackup and bh1.percorsoFile=rfm.percorsoFileOLD) and bh1.versione=(SELECT MAX(versione) FROM BACKUPHISTORY bh2 WHERE bh1.username=bh2.username and bh1.folderbackup=bh2.folderbackup and bh1.percorsofile = bh2.percorsofile and bh1.idfile=bh2.idfile)";
                 comando1.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                 comando1.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
-                //comando1.Transaction = transazioneLista;
                 SQLiteDataReader rdr;
 
                 try
@@ -1001,8 +970,6 @@ namespace BackupServer
 
                 if (listaFiles.Equals(""))
                 {
-                    //transazioneLista.Commit();
-                    //transazioneLista.Dispose();
                     return INFO + "Nessuna file trovato";
                 }
 
@@ -1015,37 +982,24 @@ namespace BackupServer
                     string s = ReadStringFromStream(clientsocket);     //FIXME: questa risposta non viene esaminata
                 }
 
-
-                //transazioneLista.Commit();
-                //transazioneLista.Dispose();
-
                 return ">ENDLIST>";
 
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-
-                //transazioneLista.Rollback();
-                //transazioneLista.Dispose();
                 return ERRORE + "Invio lista file non riuscito";
             }
         }
 
-        // SELECT percorsoFile,versione,dimFile,timestamp FROM BACKUPHISTORY
-        // Scrive versioni
         private string comandoGetVersioniFile(TcpClient clientsocket, string responseData)
         {
-            //SQLiteTransaction transazioneVersione = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
                 String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 if (numParametri > 6 || numParametri < 6)
                 {
-
-                    //transazioneVersione.Rollback();
-                    //transazioneVersione.Dispose();
                     return ERRORE + "Numero di paramentri passati per il trasferimento lista versioni file errato";
                 }
 
@@ -1057,32 +1011,22 @@ namespace BackupServer
 
                 if (comando == null || !comando.Equals(GETVFILE.Replace('>', ' ').Trim()))
                 {
-                    //transazioneVersione.Rollback();
-                    //transazioneVersione.Dispose();
                     return ERRORE + "Comando errato";
                 }
                 if (user == null || user.Equals(""))
                 {
-                    //transazioneVersione.Rollback();
-                    //transazioneVersione.Dispose();
                     return ERRORE + "User non valido";
                 }
                 if (folderRoot == null || folderRoot.Equals(""))
                 {
-                    //transazioneVersione.Rollback();
-                    //transazioneVersione.Dispose();
                     return ERRORE + "folderRoot non valido";
                 }
                 if (fileName == null || fileName.Equals(""))
                 {
-                    //transazioneVersione.Rollback();
-                    //transazioneVersione.Dispose();
                     return ERRORE + "fileName non valido";
                 }
                 if (idfile == null || idfile.Equals(""))
                 {
-                    //transazioneVersione.Rollback();
-                    //transazioneVersione.Dispose();
                     return ERRORE + "idfile non valido";
                 }
 
@@ -1096,7 +1040,6 @@ namespace BackupServer
                     comando1.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comando1.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName;
                     comando1.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = Int32.Parse(idfile);
-                    //comando1.Transaction = transazioneVersione;
                     SQLiteDataReader rdr;
 
                     try
@@ -1126,8 +1069,7 @@ namespace BackupServer
                     comando2.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comando2.Parameters.Add("@percorsoFileNEW", System.Data.DbType.String, fileName.Length).Value = fileName;
                     comando2.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = Int32.Parse(idfile);
-                    //comando2.Transaction = transazioneVersione;
-
+                    
                     try
                     {
                         _readerWriterLock.EnterReadLock();
@@ -1143,8 +1085,6 @@ namespace BackupServer
 
                 if (versioni.Equals(""))
                 {
-                    //transazioneVersione.Commit();
-                    //transazioneVersione.Dispose();
                     return INFO + "Nessuna versione del file";
                 }
 
@@ -1157,35 +1097,26 @@ namespace BackupServer
                     ReadStringFromStream(clientsocket);
                 }
 
-                //transazioneVersione.Commit();
-                //transazioneVersione.Dispose();
                 return ">ENDLIST>";
 
             }
             catch (Exception e)
             {
                 Console.WriteLine(e.Message);
-                //transazioneVersione.Rollback();
-                //transazioneVersione.Dispose();
                 return ERRORE + "Invio versioni file non riuscito";
             }
         }
 
-        // SELECT file,dimFile,checksum FROM BACKUPHISTORY
-        // Scrive anche il checksum (file modificato) sullo stream
         private string comandoGetFileVersione(TcpClient clientsocket, string responseData)
         {
-            string token = RandomString(30); //??
+            string token = RandomString(30);
             String tmpFileName = null;
-            //SQLiteTransaction transazioneGetFile = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
                 String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 if (numParametri > 7 || numParametri < 7)
                 {
-                    //transazioneGetFile.Rollback();
-                    //transazioneGetFile.Dispose();
                     return ERRORE + "Numero di paramentri passati per il trasferimento versione file errato";
                 }
 
@@ -1198,38 +1129,26 @@ namespace BackupServer
 
                 if (comando == null || !comando.Equals(GETFILEV.Replace('>', ' ').Trim()))
                 {
-                    //transazioneGetFile.Rollback();
-                    //transazioneGetFile.Dispose();
                     return ERRORE + "Comando errato";
                 }
                 if (user == null || user.Equals(""))
                 {
-                    //transazioneGetFile.Rollback();
-                    //transazioneGetFile.Dispose();
                     return ERRORE + "User non valido";
                 }
                 if (folderRoot == null || folderRoot.Equals(""))
                 {
-                    //transazioneGetFile.Rollback();
-                    //transazioneGetFile.Dispose();
                     return ERRORE + "folderRoot non valido";
                 }
                 if (fileName == null || fileName.Equals(""))
                 {
-                    //transazioneGetFile.Rollback();
-                    //transazioneGetFile.Dispose();
                     return ERRORE + "fileName non valido";
                 }
                 if (versione == null || versione.Equals(""))
                 {
-                    //transazioneGetFile.Rollback();
-                    //transazioneGetFile.Dispose();
                     return ERRORE + "versione non valida";
                 }
                 if (idfile == null || idfile.Equals(""))
                 {
-                    //transazioneGetFile.Rollback();
-                    //transazioneGetFile.Dispose();
                     return ERRORE + "idfile non valida";
                 }
 
@@ -1239,7 +1158,6 @@ namespace BackupServer
                 comando2.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                 comando2.Parameters.Add("@versione", System.Data.DbType.Int64, 10).Value = Convert.ToInt64(versione);
                 comando2.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = Int32.Parse(idfile);
-                //comando2.Transaction = transazioneGetFile;
                 SQLiteDataReader dr;
 
                 Byte[] file = null;
@@ -1274,7 +1192,6 @@ namespace BackupServer
                     comando3.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName;
                     comando3.Parameters.Add("@versione", System.Data.DbType.Int64, 10).Value = Convert.ToInt64(versione) - 1;
                     comando3.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = Int32.Parse(idfile);
-                    //comando3.Transaction = transazioneGetFile;
                     SQLiteDataReader dr2;
 
                     try
@@ -1296,8 +1213,6 @@ namespace BackupServer
                 }
                 else if ((file == null || dimFile == 0))
                 {
-                    //transazioneGetFile.Rollback();
-                    //transazioneGetFile.Dispose();
                     return ERRORE + "Errore durante il recupero della Versione del file";
                 }
 
@@ -1323,17 +1238,12 @@ namespace BackupServer
                 }
                 
                 ReadStringFromStream(clientsocket);
-                //transazioneGetFile.Commit();
-                //transazioneGetFile.Dispose();
-
+                
                 return OK + "Versione file inviata";
 
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
-                //transazioneGetFile.Rollback();
-                //transazioneGetFile.Dispose();
                 return ERRORE + "Invio file non riuscito";
             }
             finally
@@ -1345,9 +1255,6 @@ namespace BackupServer
             }
         }
 
-        // SELECT idfile,percorsoFile from BACKUPHISTORY bh1
-        // INSERT INTO RENAMEFILEMATCH (username, folderBackup, idfile, percorsoFileOLD, percorsoFileNEW, lastVersionOLD, lastUpdate)" +
-        // "VALUES (@username,@folderBackup,@idfile,@fileNameOLD,@fileNameNEW,@lastVersionOLD,@lastUpdate)";
         private string comandoRenameFile(string responseData)
         {
             SQLiteTransaction transazioneRename = mainWindow.m_dbConnection.BeginTransaction();
@@ -1416,7 +1323,6 @@ namespace BackupServer
                     comandoPD.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comandoPD.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileNameOLD.Length).Value = fileNameOLD + "\\%";
                     comandoPD.Transaction = transazioneRename;
-                    //SQLiteDataReader drD;
                     String idfileD = "0";
 
                     try
@@ -1431,7 +1337,6 @@ namespace BackupServer
 
                     while (drD.Read())
                     {
-                        //throw new Exception("Eccezione generata manualmente.");
                         idfileD = Convert.ToString(drD["idfile"]);
                         String fileNameOLDD = Convert.ToString(drD["percorsoFile"]);
                         String fileNameNEWD = fileNameNEW + "\\" + fileNameOLDD.Substring(fileNameOLD.Length + 1);
@@ -1489,8 +1394,7 @@ namespace BackupServer
                         comandoD2.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileNameNEW.Length).Value = fileNameOLDD;
                         comandoD2.Parameters.Add("@versione", System.Data.DbType.Int64, 10).Value = lastVersionD;
                         comandoD2.Transaction = transazioneRename;
-                        //SQLiteDataReader drD2;
-
+        
                         try
                         {
                             _readerWriterLock.EnterReadLock();
@@ -1541,7 +1445,6 @@ namespace BackupServer
                     comandoP0.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                     comandoP0.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comandoP0.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileNameOLD.Length).Value = fileNameOLD;
-                    //SQLiteDataReader dr2;
                     String idfile = "0";
                     try
                     {
@@ -1620,8 +1523,7 @@ namespace BackupServer
                     comando2.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileNameNEW.Length).Value = fileNameOLD;
                     comando2.Parameters.Add("@versione", System.Data.DbType.Int64, 10).Value = lastVersion;
                     comando2.Transaction = transazioneRename;
-                    //SQLiteDataReader dr;
-
+                    
                     try
                     {
                         _readerWriterLock.EnterReadLock();
@@ -1678,8 +1580,6 @@ namespace BackupServer
             }
         }
 
-        // SELECT idfile from BACKUPHISTORY
-        // Chiama inserisci file e azzera dimensioni del file con quell'ID
         private string comandoFileCancellato(string responseData)
         {
             SQLiteTransaction transazioneDelete = mainWindow.m_dbConnection.BeginTransaction();
@@ -1735,7 +1635,7 @@ namespace BackupServer
                 comandoP0.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                 comandoP0.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName;
                 comandoP0.Transaction = transazioneDelete;
-                //SQLiteDataReader dr2;
+                
                 String idfile = "0";
                 try
                 {
@@ -1763,7 +1663,6 @@ namespace BackupServer
                     comandoP0D.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
                     comandoP0D.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName + "\\%";
                     comandoP0D.Transaction = transazioneDelete;
-                    //SQLiteDataReader dr2D;
                     String idfileD = "0";
 
                     try
@@ -1785,10 +1684,7 @@ namespace BackupServer
 
                         if (inserisciFile(user, folderRoot, fileNameD, lastVersionD, null, 0, "", null, idfileD, "S"))
                         {
-                            //transazioneDelete.Commit();
-                            //transazioneDelete.Dispose();
                             Console.WriteLine(OK + "File cancellatto correttamente");
-                            //return OK + "File cancellatti correttamente";
                         }
                         else
                         {
@@ -1843,8 +1739,6 @@ namespace BackupServer
 
         }
 
-        // SELECT DISTINCT(folderBackup) FROM BACKUPHISTORY WHERE username=@username
-        // folders += reader["folderBackup"].ToString();
         private string comandoGetFoldersUser(string responseData)
         {
             try
@@ -1907,15 +1801,12 @@ namespace BackupServer
         private string comandoEndSync(string responseData, LinkedList<string> fileList)
         {
             LinkedList<string> listFileCancellati = new LinkedList<string>();
-            //SQLiteTransaction transazioneEnd = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
                 String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 if (numParametri > 4 || numParametri < 4)
                 {
-                    //transazioneEnd.Rollback();
-                    //transazioneEnd.Dispose();
                     return ERRORE + "Numero di paramentri passati per la cancellazione del file errato";
                 }
 
@@ -1925,20 +1816,14 @@ namespace BackupServer
 
                 if (comando == null || !comando.Equals(ENDSYNC.Replace('>', ' ').Trim()))
                 {
-                    //transazioneEnd.Rollback();
-                    //transazioneEnd.Dispose();
                     return ERRORE + "Comando errato";
                 }
                 if (user == null || user.Equals(""))
                 {
-                    //transazioneEnd.Rollback();
-                    //transazioneEnd.Dispose();
                     return ERRORE + "User non valido";
                 }
                 if (folderroot == null || folderroot.Equals(""))
                 {
-                    //transazioneEnd.Rollback();
-                    //transazioneEnd.Dispose();
                     return ERRORE + "folderroot non valida";
                 }
 
@@ -1946,7 +1831,6 @@ namespace BackupServer
                 comandoP.CommandText = "SELECT percorsoFile FROM BACKUPHISTORY bh1 WHERE username=@username AND folderBackup=@folderBackup and not exists(select 1 from RENAMEFILEMATCH rfm where rfm.idfile=bh1.idfile and rfm.username=bh1.username and rfm.folderBackup=bh1.folderBackup and rfm.percorsoFileOLD=bh1.percorsoFile) and versione=(SELECT MAX(bh2.versione) FROM BACKUPHISTORY bh2 WHERE bh1.idfile=bh2.idfile and bh1.username=bh2.username and bh1.folderbackup=bh2.folderbackup and bh1.percorsofile = bh2.percorsofile) and dimFile>0";
                 comandoP.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                 comandoP.Parameters.Add("@folderBackup", System.Data.DbType.String, folderroot.Length).Value = folderroot;
-                //comandoP.Transaction = transazioneEnd;
                 SQLiteDataReader rdr;
 
                 try
@@ -2002,14 +1886,10 @@ namespace BackupServer
                     else
                         Console.WriteLine(ERRORE + "impossibile cancellare il file");
                 }
-                //transazioneEnd.Commit();
-                //transazioneEnd.Dispose();
                 return OK;
             }
             catch
             {
-                //transazioneEnd.Rollback();
-                //transazioneEnd.Dispose();
                 return ERRORE;
             }
 
@@ -2018,7 +1898,6 @@ namespace BackupServer
         //Debuggare
         private string comandoRestore(TcpClient clientsocket, string responseData)
         {
-            //SQLiteTransaction transazioneRestore = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
                 String[] parametri = responseData.Split('>');
@@ -2027,8 +1906,6 @@ namespace BackupServer
 
                 if (numParametri != 6)
                 {
-                    //transazioneRestore.Rollback();
-                    //transazioneRestore.Dispose();
                     return ERRORE + "Numero di paramentri passati per lista dei files errato";
                 }
 
@@ -2040,26 +1917,18 @@ namespace BackupServer
 
                 if (comando == null || !comando.Equals(RESTORE.Replace('>', ' ').Trim()))
                 {
-                    //transazioneRestore.Rollback();
-                    //transazioneRestore.Dispose();
                     return ERRORE + "Comando errato";
                 }
                 if (user == null || user.Equals(""))
                 {
-                    //transazioneRestore.Rollback();
-                    //transazioneRestore.Dispose();
                     return ERRORE + "User non valido";
                 }
                 if (folderRoot == null || folderRoot.Equals(""))
                 {
-                    //transazioneRestore.Rollback();
-                    //transazioneRestore.Dispose();
                     return ERRORE + "folderRoot non valida";
                 }
                 if (newFolderRoot == null)
                 {
-                    //transazioneRestore.Rollback();
-                    //transazioneRestore.Dispose();
                     return ERRORE + "newFolderRoot non valida";
                 }
                 if (!folderToBeRestored.Contains(folderRoot))
@@ -2071,10 +1940,9 @@ namespace BackupServer
                 comando2.CommandText = "SELECT percorsoFile,versione,file,dimFile,checksum,idfile,isDelete FROM BACKUPHISTORY bh1 WHERE bh1.username=@username AND bh1.folderBackup=@folderBackup AND versione=(SELECT MAX(bh2.versione) FROM BACKUPHISTORY bh2 WHERE bh1.username=bh2.username and bh1.folderbackup=bh2.folderbackup and bh1.percorsofile = bh2.percorsofile and bh1.idfile=bh2.idfile) and not exists(select 1 from RENAMEFILEMATCH rfm where bh1.username=rfm.username and bh1.idfile=rfm.idfile and bh1.folderBackup=rfm.folderBackup and bh1.percorsoFile=rfm.percorsoFileOLD)";
                 comando2.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
                 comando2.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
-                //comando2.Transaction = transazioneRestore;
                 SQLiteDataReader dr;
 
-                try     //FIXME: questo try è senza catch
+                try
                 {
                     _readerWriterLock.EnterReadLock();
                     dr = comando2.ExecuteReader();
@@ -2084,7 +1952,6 @@ namespace BackupServer
                         Byte[] file = null;
                         byte[] buffer = null;
                         int dimFile = 0;
-                        int dimFile2 = 0;
                         int bufferSize = 1024;
                         String tmpFileName = null;
                         string idfile = Convert.ToString(dr["idfile"]);
@@ -2139,15 +2006,11 @@ namespace BackupServer
 
                             if (streamReady.Contains(ERRORE))
                             {
-                                //transazioneRestore.Rollback();
-                                //transazioneRestore.Dispose();
                                 return ERRORE + "Errore durante il restore";
                             }
 
                             if (streamReady.Contains(STOP))
                             {
-                                //transazioneRestore.Commit();
-                                //transazioneRestore.Dispose();
                                 return INFO + "Restore interrotto dal client";
                             }
 
@@ -2163,10 +2026,6 @@ namespace BackupServer
                                 clientsocket.Client.Send(buffer, size, SocketFlags.Partial);
                             }
 
-                            if (!folderRoot.Equals(newFolderRoot))
-                            {
-                                //incasellaFile(user, newFolderRoot, fileName, file, (int)fs.Length, checksum);
-                            }
                         }
 
                         ReadStringFromStream(clientsocket);
@@ -2181,15 +2040,11 @@ namespace BackupServer
                     _readerWriterLock.ExitReadLock();
                 }
 
-                //transazioneRestore.Commit();
-                //transazioneRestore.Dispose();
                 return OK + "Restore Avvenuto Correttamente";
 
             }
             catch
             {
-                //transazioneRestore.Rollback();
-                //transazioneRestore.Dispose();
                 return ERRORE + "Errore durante il restore";
             }
             finally
@@ -2215,9 +2070,6 @@ namespace BackupServer
             return RiceviFile(client, user, listFile, transazioneFile, null);
         }
 
-        // Usa l'header per sapere la dimensione del file
-        // Unico punto in cui usa socket.Receive
-        // Controllo sul checksum (file in arrivo) dall'header
         public string RiceviFile(TcpClient client, String user, LinkedList<string> listFile, SQLiteTransaction transazioneFile,String ext)
         {
             String pathTmp = null;
@@ -2310,7 +2162,6 @@ namespace BackupServer
 
         private bool controlloCheck(string checksumFileInArrivo, string user, string fileName)
         {
-            //SQLiteTransaction transazioneCheck = mainWindow.m_dbConnection.BeginTransaction();
             string folderRoot = getFolderRoot(user);
             int lastVersion = getLastVersion(user, folderRoot, fileName);
             SQLiteCommand comandoP = new SQLiteCommand(mainWindow.m_dbConnection);
@@ -2320,7 +2171,6 @@ namespace BackupServer
             comandoP.Parameters.Add("@filename", System.Data.DbType.String, fileName.Length).Value = fileName;
             comandoP.Parameters.Add("@checksum", System.Data.DbType.String, checksumFileInArrivo.Length).Value = checksumFileInArrivo;
             comandoP.Parameters.Add("@versione", System.Data.DbType.Int64, 5).Value = lastVersion;
-            //comandoP.Transaction = transazioneCheck;
             object tmp;
 
             try
@@ -2336,14 +2186,10 @@ namespace BackupServer
 
             if (tmp.ToString() == "0")
             {
-                //transazioneCheck.Commit();
-                //transazioneCheck.Dispose();
                 return false;
             }
             else
             {
-                //transazioneCheck.Rollback();
-                //transazioneCheck.Dispose();
                 return true;
             }
         }
@@ -2387,9 +2233,6 @@ namespace BackupServer
             string sidFile = null;
             if (idFile > 0)
                 sidFile = "" + idFile;
-
-            //TODO si deve controllare se il file è stato modificato o meno. come fare??? Watcher??
-            //Per adesso ogni volta che mi arriva un file lo metto come nuova versione.
 
             return inserisciFile(user, folderRoot, fileName, sLastVersion, file, filesizeC, checkSum, transazioneFile, sidFile);
         }
@@ -2573,13 +2416,13 @@ namespace BackupServer
                 comandoP.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = getSequence();
             else
                 comandoP.Parameters.Add("@idfile", System.Data.DbType.Int32, 10).Value = Int32.Parse(idfileT);
-            comandoP.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
-            comandoP.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
-            comandoP.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName;
-            comandoP.Parameters.Add("@versione", System.Data.DbType.Int64, 5).Value = versione;
-            comandoP.Parameters.Add("@checksum", System.Data.DbType.String, checkSum.Length).Value = checkSum;
-            comandoP.Parameters.Add("@timestamp", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
-            comandoP.Parameters.Add("@delete", System.Data.DbType.String, delete.Length).Value = delete;
+                comandoP.Parameters.Add("@username", System.Data.DbType.String, user.Length).Value = user;
+                comandoP.Parameters.Add("@folderBackup", System.Data.DbType.String, folderRoot.Length).Value = folderRoot;
+                comandoP.Parameters.Add("@percorsoFile", System.Data.DbType.String, fileName.Length).Value = fileName;
+                comandoP.Parameters.Add("@versione", System.Data.DbType.Int64, 5).Value = versione;
+                comandoP.Parameters.Add("@checksum", System.Data.DbType.String, checkSum.Length).Value = checkSum;
+                comandoP.Parameters.Add("@timestamp", System.Data.DbType.String, DateTime.Now.ToString().Length).Value = DateTime.Now.ToString();
+                comandoP.Parameters.Add("@delete", System.Data.DbType.String, delete.Length).Value = delete;
             if (file == null)
                 comandoP.Parameters.Add("@file", System.Data.DbType.Binary, 1).Value = file;
             else
@@ -2634,8 +2477,6 @@ namespace BackupServer
 
         public bool WriteByteArrayOnStream(TcpClient clientsocket, byte[] message)
         {
-            //TcpState statoConn = GetState(clientsocket);
-            //if (statoConn == TcpState.Established)
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 NetworkStream stream = clientsocket.GetStream();
@@ -2648,8 +2489,6 @@ namespace BackupServer
 
         public bool ReadByteArrayFromStream(TcpClient clientsocket, byte[] buffer)
         {
-            //TcpState statoConn = GetState(clientsocket);
-            //if (statoConn == TcpState.Established)
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 NetworkStream stream = clientsocket.GetStream();
@@ -2665,21 +2504,13 @@ namespace BackupServer
 
         public string ReadStringFromStream(TcpClient clientsocket)
         {
-            //TcpState statoConn = GetState(clientsocket);
-            //if (statoConn == TcpState.Established)
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 NetworkStream stream = clientsocket.GetStream();
                 Byte[] data = new Byte[512];
                 String responseData = String.Empty;
-                //try {
                 Int32 bytes = stream.Read(data, 0, data.Length);
                 responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
-                //}
-                //catch
-                //{
-                //    return responseData;
-                //}
                 return responseData;
             }
             else
@@ -2699,218 +2530,183 @@ namespace BackupServer
             }
         }
 
-        // Dovrebbe chiamarsi read Command from stream
         private void readStringFromStream(TcpClient clientsocket)
         {
-            //FIXME: verificare stato connessione e usare try catch
             NetworkStream stream = clientsocket.GetStream();
             bool chiudere = false;  //condizione di uscita dal loop
             bool nowrite = false;   //true se NON si deve scrivere al client una risposta
             String username = null; //conterrà lo username associato a clientsocket quando il client farà login
             LinkedList<string> fileReceived = new LinkedList<string>();
-            //DateTime d1 = DateTime.Now;
+            
+            while (!serverKO && !chiudere)
+            {
+                Byte[] data = new Byte[512];
+                String responseData = String.Empty;
+                Int32 bytes = 0;
+                String risposta = "";
+                String tmp;
+                String comando = "";
 
-            //while (!serverKO && !chiudere)
-            //{
-            //    String risposta;
+                stream.ReadTimeout = TIME_OUT;
 
-                while (!serverKO && !chiudere) //&& stream.DataAvailable)
+                try
                 {
-                    Byte[] data = new Byte[512];
-                    String responseData = String.Empty;
-                    Int32 bytes = 0;
-                    String risposta = "";
-                    String tmp;
-                    String comando = "";
-
-                    stream.ReadTimeout = TIME_OUT;
-
-                    try
+                    bytes = stream.Read(data, 0, data.Length);
+                    if (bytes == 0)
                     {
-                        bytes = stream.Read(data, 0, data.Length);
-                        if (bytes == 0)
-                        {
-                            throw new Exception("Network Exception");
-                        }
-                        responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
-                        if (responseData.Contains(ECHO_REQUEST))
-                        {
-                            mainWindow.tb.Dispatcher.Invoke(new BackupServer.MainWindow.UpdateTextCallback(mainWindow.UpdateText), new object[] { DateTime.Now + " - " + ECHO_REQUEST + "\n" });
-                            responseData = responseData.Replace(ECHO_REQUEST, "");     //pulisco response data nel caso in cui ECHO_REQUEST si sia accodata o premessa ad altri comandi
-                        }
-                        if (responseData == "")
-                        {
-                            comando = "";
-                        }
-                        else
-                        {
-                            tmp = responseData.Substring(1, responseData.Length - 1);
-                            comando = responseData.Substring(0, tmp.IndexOf('>') + 2);
-                        }
+                        throw new Exception("Network Exception");
                     }
-                    catch (Exception e)
+                    responseData = System.Text.Encoding.ASCII.GetString(data, 0, bytes);
+                    if (responseData.Contains(ECHO_REQUEST))
                     {
-                        if (username != null)
-                        {
-                            comandoLogout(DISCONNETTIUTENTE + username);    //serve per eliminare l'utente crashato dagli utenti loggati
-                        }
-                        risposta = ERRORE + e.Message;
-                        chiudere = true;        //si comunica di chiudere il socket
+                        mainWindow.tb.Dispatcher.Invoke(new BackupServer.MainWindow.UpdateTextCallback(mainWindow.UpdateText), new object[] { DateTime.Now + " - " + ECHO_REQUEST + "\n" });
+                        responseData = responseData.Replace(ECHO_REQUEST, "");     //pulisco response data nel caso in cui ECHO_REQUEST si sia accodata o premessa ad altri comandi
                     }
-
-                    if (!comando.Equals(""))
+                    if (responseData == "")
                     {
-                        switch (comando)
-                        {
-                            case ECHO_REQUEST:
-                                risposta = comandoECHO(responseData, clientsocket);
-                                nowrite = false;
-                                break;
-                            case ECDH:
-                                risposta = comandoECDH(responseData, clientsocket, out username);
-                                nowrite = false;
-                                break;
-                            case LOGIN:
-                                risposta = comandoLogin(responseData, clientsocket);
-                                if (risposta.Contains(OK))
-                                {
-                                    username = responseData.Substring(responseData.LastIndexOf((">")) + 1);
-                                }
-                                nowrite = false;
-                                break;
-                            case LOGOUT:
-                                risposta = comandoLogout(responseData);
-                                if (risposta.Contains(OK))
-                                {
-                                    username = null;
-                                }
-                                nowrite = false;
-                                break;
-                            case DISCONETTI:    //è un alias di LOGOUT - ora obsoleto - si deve trasformare in: chiudo lo stream senza fare il logout perché ancora non sono loggato
-                                Boolean risultato = comandoDisconnetti(responseData);
-                                if (risultato)
-                                {
-                                    chiudere = true;
-                                    risposta = OK + "Client Disconnesso";
-                                }
-                                else
-                                    risposta = ERRORE + "Errore durante la  Disconnessione";
-
-                                break;
-                            case FOLDER:
-                                fileReceived = new LinkedList<string>();
-                                risposta = comandoFolder(responseData);
-                                nowrite = false;
-                                break;
-                            case FILE:
-                                risposta = comandoFile(responseData, clientsocket, fileReceived);
-                                nowrite = false;
-                                break;
-                            case LISTFILES:
-                                risposta = comandoGetListaFile(clientsocket, responseData);
-                                nowrite = false;
-                                break;
-                            case GETVFILE:
-                                risposta = comandoGetVersioniFile(clientsocket, responseData);
-                                nowrite = false;
-                                break;
-                            case GETFILEV:
-                                risposta = comandoGetFileVersione(clientsocket, responseData);
-                                nowrite = false;
-                                try
-                                {
-                                    //Directory.Delete(Directory.GetCurrentDirectory() + "\\tmp", true);
-                                }
-                                catch
-                                {
-
-                                }
-                                break;
-                            case RENAMEFILE:
-                                risposta = comandoRenameFile(responseData);
-                                nowrite = false;
-                                break;
-                            case CANC:
-                                risposta = comandoFileCancellato(responseData);
-                                nowrite = false;
-                                break;
-                            case ENDSYNC:
-                                risposta = ENDSYNC + "OK - Fine Sync";
-                                comandoEndSync(responseData, fileReceived);
-                                nowrite = true;
-                                break;
-                            case GETFOLDERUSER:
-                                risposta = comandoGetFoldersUser(responseData);
-                                nowrite = false;
-                                break;
-                            case DISCONNETTIUTENTE:  //chiusura dello stream con logout - Utile per disconnetti da MenuControl
-                                risposta = comandoLogout(responseData);
-                                chiudere = true;
-                                nowrite = true;
-                                break;
-                            case DISCONNETTICLIENT:  //chiusura dello stream senza logout
-                                risposta = "Client richiede la disconnessione";
-                                chiudere = true;
-                                nowrite = true;
-                                break;
-                            case RESTORE:
-                                risposta = comandoRestore(clientsocket, responseData);
-                                nowrite = false;
-                                try
-                                {
-                                    //Directory.Delete(Directory.GetCurrentDirectory() + "\\tmp", true);
-                                }
-                                catch
-                                {
-
-                                }
-                                break;
-                            case EXITDOWNLOAD:
-                                risposta = "Download terminato";
-                                nowrite = true;
-                                chiudere = true;
-                                break;
-                            default:
-                                risposta = ERRORE + "Comando non valido TOP";
-                                nowrite = false;
-                                break;
-                        }
-
+                        comando = "";
                     }
                     else
                     {
-                        continue;
+                        tmp = responseData.Substring(1, responseData.Length - 1);
+                        comando = responseData.Substring(0, tmp.IndexOf('>') + 2);
                     }
-
-                    //if (risposta == RESTART)
-                    //{
-                    //    d1 = DateTime.Now;
-                    //}
-                    
-                    mainWindow.tb.Dispatcher.Invoke(new BackupServer.MainWindow.UpdateTextCallback(mainWindow.UpdateText), new object[] { DateTime.Now + " - " + risposta + "\n" });
-                    if (!nowrite)
+                }
+                catch (Exception e)
+                {
+                    if (username != null)
                     {
-                        if (!risposta.Equals("FORCE_ERRORE"))
-                        {
-                            try
+                        comandoLogout(DISCONNETTIUTENTE + username);    //serve per eliminare l'utente crashato dagli utenti loggati
+                    }
+                    risposta = ERRORE + e.Message;
+                    chiudere = true;        //si comunica di chiudere il socket
+                }
+
+                if (!comando.Equals(""))
+                {
+                    switch (comando)
+                    {
+                        case ECHO_REQUEST:
+                            risposta = comandoECHO(responseData, clientsocket);
+                            nowrite = false;
+                            break;
+                        case ECDH:
+                            risposta = comandoECDH(responseData, clientsocket, out username);
+                            nowrite = false;
+                            break;
+                        case LOGIN:
+                            risposta = comandoLogin(responseData, clientsocket);
+                            if (risposta.Contains(OK))
                             {
-                                writeStringOnStream(clientsocket, risposta);
+                                username = responseData.Substring(responseData.LastIndexOf((">")) + 1);
                             }
-                            catch (Exception e)
+                            nowrite = false;
+                            break;
+                        case LOGOUT:
+                            risposta = comandoLogout(responseData);
+                            if (risposta.Contains(OK))
+                            {
+                                username = null;
+                            }
+                            nowrite = false;
+                            break;
+                        case DISCONETTI:
+                            Boolean risultato = comandoDisconnetti(responseData);
+                            if (risultato)
                             {
                                 chiudere = true;
+                                risposta = OK + "Client Disconnesso";
                             }
+                            else
+                                risposta = ERRORE + "Errore durante la  Disconnessione";
+
+                            break;
+                        case FOLDER:
+                            fileReceived = new LinkedList<string>();
+                            risposta = comandoFolder(responseData);
+                            nowrite = false;
+                            break;
+                        case FILE:
+                            risposta = comandoFile(responseData, clientsocket, fileReceived);
+                            nowrite = false;
+                            break;
+                        case LISTFILES:
+                            risposta = comandoGetListaFile(clientsocket, responseData);
+                            nowrite = false;
+                            break;
+                        case GETVFILE:
+                            risposta = comandoGetVersioniFile(clientsocket, responseData);
+                            nowrite = false;
+                            break;
+                        case GETFILEV:
+                            risposta = comandoGetFileVersione(clientsocket, responseData);
+                            nowrite = false;
+                            break;
+                        case RENAMEFILE:
+                            risposta = comandoRenameFile(responseData);
+                            nowrite = false;
+                            break;
+                        case CANC:
+                            risposta = comandoFileCancellato(responseData);
+                            nowrite = false;
+                            break;
+                        case ENDSYNC:
+                            risposta = ENDSYNC + "OK - Fine Sync";
+                            comandoEndSync(responseData, fileReceived);
+                            nowrite = true;
+                            break;
+                        case GETFOLDERUSER:
+                            risposta = comandoGetFoldersUser(responseData);
+                            nowrite = false;
+                            break;
+                        case DISCONNETTIUTENTE:  //chiusura dello stream con logout - Utile per disconnetti da MenuControl
+                            risposta = comandoLogout(responseData);
+                            chiudere = true;
+                            nowrite = true;
+                            break;
+                        case DISCONNETTICLIENT:  //chiusura dello stream senza logout
+                            risposta = "Client richiede la disconnessione";
+                            chiudere = true;
+                            nowrite = true;
+                            break;
+                        case RESTORE:
+                            risposta = comandoRestore(clientsocket, responseData);
+                            nowrite = false;
+                            break;
+                        case EXITDOWNLOAD:
+                            risposta = "Download terminato";
+                            nowrite = true;
+                            chiudere = true;
+                            break;
+                        default:
+                            risposta = ERRORE + "Comando non valido TOP";
+                            nowrite = false;
+                            break;
+                    }
+
+                }
+                else
+                {
+                    continue;
+                }
+
+                mainWindow.tb.Dispatcher.Invoke(new BackupServer.MainWindow.UpdateTextCallback(mainWindow.UpdateText), new object[] { DateTime.Now + " - " + risposta + "\n" });
+                if (!nowrite)
+                {
+                    if (!risposta.Equals("FORCE_ERRORE"))
+                    {
+                        try
+                        {
+                            writeStringOnStream(clientsocket, risposta);
+                        }
+                        catch (Exception e)
+                        {
+                            chiudere = true;
                         }
                     }
                 }
+            }
 
-                //DateTime d2 = DateTime.Now;
-                //TimeSpan ts = d2 - d1;
-                //if (ts.Minutes * 60 + ts.Seconds > TIME_OUT)
-                //{
-                //    chiudere = true;
-                //}
-            //}
             mainWindow.tb.Dispatcher.Invoke(new BackupServer.MainWindow.UpdateTextCallback(mainWindow.UpdateText), new object[] { DateTime.Now + " - Client Disconnesso" + "\n" });
             stream.Close();
             stream.Dispose();
