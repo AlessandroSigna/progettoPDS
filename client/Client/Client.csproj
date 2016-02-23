@@ -37,15 +37,8 @@
     <ApplicationIcon>imageres_1040.ico</ApplicationIcon>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="MahApps.Metro, Version=1.1.2.0, Culture=neutral, PublicKeyToken=f4fb5a3c4d1e5b4f, processorArchitecture=MSIL">
-      <HintPath>..\packages\MahApps.Metro.1.1.2.0\lib\net45\MahApps.Metro.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
-    <Reference Include="System.Data.SQLite">
-      <HintPath>\\Mac\Home\Downloads\documents-export-2015-10-02\BackupServer-2\SQLite\System.Data.SQLite.dll</HintPath>
-    </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Windows.Interactivity, Version=4.5.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -73,29 +66,14 @@
       <DependentUpon>BackButtonUC.xaml</DependentUpon>
     </Compile>
     <Compile Include="ClientLogic.cs" />
-    <Compile Include="Disconnetti.xaml.cs">
-      <DependentUpon>Disconnetti.xaml</DependentUpon>
-    </Compile>
     <Compile Include="DisconnettiButtonUC.xaml.cs">
       <DependentUpon>DisconnettiButtonUC.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="DownloadFile.xaml.cs">
-      <DependentUpon>DownloadFile.xaml</DependentUpon>
     </Compile>
     <Compile Include="DownloadFolder.xaml.cs">
       <DependentUpon>DownloadFolder.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Esci.xaml.cs">
-      <DependentUpon>Esci.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="FileSelection.xaml.cs">
-      <DependentUpon>FileSelection.xaml</DependentUpon>
-    </Compile>
     <Compile Include="LoginControl.xaml.cs">
       <DependentUpon>LoginControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="LoginRegisterControl.xaml.cs">
-      <DependentUpon>LoginRegisterControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="MainControl.xaml.cs">
       <DependentUpon>MainControl.xaml</DependentUpon>
@@ -112,12 +90,6 @@
     <Compile Include="RestoreControl.xaml.cs">
       <DependentUpon>RestoreControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="RestoreUC.xaml.cs">
-      <DependentUpon>RestoreUC.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="SelectActionUI.xaml.cs">
-      <DependentUpon>SelectActionUI.xaml</DependentUpon>
-    </Compile>
     <Compile Include="StartDownload.xaml.cs">
       <DependentUpon>StartDownload.xaml</DependentUpon>
     </Compile>
@@ -128,27 +100,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Disconnetti.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="DisconnettiButtonUC.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="DownloadFile.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="DownloadFolder.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="Esci.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="FileSelection.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -168,10 +124,6 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Page Include="LoginRegisterControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
     <Page Include="MenuControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -185,14 +137,6 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="RestoreControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="RestoreUC.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </Page>
-    <Page Include="SelectActionUI.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -235,27 +179,9 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <Resource Include="Images\user.png" />
-    <Resource Include="Images\auth.png" />
     <Resource Include="Images\Back.png" />
     <Resource Include="Images\BackDisabled.png" />
-    <Content Include="Images\CloudNuova.png" />
     <Resource Include="Images\folder.png" />
-    <Resource Include="Images\Connesso.png" />
-    <Resource Include="Images\disconnesso.png" />
-    <Resource Include="Images\Connessoicon.ico" />
-    <Resource Include="Images\disconnessoicon.ico" />
-    <Resource Include="Images\logout.png" />
-    <Resource Include="Images\logoutLight.png" />
-    <Resource Include="Images\CloudNuovaDown.png" />
-    <Resource Include="Images\file.png" />
-    <Resource Include="Images\search.png" />
-    <Resource Include="Images\searchOn.png" />
-    <Resource Include="Images\goback.png" />
-    <Resource Include="Images\home.png" />
-    <Resource Include="Images\homeon.png" />
-    <Resource Include="Images\filedel.png" />
-    <Resource Include="Images\fileadd.png" />
     <Resource Include="Images\SfondoIcona.png" />
     <Resource Include="Images\StartServer.png" />
     <Resource Include="Images\Restore.png" />
@@ -269,8 +195,6 @@
     <Resource Include="Images\tree_disckdrive2.ico" />
     <Resource Include="Images\RestoreDisabled.png" />
     <Resource Include="Images\folderDisabled.png" />
-    <Content Include="Images\upload.png" />
-    <Resource Include="Images\uploadIcon.ico" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
