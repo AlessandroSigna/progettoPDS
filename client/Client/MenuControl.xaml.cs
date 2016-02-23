@@ -123,7 +123,7 @@ namespace Client
                     EffettuaBackup.Content = "Arresta";    //e la scritta
                     FolderButton.IsEnabled = false;     //disabilito il bottone folder
                     mw.clientLogic.cartellaMonitorata = backupFolder;
-                    mw.clientLogic.WriteStringOnStream(ClientLogic.FOLDER + mw.clientLogic.username + "+" + backupFolder);  //invio al server la rootfolder
+                    mw.clientLogic.WriteStringOnStream(ClientLogic.FOLDER + mw.clientLogic.username + ">" + backupFolder);  //invio al server la rootfolder
                     string retFolder = mw.clientLogic.ReadStringFromStream();
                     if (retFolder == ClientLogic.OK + "RootFolder Inserita")
                     {
@@ -198,7 +198,7 @@ namespace Client
                 {
                     updating = true;
                     //segnalo la cancellazione al server
-                    mw.clientLogic.WriteStringOnStream(ClientLogic.CANC + mw.clientLogic.username + "+" + e.FullPath);
+                    mw.clientLogic.WriteStringOnStream(ClientLogic.CANC + mw.clientLogic.username + ">" + e.FullPath);
                     String risposta = mw.clientLogic.ReadStringFromStream();  //consumo la risposta senza analizzarla?
                     if (risposta.Contains("ERR"))
                     {
@@ -331,7 +331,7 @@ namespace Client
                 if (Directory.Exists(e.FullPath))
                 {
                     updating = true;
-                    mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + "+" + e.OldFullPath + "+" + e.FullPath + "+" + "DIR");
+                    mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + ">" + e.OldFullPath + ">" + e.FullPath + ">" + "DIR");
                     risposta = mw.clientLogic.ReadStringFromStream();
                     if (risposta.Contains("ERR"))
                     {
@@ -347,7 +347,7 @@ namespace Client
                     if (e.ChangeType == WatcherChangeTypes.Renamed)
                     {
                         updating = true;
-                        mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + "+" + e.OldFullPath + "+" + e.FullPath);
+                        mw.clientLogic.WriteStringOnStream(ClientLogic.RENAMEFILE + mw.clientLogic.username + ">" + e.OldFullPath + ">" + e.FullPath);
                         risposta = mw.clientLogic.ReadStringFromStream();
                         if (risposta.Contains("ERR"))
                         {
@@ -385,7 +385,7 @@ namespace Client
                 //informo il sevrer di quello che sto per fare
                 if (onCreate.Equals("CREATE"))
                 {
-                    mw.clientLogic.WriteStringOnStream(ClientLogic.FILE + mw.clientLogic.username + "+" + onCreate);
+                    mw.clientLogic.WriteStringOnStream(ClientLogic.FILE + mw.clientLogic.username + ">" + onCreate);
                 }
                 else
                 {
@@ -870,7 +870,7 @@ namespace Client
                 return false;
             }
 
-            if (!File.Exists(url))
+            if (!Directory.Exists(url))
             {
                 BackupError.Text = "La cartella selezionata non esiste.";
                 BackupDir.BorderBrush = Brushes.Red;

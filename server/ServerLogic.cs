@@ -26,34 +26,34 @@ namespace BackupServer
         #region Costanti
         private const int BUFFERSIZE = 1024;
         private const int CHALLENGESIZE = 64;
-        public const string OK = "+OK+";
-        public const string RESTART = "+RESTART+";
-        public const string ERRORE = "+ERR+";
-        public const string STOP = "+STOP+";
-        public const string REGISTRAZIONE = "+REG+";
-        public const string ECDH = "+ECDH+";   //key agreement per proteggere la registrazione
-        public const string LOGIN = "+LOGIN+";
-        public const string LOGOUT = "+LOGOUT+";
-        public const string DISCONETTI = "+DISCO+"; //obsoleto
-        public const string DISCONNETTICLIENT = "+DISCOCLIENT+"; //chiude lo stream di comunicazione con il client (utente non loggato)
-        public const string EXITDOWNLOAD = "+EXITDOWNLOAD+";
-        public const string INFO = "+INFO+";
-        public const string GETVFILE = "+GVF+"; // +GVF+user+file -> Prendo le versioni di un file
-        public const string GETFILEV = "+GETVF+"; // +GETVF+user+file+versione -> Invio la specifica versione di un file
-                                                  // public const string GETFILE = "+GETF+"; // +GETF+user+file ??non serve??
-        public const string GETFOLDERUSER = "+GETFOLDUSER+"; // +GETFOLDUSER+user
-        public const string FOLDER = "+FOLDER+";
-        public const string LISTFILES = "+LISTFILES+"; //+LISTFILES+user+folder+nomeLike (solo nome, senza path -> barra di ricerca. Se nullo, allora nomeLike="")
-        public const string RESTORE = "+RESTORE+"; // +RESTORE+user+folderBackup+folderDestinazione (voglio anche la destinazione, così creo una nuova folderRoot) 
-        public const string FILE = "+FILE+";
-        public const string DISCONNETTIUTENTE = "+DISCUTENTE+"; //+DISCUTENTE+user
-        public const string RENAMEFILE = "+RENAMEFI+"; //+RENAMEFILE+user+fileNameOLD+fileNameNEW
-        public const string CANC = "+CANC+"; //+CANC+user+filename
-        public const string ENDSYNC = "+ENDSYN+"; //+ENDSYN+username
-        public const string NUMFILE = "+NUMFL+";
-        public const string FLP = "+FLP+";
-        public const string ENDLIST = "+ENDLIST+"; //+ENDSYN+username
-        public const string ECHO_REQUEST = "+ECHO_REQUEST+";
+        public const string OK = ">OK>";
+        public const string RESTART = ">RESTART>";
+        public const string ERRORE = ">ERR>";
+        public const string STOP = ">STOP>";
+        public const string REGISTRAZIONE = ">REG>";
+        public const string ECDH = ">ECDH>";   //key agreement per proteggere la registrazione
+        public const string LOGIN = ">LOGIN>";
+        public const string LOGOUT = ">LOGOUT>";
+        public const string DISCONETTI = ">DISCO>"; //obsoleto
+        public const string DISCONNETTICLIENT = ">DISCOCLIENT>"; //chiude lo stream di comunicazione con il client (utente non loggato)
+        public const string EXITDOWNLOAD = ">EXITDOWNLOAD>";
+        public const string INFO = ">INFO>";
+        public const string GETVFILE = ">GVF>"; // +GVF+user+file -> Prendo le versioni di un file
+        public const string GETFILEV = ">GETVF>"; // +GETVF+user+file+versione -> Invio la specifica versione di un file
+                                                  // public const string GETFILE = ">GETF>"; // +GETF+user+file ??non serve??
+        public const string GETFOLDERUSER = ">GETFOLDUSER>"; // +GETFOLDUSER+user
+        public const string FOLDER = ">FOLDER>";
+        public const string LISTFILES = ">LISTFILES>"; //+LISTFILES+user+folder+nomeLike (solo nome, senza path -> barra di ricerca. Se nullo, allora nomeLike="")
+        public const string RESTORE = ">RESTORE>"; // +RESTORE+user+folderBackup+folderDestinazione (voglio anche la destinazione, così creo una nuova folderRoot) 
+        public const string FILE = ">FILE>";
+        public const string DISCONNETTIUTENTE = ">DISCUTENTE>"; //+DISCUTENTE+user
+        public const string RENAMEFILE = ">RENAMEFI>"; //+RENAMEFILE+user+fileNameOLD+fileNameNEW
+        public const string CANC = ">CANC>"; //+CANC+user+filename
+        public const string ENDSYNC = ">ENDSYN>"; //+ENDSYN+username
+        public const string NUMFILE = ">NUMFL>";
+        public const string FLP = ">FLP>";
+        public const string ENDLIST = ">ENDLIST>"; //+ENDSYN+username
+        public const string ECHO_REQUEST = ">ECHO_REQUEST>";
 
         public const int TIME_OUT = 8000; //(ms) timeout per la read sullo stream (mi aspetto un messaggio di hearthbeat ogni 20 sec)
 
@@ -156,7 +156,7 @@ namespace BackupServer
             try
             {
                 //mi aspetto dal client: ECDH + chiave pubblica client
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 if (numParametri != 3)  //parametri[0] è sempre vuoto perché responseData inizia con +
                 {
@@ -209,7 +209,7 @@ namespace BackupServer
                 String responseData = ReadStringFromStream(clientsocket);
                 Console.WriteLine("messaggio: " + responseData);
 
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 if (numParametri != 4)
                 {
@@ -222,7 +222,7 @@ namespace BackupServer
                 String ivString = parametri[2];
                 String ciphertextString = parametri[3];
 
-                if (comando == null || !comando.Equals(REGISTRAZIONE.Replace('+', ' ').Trim()))
+                if (comando == null || !comando.Equals(REGISTRAZIONE.Replace('>', ' ').Trim()))
                 {
                     transazioneReg.Rollback();
                     transazioneReg.Dispose();
@@ -248,7 +248,7 @@ namespace BackupServer
 
                 //decifro
                 String plaintext = EffettuaDecifraturaSimmetrica(ciphertext, iv, simmetricKey);
-                String[] credenziali = plaintext.Split('+');
+                String[] credenziali = plaintext.Split('>');
                 String user = credenziali[0].ToUpper();
                 String pass = credenziali[1];
                 Console.WriteLine("user: " + user);
@@ -396,7 +396,7 @@ namespace BackupServer
             try
             {
                 //mi aspetto LOGOUT + username
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 if (numParametri != 3)
                 {
@@ -467,7 +467,7 @@ namespace BackupServer
             try
             {
                 //mi aspetto LOGIN + username
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
 
                 if (numParametri != 3)
@@ -481,7 +481,7 @@ namespace BackupServer
                 String user = parametri[2].ToUpper();
                 String pass = String.Empty;
 
-                if (comando == null || !comando.Equals(LOGIN.Replace('+', ' ').Trim()))
+                if (comando == null || !comando.Equals(LOGIN.Replace('>', ' ').Trim()))
                 {
                     transazioneLogin.Rollback();
                     transazioneLogin.Dispose();
@@ -649,7 +649,7 @@ namespace BackupServer
         {
             try
             {
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 if (numParametri > 4 || numParametri < 4)
                     return false;
@@ -692,7 +692,7 @@ namespace BackupServer
             SQLiteTransaction transazioneFold = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 if (numParametri > 4 || numParametri < 4)
                 {
@@ -705,7 +705,7 @@ namespace BackupServer
                 String user = parametri[2].ToUpper();
                 String folder = parametri[3];
 
-                if (comando == null || !comando.Equals(FOLDER.Replace('+', ' ').Trim()))
+                if (comando == null || !comando.Equals(FOLDER.Replace('>', ' ').Trim()))
                 {
                     transazioneFold.Rollback();
                     transazioneFold.Dispose();
@@ -881,7 +881,7 @@ namespace BackupServer
             SQLiteTransaction transazioneFile = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 if (numParametri > 4 || numParametri < 3)
                 {
@@ -897,7 +897,7 @@ namespace BackupServer
                 if (numParametri > 3)
                     ext = parametri[3];
 
-                if (comando == null || !comando.Equals(FILE.Replace('+', ' ').Trim()))
+                if (comando == null || !comando.Equals(FILE.Replace('>', ' ').Trim()))
                 {
                     transazioneFile.Rollback();
                     transazioneFile.Dispose();
@@ -936,7 +936,7 @@ namespace BackupServer
             //SQLiteTransaction transazioneLista = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 string listaFiles = string.Empty;
 
@@ -951,7 +951,7 @@ namespace BackupServer
                 String user = parametri[2].ToUpper();
                 String folderRoot = parametri[3];
 
-                if (comando == null || !comando.Equals(LISTFILES.Replace('+', ' ').Trim()))
+                if (comando == null || !comando.Equals(LISTFILES.Replace('>', ' ').Trim()))
                 {
                     //transazioneLista.Rollback();
                     //transazioneLista.Dispose();
@@ -991,7 +991,7 @@ namespace BackupServer
                     {
                         string path = Convert.ToString(rdr["percorsoFile"]);
                         string nomeFile = path.Substring(path.LastIndexOf('\\') + 1); //nomeFile dovrebbe usarlo in listaFiles
-                        listaFiles += Convert.ToString(rdr["percorsoFile"]) + "?" + Convert.ToString(rdr["versione"]) + "?" + Convert.ToString(rdr["dimFile"]) + "?" + Convert.ToString(rdr["timestamp"]) + "?" + Convert.ToString(rdr["idfile"]) + ";";
+                        listaFiles += Convert.ToString(rdr["percorsoFile"]) + "?" + Convert.ToString(rdr["versione"]) + "?" + Convert.ToString(rdr["dimFile"]) + "?" + Convert.ToString(rdr["timestamp"]) + "?" + Convert.ToString(rdr["idfile"]) + "<";
                     }
                 }
                 finally
@@ -1006,12 +1006,12 @@ namespace BackupServer
                     return INFO + "Nessuna file trovato";
                 }
 
-                String[] splittato = listaFiles.Split(';');
+                String[] splittato = listaFiles.Split('<');
                 int numFile = splittato.Length;
 
                 for (int i = 0; i < numFile - 1; i++)
                 {
-                    writeStringOnStream(clientsocket, FLP + i + "+" + splittato[i]);
+                    writeStringOnStream(clientsocket, FLP + i + ">" + splittato[i]);
                     string s = ReadStringFromStream(clientsocket);     //FIXME: questa risposta non viene esaminata
                 }
 
@@ -1019,7 +1019,7 @@ namespace BackupServer
                 //transazioneLista.Commit();
                 //transazioneLista.Dispose();
 
-                return "+ENDLIST+";
+                return ">ENDLIST>";
 
             }
             catch (Exception e)
@@ -1039,7 +1039,7 @@ namespace BackupServer
             //SQLiteTransaction transazioneVersione = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 if (numParametri > 6 || numParametri < 6)
                 {
@@ -1055,7 +1055,7 @@ namespace BackupServer
                 String fileName = parametri[4];
                 String idfile = parametri[5];
 
-                if (comando == null || !comando.Equals(GETVFILE.Replace('+', ' ').Trim()))
+                if (comando == null || !comando.Equals(GETVFILE.Replace('>', ' ').Trim()))
                 {
                     //transazioneVersione.Rollback();
                     //transazioneVersione.Dispose();
@@ -1110,7 +1110,7 @@ namespace BackupServer
                         {
                             string path = Convert.ToString(rdr["percorsoFile"]);
                             string nomeFile = path.Substring(path.LastIndexOf('\\') + 1);
-                            versioni += nomeFile + "?" + Convert.ToString(rdr["versione"]) + "?" + Convert.ToString(rdr["dimFile"]) + "?" + Convert.ToString(rdr["timestamp"]) + "?" + idfile + ";";
+                            versioni += nomeFile + "?" + Convert.ToString(rdr["versione"]) + "?" + Convert.ToString(rdr["dimFile"]) + "?" + Convert.ToString(rdr["timestamp"]) + "?" + idfile + "<";
                         }
 
 
@@ -1148,18 +1148,18 @@ namespace BackupServer
                     return INFO + "Nessuna versione del file";
                 }
 
-                String[] splittato = versioni.Split(';');
+                String[] splittato = versioni.Split('<');
                 int numFile = splittato.Length;
 
                 for (int i = 0; i < numFile - 1; i++)
                 {
-                    writeStringOnStream(clientsocket, FLP + i + "+" + splittato[i]);
+                    writeStringOnStream(clientsocket, FLP + i + ">" + splittato[i]);
                     ReadStringFromStream(clientsocket);
                 }
 
                 //transazioneVersione.Commit();
                 //transazioneVersione.Dispose();
-                return "+ENDLIST+";
+                return ">ENDLIST>";
 
             }
             catch (Exception e)
@@ -1180,7 +1180,7 @@ namespace BackupServer
             //SQLiteTransaction transazioneGetFile = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 if (numParametri > 7 || numParametri < 7)
                 {
@@ -1196,7 +1196,7 @@ namespace BackupServer
                 String versione = parametri[5];
                 String idfile = parametri[6];
 
-                if (comando == null || !comando.Equals(GETFILEV.Replace('+', ' ').Trim()))
+                if (comando == null || !comando.Equals(GETFILEV.Replace('>', ' ').Trim()))
                 {
                     //transazioneGetFile.Rollback();
                     //transazioneGetFile.Dispose();
@@ -1358,7 +1358,7 @@ namespace BackupServer
 
             try
             {
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 if (numParametri > 6 || numParametri < 5)
                 {
@@ -1375,7 +1375,7 @@ namespace BackupServer
                 if (numParametri>5)
                     dir = parametri[5];
 
-                if (comando == null || !comando.Equals(RENAMEFILE.Replace('+', ' ').Trim()))
+                if (comando == null || !comando.Equals(RENAMEFILE.Replace('>', ' ').Trim()))
                 {
                     transazioneRename.Rollback();
                     transazioneRename.Dispose();
@@ -1689,7 +1689,7 @@ namespace BackupServer
 
             try
             {
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 if (numParametri > 4 || numParametri < 4)
                 {
@@ -1702,7 +1702,7 @@ namespace BackupServer
                 String user = parametri[2].ToUpper();
                 String fileName = parametri[3];
 
-                if (comando == null || !comando.Equals(CANC.Replace('+', ' ').Trim()))
+                if (comando == null || !comando.Equals(CANC.Replace('>', ' ').Trim()))
                 {
                     transazioneDelete.Rollback();
                     transazioneDelete.Dispose();
@@ -1850,7 +1850,7 @@ namespace BackupServer
             try
             {
                 string folders = string.Empty;
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
 
                 if (numParametri != 3)
@@ -1859,7 +1859,7 @@ namespace BackupServer
                 String comando = parametri[1];
                 String user = parametri[2].ToUpper();
 
-                if (comando == null || !comando.Equals(GETFOLDERUSER.Replace('+', ' ').Trim()))
+                if (comando == null || !comando.Equals(GETFOLDERUSER.Replace('>', ' ').Trim()))
                     return ERRORE + "Comando errato";
                 if (user == null || user.Equals(""))
                 {
@@ -1879,7 +1879,7 @@ namespace BackupServer
                     while (reader.Read())
                     {
                         folders += reader["folderBackup"].ToString();
-                        folders += ";";
+                        folders += "<";
                     }
                 }
                 finally
@@ -1910,7 +1910,7 @@ namespace BackupServer
             //SQLiteTransaction transazioneEnd = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 if (numParametri > 4 || numParametri < 4)
                 {
@@ -1923,7 +1923,7 @@ namespace BackupServer
                 String user = parametri[2].ToUpper();
                 String folderroot = parametri[3];
 
-                if (comando == null || !comando.Equals(ENDSYNC.Replace('+', ' ').Trim()))
+                if (comando == null || !comando.Equals(ENDSYNC.Replace('>', ' ').Trim()))
                 {
                     //transazioneEnd.Rollback();
                     //transazioneEnd.Dispose();
@@ -2021,7 +2021,7 @@ namespace BackupServer
             //SQLiteTransaction transazioneRestore = mainWindow.m_dbConnection.BeginTransaction();
             try
             {
-                String[] parametri = responseData.Split('+');
+                String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
                 string listaFiles = string.Empty;
 
@@ -2038,7 +2038,7 @@ namespace BackupServer
                 String newFolderRoot = parametri[4];    //cartella dove il client salverà i file ripristinati
                 String folderToBeRestored = parametri[5];   //(sub)directory di cui effettuare il restore
 
-                if (comando == null || !comando.Equals(RESTORE.Replace('+', ' ').Trim()))
+                if (comando == null || !comando.Equals(RESTORE.Replace('>', ' ').Trim()))
                 {
                     //transazioneRestore.Rollback();
                     //transazioneRestore.Dispose();
@@ -2745,7 +2745,7 @@ namespace BackupServer
                         else
                         {
                             tmp = responseData.Substring(1, responseData.Length - 1);
-                            comando = responseData.Substring(0, tmp.IndexOf('+') + 2);
+                            comando = responseData.Substring(0, tmp.IndexOf('>') + 2);
                         }
                     }
                     catch (Exception e)
@@ -2774,7 +2774,7 @@ namespace BackupServer
                                 risposta = comandoLogin(responseData, clientsocket);
                                 if (risposta.Contains(OK))
                                 {
-                                    username = responseData.Substring(responseData.LastIndexOf(("+")) + 1);
+                                    username = responseData.Substring(responseData.LastIndexOf((">")) + 1);
                                 }
                                 nowrite = false;
                                 break;

@@ -137,7 +137,7 @@ namespace Client
             {
 
                 //RESTORE + username + fullPath della root directory backuppata + fullPath della cartella creata per accogliere il restore + fullPath della subdir da ripristinare
-                clientLogic.WriteStringOnStream(ClientLogic.RESTORE + clientLogic.username + "+" + folderRoot + "+" + pathRoot + "+" + folderToBeRestored);
+                clientLogic.WriteStringOnStream(ClientLogic.RESTORE + clientLogic.username + ">" + folderRoot + ">" + pathRoot + ">" + folderToBeRestored);
 
                 //assegno le callback a workertransaction
                 workertransaction = new BackgroundWorker();

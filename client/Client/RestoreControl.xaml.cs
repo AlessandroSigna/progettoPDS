@@ -710,11 +710,11 @@ namespace Client
             {
                 clientlogic.WriteStringOnStream(ClientLogic.GETFOLDERUSER + clientlogic.username);  //chiedo al server le cartelle backuppate dall'utente
                 String retFolders = clientlogic.ReadStringFromStream();
-                String[] parametri = retFolders.Split('+'); //splitto la risposta in modo da ottenerne dei comandi
+                String[] parametri = retFolders.Split('>'); //splitto la risposta in modo da ottenerne dei comandi
                 String comando = parametri[1];
                 if (comando.Equals("OK"))
                 {
-                    folders = parametri[2].Split(';'); //contiene i path delle root dir + un ultima stringa vuota (colpa della split)
+                    folders = parametri[2].Split('<'); //contiene i path delle root dir + un ultima stringa vuota (colpa della split)
                     folders = folders.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
                 }
@@ -738,7 +738,7 @@ namespace Client
             try
             {
                 //si chiede al server la lista dei file nella folder
-                clientlogic.WriteStringOnStream(ClientLogic.LISTFILES + clientlogic.username + "+" + folderPath);
+                clientlogic.WriteStringOnStream(ClientLogic.LISTFILES + clientlogic.username + ">" + folderPath);
 
                 Boolean exit = false;
                 Boolean fine = false;
@@ -746,7 +746,7 @@ namespace Client
                 while (!exit)
                 {
                     String messaggio = clientlogic.ReadStringFromStream();
-                    String[] parametri = messaggio.Split('+');
+                    String[] parametri = messaggio.Split('>');
                     String comando = parametri[1];
                     if (comando.Equals("FLP"))
                     {
@@ -785,9 +785,9 @@ namespace Client
             try
             {
                 //richiesta versioni del file
-                //WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + "+" + pathDellaRootFolderDiBackup + "+" + fullPathDelFile + "+" + idFile);
+                //WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + ">" + pathDellaRootFolderDiBackup + ">" + fullPathDelFile + ">" + idFile);
 
-                clientlogic.WriteStringOnStream(ClientLogic.GETVFILE + clientlogic.username + "+" + fileTag.rootDir + "+" + fileTag.fullPath + "+" + fileTag.id);
+                clientlogic.WriteStringOnStream(ClientLogic.GETVFILE + clientlogic.username + ">" + fileTag.rootDir + ">" + fileTag.fullPath + ">" + fileTag.id);
 
 
                 Boolean exit = false;
@@ -796,7 +796,7 @@ namespace Client
                 while (!exit)
                 {
                     String messaggio = clientlogic.ReadStringFromStream();
-                    String[] parametri = messaggio.Split('+');
+                    String[] parametri = messaggio.Split('>');
                     String comando = parametri[1];
                     if (comando.Equals("FLP"))
                     {
