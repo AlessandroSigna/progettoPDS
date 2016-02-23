@@ -47,7 +47,7 @@ namespace Client
         private void Window_StateChanged(object sender, EventArgs e)
         {
             Console.Out.WriteLine("MainWindow: StateChanged");
-            if (this.WindowState == WindowState.Minimized && !(App.Current.MainWindow.Content is LoginControl) && !(App.Current.MainWindow.Content is Disconnetti) && !(App.Current.MainWindow.Content is MainControl) && !(App.Current.MainWindow.Content is RegistratiControl) && !(App.Current.MainWindow.Content is LoginRegisterControl))
+            if (this.WindowState == WindowState.Minimized && !(App.Current.MainWindow.Content is LoginControl) && !(App.Current.MainWindow.Content is MainControl) && !(App.Current.MainWindow.Content is RegistratiControl))
             {
                 this.ShowInTaskbar = false;
                 MyNotifyIcon.Visible = true;
