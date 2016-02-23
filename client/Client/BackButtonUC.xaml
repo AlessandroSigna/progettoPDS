@@ -12,7 +12,7 @@
 
         <Button x:Name="BackButton" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Width="40" Height="40" MouseEnter="Back_MouseEnter" MouseLeave="Back_MouseLeave"  Cursor="Hand">
             <StackPanel Orientation="Horizontal" Margin="0">
-                <Image x:Name="backImage"  Source="Images/back.png" Height="40" Width="40" />
+                <Image x:Name="backImage"  Source="Images/Back.png" Height="40" Width="40" />
                 </StackPanel>
             <Button.Style>
 

@@ -237,11 +237,7 @@
   <ItemGroup>
     <Resource Include="Images\user.png" />
     <Resource Include="Images\auth.png" />
-    <Content Include="Images\back.png" />
-    <Resource Include="Images\BackBlack.png" />
     <Resource Include="Images\Back.png" />
-    <Content Include="Images\backLight.png" />
-    <Resource Include="Images\BackWhite.png" />
     <Content Include="Images\CloudNuova.png" />
     <Resource Include="Images\folder.png" />
     <Resource Include="Images\Connesso.png" />
