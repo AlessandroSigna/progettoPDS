@@ -29,7 +29,7 @@ namespace Client
         {
             InitializeComponent();
             Console.Out.WriteLine("MainWindow: Costruttore ");
-            this.Left = 0;// SystemParameters.PrimaryScreenWidth - this.Width;
+            this.Left = 0;
             this.Top = SystemParameters.PrimaryScreenHeight - this.Height - 40;
             MainControl main = new MainControl();
             App.Current.MainWindow.Content = main;
@@ -70,11 +70,10 @@ namespace Client
             var windowContent = App.Current.MainWindow.Content;
             if (windowContent is MainControl)
             {
-                //se la finestra corrente è MainControl posso uscire direttmente senza comunicare nulla nè al server nè all'utente
                 return;
             }
 
-            //altrimenti prima chiedo conferma e poi disconnetto e 
+            //altrimenti prima chiedo conferma e poi disconnetto
             MessageBoxResult result = System.Windows.MessageBox.Show("Sicuro di volere uscire?", "Chiusura", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
             if (result == MessageBoxResult.Yes)
@@ -91,7 +90,7 @@ namespace Client
                 }
             }
 
-            e.Cancel = true;    //cancello questo evento. Sarà la DisconnettiServer o MenuControl a richiamare la Close in modo efficace dopo aver effettuato la disconnessione pulita
+            e.Cancel = true;
             return;
 
         }
@@ -107,7 +106,7 @@ namespace Client
             }
             MainControl main = new MainControl();
             App.Current.MainWindow.Content = main;
-            App.Current.MainWindow.Title = "MyCloud";
+            App.Current.MainWindow.Title = "BackApp";
 
             if (error)
                 main.messaggioErrore(messaggio);

@@ -4,7 +4,7 @@
         Icon="Images/imageres_1040.ico"
         ResizeMode="CanMinimize"
         WindowStartupLocation="Manual"
-        Title="Server" Height="253" Width="621" Topmost="False" StateChanged="Window_StateChanged" Closing="Window_Closing">
+        Title="BackApp - Server" Height="253" Width="621" Topmost="False" StateChanged="Window_StateChanged" Closing="Window_Closing">
 
     <Grid Background="#d4f6ff" Height="224" VerticalAlignment="Top" Margin="0,0,0,0" HorizontalAlignment="Left" Width="611">
 

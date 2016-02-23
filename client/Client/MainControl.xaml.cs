@@ -31,8 +31,6 @@ namespace Client
         public MainControl()
         {
             InitializeComponent();
-            //App.Current.MainWindow.Width = 400;
-            //App.Current.MainWindow.Height = 400;
         }
 
         #region Altri Metodi
@@ -92,13 +90,6 @@ namespace Client
 
             showHideWaitBar(false);
             if (esito) {
-                // Il passaggio a LoginRegisterControl non avviene qui, ma in ClientLogic,
-                // dopo che viene stabilita la connessione.
-                // Vorrei provare a mettere tutti i passaggi tra le finestre, nella logica delle finestre stesse.
-                // (come è già nella maggior parte dei casi)
-                // In questo caso a connessione stabilita il ClientLogic deve comunicarlo a MainControl che poi instanzia
-                // LoginRegisterControl:
-
                 LoginControl login = new LoginControl();
                 App.Current.MainWindow.Content = login;
             } else {

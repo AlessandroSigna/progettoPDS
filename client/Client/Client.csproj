@@ -69,8 +69,8 @@
     <Compile Include="DisconnettiButtonUC.xaml.cs">
       <DependentUpon>DisconnettiButtonUC.xaml</DependentUpon>
     </Compile>
-    <Compile Include="DownloadFolder.xaml.cs">
-      <DependentUpon>DownloadFolder.xaml</DependentUpon>
+    <Compile Include="DownloadFolderControl.xaml.cs">
+      <DependentUpon>DownloadFolderControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="LoginControl.xaml.cs">
       <DependentUpon>LoginControl.xaml</DependentUpon>
@@ -84,14 +84,14 @@
     <Compile Include="RegistratiControl.xaml.cs">
       <DependentUpon>RegistratiControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Restore.xaml.cs">
-      <DependentUpon>Restore.xaml</DependentUpon>
+    <Compile Include="RestoreWindow.xaml.cs">
+      <DependentUpon>RestoreWindow.xaml</DependentUpon>
     </Compile>
     <Compile Include="RestoreControl.xaml.cs">
       <DependentUpon>RestoreControl.xaml</DependentUpon>
     </Compile>
-    <Compile Include="StartDownload.xaml.cs">
-      <DependentUpon>StartDownload.xaml</DependentUpon>
+    <Compile Include="StartDownloadControl.xaml.cs">
+      <DependentUpon>StartDownloadControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="WaitWindow.xaml.cs">
       <DependentUpon>WaitWindow.xaml</DependentUpon>
@@ -104,7 +104,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="DownloadFolder.xaml">
+    <Page Include="DownloadFolderControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -132,7 +132,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Restore.xaml">
+    <Page Include="RestoreWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -140,7 +140,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="StartDownload.xaml">
+    <Page Include="StartDownloadControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

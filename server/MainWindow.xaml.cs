@@ -44,7 +44,7 @@ namespace BackupServer
             calcoloAddressP.RunWorkerCompleted += new RunWorkerCompletedEventHandler(calcoloAddressP_RunWorkerCompleted);
             calcoloAddressP.RunWorkerAsync();
 
-            TPathDB.Text = Directory.GetCurrentDirectory() + "\\DatabasePROVA.sqlite";
+            TPathDB.Text = Directory.GetCurrentDirectory() + "\\DatabaseDefault.sqlite";
 
             TPorta.Text = "1010";
             MyNotifyIcon = new System.Windows.Forms.NotifyIcon();

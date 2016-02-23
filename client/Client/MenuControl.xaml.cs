@@ -31,7 +31,6 @@ namespace Client
         private FileSystemWatcher watcher;
         private MainWindow mw;
         private string backupFolder;    //cartella di backup
-        //private string restoreFolder;   //cartella di restore
         public volatile bool updating;  //il watcher sta comunicando un aggiornamento o un file nuovo o modificato - può essere true solo dopo lavorando invio e solo durante monitorando
         public volatile bool wantToExit;            //voglio chiudere la finestra
         private volatile bool wantToLogout;         //voglio effettuare il logout -> LoginControl
@@ -53,9 +52,8 @@ namespace Client
             InitializeComponent();
             wantToExit = wantToDisconnect = wantToLogout = false;
             lastCheck = String.Empty;
-            App.Current.MainWindow.Title = "Mycloud";
+            App.Current.MainWindow.Title = "BackApp";
             mw = (MainWindow)App.Current.MainWindow;
-            //mw.clientLogic.event_1 = new AutoResetEvent(false); ??
             updating = false;
 
             BrushConverter bc = new BrushConverter();
@@ -281,7 +279,7 @@ namespace Client
                     return;
                 }
                 Console.WriteLine(e.FullPath);
-                if (Directory.Exists(e.FullPath))   //controllo se è una directory ?
+                if (Directory.Exists(e.FullPath))
                 {
                     mw.clientLogic.event_1.Set();
                     return;
@@ -473,14 +471,6 @@ namespace Client
         {
             try
             {
-                //if (mw.clientLogic.lavorandoInvio)
-                //{
-                //    if (watcher != null)
-                //    {
-                //        watcher.EnableRaisingEvents = false;
-                //        watcher.Dispose();
-                //    }
-                //}
                 if (mw.clientLogic.lavorandoInvio || updating)
                 {
                     //sono qui se sto facendo il backup "grosso" - lavorandoInvio
@@ -488,11 +478,10 @@ namespace Client
                     //al posto del bottone EffettuaBackup compare una Label Wait
                     //attendo di accedere alle risorse in modo pulito - Workertransaction_Waited
                     //per poi operare in base al contesto verificando il valore di alcuni flag - Workertransaction_WaitedCompleted
-                    //EffettuaBackup.Visibility = Visibility.Hidden;
+
                     BrushConverter bc = new BrushConverter();
                     EffettuaBackup.Foreground = (Brush)bc.ConvertFrom("#dadada");
                     EffettuaBackup.IsEnabled = false;
-                    //messaggioStop();
                     BackgroundWorker worker = new BackgroundWorker();
                     worker.DoWork += new DoWorkEventHandler(Workertransaction_Waited);
                     worker.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_WaitedCompleted);
@@ -691,10 +680,6 @@ namespace Client
         /*
          * Button Logout
          */
-        private void Logout_Click(object sender, RoutedEventArgs e)
-        {
-            //DialogDisconnetti();
-        }
 
         public void Logout_Esito(bool success, string messaggio = null) 
         {
@@ -707,64 +692,6 @@ namespace Client
             {
                 messaggioErrore(messaggio);
             }
-        }
-        /*
-         * Metodo che gestisce un CustomDialog con dipendenza da Metro
-         */
-        //public async void DialogDisconnetti()
-        //{
-        //    customDialog = new CustomDialog();
-        //    disconnettiWindow = new Disconnetti();
-        //    //setto le callback per la pressione dei Button
-        //    //forse è bene metterle direttamente in Disconnetti.xaml.cs e gestire la logica opportunamente
-        //    disconnettiWindow.BServer.Click += ButtonServerOnClick;
-        //    disconnettiWindow.BCancel.Click += ButtonCancelOnClick;
-        //    customDialog.Content = disconnettiWindow;
-        //    MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-        //    await mw.ShowMetroDialogAsync(customDialog);
-        //}
-
-        private void Logout_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            //logoutImage.BeginInit();
-            //logoutImage.Source = new BitmapImage(new Uri(@"Images/logoutLight.png", UriKind.RelativeOrAbsolute));
-            //logoutImage.EndInit();
-        }
-
-        private void Logout_MouseLeave(object sender, System.Windows.Input.MouseEventArgs e)
-        {
-            //logoutImage.BeginInit();
-            //logoutImage.Source = new BitmapImage(new Uri(@"Images/logout.png", UriKind.RelativeOrAbsolute));
-            //logoutImage.EndInit();
-        }
-
-
-        /*
-         * Callback assegnata nella DialogDisconnetti per la pressione del Button disconnetti server 
-         * presente in Disconnetti.xaml
-         */
-        private void ButtonServerOnClick(object sender, RoutedEventArgs e)
-        {
-            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            //mw.HideMetroDialogAsync(customDialog);
-            //MainWindow mainw = (MainWindow)mw;
-
-            //Window mw = (Window)App.Current.MainWindow;
-            ////mw.HideMetroDialogAsync(customDialog);
-            //MainWindow mainw = (MainWindow)mw;
-
-            //exit = true;
-            //if (mainw.clientLogic.lavorandoInvio || updating)
-            //    EffettuaBackup.RaiseEvent(new RoutedEventArgs(System.Windows.Controls.Button.ClickEvent));    //riscatena l'evento click che stavolta porterà ad AttendiTermineUpdate
-            //else
-            //    mainw.clientLogic.DisconnettiServer(false);
-
-        }
-
-        private void ButtonCancelOnClick(object sender, RoutedEventArgs e)
-        {
-            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            //mw.HideMetroDialogAsync(customDialog);
         }
         #endregion
 
@@ -828,37 +755,6 @@ namespace Client
         #endregion
 
         #region Gestione Errori e Messaggi
-        /*
-         * Il controllo torna a MainControl lanciando un messaggio di errore
-         */
-        private void ExitStub(Boolean error = true)
-        {
-            mw.clientLogic.DisconnectAndClose();
-            mw.restart(error);
-        }
-
-        private void messaggioErrore(string mess)
-        {
-            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            //await mw.ShowMessageAsync("Errore", mess);
-            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
-
-        }
-
-        private /*async*/ void messaggioStop()
-        {
-            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            //await mw.ShowMessageAsync("Attendere", "Stiamo chiudendo i canali...  un attimo di pazienza");
-            //MessageBoxResult result = System.Windows.MessageBox.Show("Stiamo chiudendo i canali...  un attimo di pazienza", "Errore", MessageBoxButton.OK, MessageBoxImage.Stop);
-        }
-
-        private /*async*/ void messaggioAttesa()
-        {
-            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            //await mw.ShowMessageAsync("Attenzione", "Blocca il monitoraggio per effettuare un restore");
-            MessageBoxResult result = System.Windows.MessageBox.Show("Blocca il monitoraggio per effettuare un restore", "Errore", MessageBoxButton.OK, MessageBoxImage.Stop);
-        }
-        #endregion
 
         private bool FolderURLCheck(string url)
         {
@@ -880,6 +776,25 @@ namespace Client
             return true;
         }
 
+        /*
+         * Il controllo torna a MainControl lanciando un messaggio di errore
+         */
+        private void ExitStub(Boolean error = true)
+        {
+            mw.clientLogic.DisconnectAndClose();
+            mw.restart(error);
+        }
 
+        private void messaggioErrore(string mess)
+        {
+            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+
+        private void messaggioAttesa()
+        {
+            MessageBoxResult result = System.Windows.MessageBox.Show("Blocca il monitoraggio per effettuare un restore", "Errore", MessageBoxButton.OK, MessageBoxImage.Stop);
+        }
+        #endregion
     }
 }

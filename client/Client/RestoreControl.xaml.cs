@@ -45,8 +45,6 @@ namespace Client
                 InitializeComponent();
                 clientlogic = clientLogic;
                 restoreWindow = mainw;
-                //App.Current.MainWindow.Width = 400;
-                //App.Current.MainWindow.Height = 400;
                 String[] rootFolders = RetrieveRootFolders();
                 if (rootFolders == null)
                 {
@@ -346,7 +344,6 @@ namespace Client
                             else
                             {
                                 TreeViewItem temp = (TreeViewItem)parentItem.Items.CurrentItem;
-
                                 FolderSort(temp, folderItem, parentItem);
                             }
                         }
@@ -380,7 +377,6 @@ namespace Client
                         else
                         {
                             TreeViewItem temp = (TreeViewItem)parentItem.Items.CurrentItem;
-
                             FileSort(temp, subItem, parentItem);
                         }
 
@@ -408,22 +404,14 @@ namespace Client
                 if (tag.tipo == ItemType.FileVersion && tag.dimFile == 0)    //caso file cancellato
                 {
                     ConfirmButton.IsEnabled = false;
-                    //BrushConverter bc = new BrushConverter();
-                    //ConfirmButton.Background = (Brush)bc.ConvertFrom("#F5FFFA");
                 }
                 else if (tag.tipo == ItemType.FileVersion || tag.tipo == ItemType.RootFolder || tag.tipo == ItemType.Folder)
                 {
-
                     ConfirmButton.IsEnabled = true;
-                    //BrushConverter bc = new BrushConverter();
-                    //ConfirmButton.Background = (Brush)bc.ConvertFrom("#FF44E572");
-
                 }
                 else
                 {
                     ConfirmButton.IsEnabled = false;
-                    //BrushConverter bc = new BrushConverter();
-                    //ConfirmButton.Background = (Brush)bc.ConvertFrom("#F5FFFA");
                 }
             }
             catch
@@ -686,7 +674,6 @@ namespace Client
         {
             try
             {
-                //if (value < 0) { return "-" + SizeSuffix(-value); }
                 if (value == 0) { return "\tFile Cancellato"; }
 
                 int mag = (int)Math.Log(value, 1024);

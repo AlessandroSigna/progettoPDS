@@ -141,20 +141,6 @@ namespace Client
                 mw.clientLogic.Login(Username.Text, Password.Password, this);
             }
 
-
-            // Serve un if else per gestire la risposta del server, analizzata da clientLogic,
-            // ma passata e usata qui con un valore di return per decidere quale sarà la prossima finestra
-            //if (message.Contains(OK))
-            //{
-                //MenuControl main = new MenuControl();
-                //App.Current.MainWindow.Content = main;
-            //}
-            //else
-            //{
-            //LoginControl main = new LoginControl(messaggioErrore);
-            //App.Current.MainWindow.Content = main;
-            //}
-
         }
 
         public void Esito_Login(bool esito, string messaggio = null)
@@ -166,20 +152,6 @@ namespace Client
                 mostraErroreUsername("");
                 mostraErrorePassword(messaggio);
             }
-        }
-
-        private void Login_MouseEnter(object sender, MouseEventArgs e)
-        {
-            //BrushConverter bc = new BrushConverter();
-            //Login.Background = (Brush)bc.ConvertFrom("#99FFFF");
-
-        }
-
-        private void Login_MouseLeave(object sender, MouseEventArgs e)
-        {
-            //BrushConverter bc = new BrushConverter();
-            //Login.Background = (Brush)bc.ConvertFrom("#33CCFF");
-
         }
 
 

@@ -33,10 +33,9 @@ namespace Client
 
         private void messaggioerrore(string mess)
         {
-            //metrowindow mw = (metrowindow)app.current.mainwindow;
-            //await mw.showmessageasync("errore", mess);
             MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
         }
+
         #region Controlli username e password
         private Boolean IsValidUsername(String username)
         {

@@ -121,20 +121,12 @@ namespace Client
             try
             {
                 clientsocket.Connect(ip, porta);
-                //Echo_Request();
                 timer = new System.Threading.Timer(TimerCallBack);
                 timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING));
             }
             catch
             {
-                //if (clientsocket.Connected)
-                //{
-                //    clientsocket.GetStream().Close();
-                //    clientsocket.Close();
-                //}
                 DisconnectAndClose();
-                //MainControl main = new MainControl(1);  //FIXME: magicnumber!
-                //App.Current.MainWindow.Content = main;
                 mw.restart(true);
             }
         }
@@ -157,7 +149,6 @@ namespace Client
                 }
                 else
                 {
-                    //Echo_Request();
                     timer = new System.Threading.Timer(TimerCallBack);
                     timer.Change(TimeSpan.FromSeconds(POLLING), TimeSpan.FromSeconds(POLLING));
                     mc.Esito_Connect(true);
@@ -165,14 +156,7 @@ namespace Client
             } 
             catch
             {
-                //if (clientsocket.Connected)
-                //{
-                //    clientsocket.GetStream().Close();
-                //    clientsocket.Close();
-                //}
                 DisconnectAndClose();
-                //MainControl main = new MainControl(1);
-                //App.Current.MainWindow.Content = main;
                 mc.Esito_Connect(false);
             }
         }
@@ -221,23 +205,12 @@ namespace Client
             string[] resultArray = Array.ConvertAll(parameters, x => x.ToString());
             this.username = resultArray[0];
             string password = resultArray[1];
-
-            //object[] res = { ERRORE + "Errore inatteso nel login", parameters[2] }; //oggetto che verrà analizzato da Workertransaction_LoginCompleted
-            //e.Result = res;
-
-            //try
-            //{
-            //comunico al server che voglio iniziare il login
-            //mando LOGIN + username
+            
             WriteStringOnStream(LOGIN + username);
 
-            //mi aspetto OK
             String response = ReadStringFromStream();
             if (!response.Contains(OK))
             {
-                //devo comunicare qualcosa alla login completed in e
-                //res[0] = response;
-                //throw new Exception();//gestire le eccezioni 
                 if (response.Contains(ERRORE) && response.Contains("Username"))
                 {
                     e.Cancel = true;
@@ -272,30 +245,6 @@ namespace Client
             Console.WriteLine("challengeResponse: " + BitConverter.ToString(challengeResponse));
 
             e.Result = parameters;
-
-
-            //ricevo il responso del server
-            //response = ReadStringFromStream();
-            //res[0] = response;
-            //if (!response.Contains(OK))
-            //{
-            //    //throw new Exception();  //gestire le eccezioni 
-            //    e.Cancel = true;
-            //    return;
-            //}
-            //}
-            //catch   //il backgroudworker gestisce le eccezioni in modo particolare http://stackoverflow.com/questions/1044460/unhandled-exceptions-in-backgroundworker
-            //    if (clientsocket.Connected)
-            //    {
-            //        clientsocket.GetStream().Close();
-            //        clientsocket.Close();
-            //    }
-            //    //MainControl main = new MainControl(1);  //FIXME: magicnumber
-            //    //App.Current.MainWindow.Content = main;
-            //    mw.restart(true);
-            //}
-            //e.Result = res;
-                
         }
 
         /*
@@ -308,11 +257,6 @@ namespace Client
 
                 if (e.Error != null)
                 {
-                    //if (clientsocket.Connected)
-                    //{
-                    //    clientsocket.GetStream().Close();
-                    //    clientsocket.Close();
-                    //}
                     DisconnectAndClose();
 
                     mw.restart(true, e.Error.Message);
@@ -320,7 +264,6 @@ namespace Client
                 } 
                 else if (e.Cancelled)
                 {
-                    //mw.restart(true, "Username e/o Password Errati");
                     var content = App.Current.MainWindow.Content;
                     if (content is LoginControl)
                     {
@@ -335,8 +278,7 @@ namespace Client
                 {
                     object[] parameters = e.Result as object[]; //errore - http://stackoverflow.com/questions/1044460/unhandled-exceptions-in-backgroundworker
                     LoginControl lc = (LoginControl)parameters[2];
-                    //String message = (String)parameters[0];
-
+                    
                     string message = ReadStringFromStream();
                     String tmp = message.Substring(1, message.Length - 1);
                     String messaggioErrore = message.Substring(tmp.IndexOf('>') + 2, tmp.Length - tmp.IndexOf('>') - 1);
@@ -344,41 +286,19 @@ namespace Client
 
                     if (message.Contains(OK))
                     {
-                        //MenuControl main = new MenuControl();
-                        //App.Current.MainWindow.Content = main;
                         lc.Esito_Login(true);
                         UpdateNotifyIconConnesso();
                         connesso = true;
                     }
                     else
                     {
-                        //String tmp = message.Substring(1, message.Length - 1);
-                        //String messaggioErrore = message.Substring(tmp.IndexOf('>') + 2, tmp.Length - tmp.IndexOf('>') - 1);
-                        //if (messaggioErrore == CONNESSIONE_CHIUSA_SERVER)
-                        //{
-                        //    clientsocket.GetStream().Close();
-                        //    clientsocket.Close();
-                        //    //MainControl main = new MainControl(1);
-                        //    //App.Current.MainWindow.Content = main;
-                        //    mw.restart(true, messaggioErrore);
-                        //}
-                        //else
-                        //{
                         lc.Esito_Login(false, messaggioErrore);
-                        //}
                     }
                 }
             }
             catch (Exception exc)
             {
-                //if (clientsocket.Connected)
-                //{
-                //    clientsocket.GetStream().Close();
-                //    clientsocket.Close();
-                //}
                 DisconnectAndClose();
-                //MainControl main = new MainControl(1);
-                //App.Current.MainWindow.Content = main;
                 mw.restart(true, exc.Message);
             }
         }
@@ -412,65 +332,49 @@ namespace Client
             string clientPublicKeyString;
             ECDiffieHellmanCng clientECDH = new ECDiffieHellmanCng();
 
-            //try
-            //{
-                clientECDH.KeyDerivationFunction = ECDiffieHellmanKeyDerivationFunction.Hash;
-                clientECDH.HashAlgorithm = CngAlgorithm.Sha256;
-                clientPublicKey = clientECDH.PublicKey.ToByteArray();   //chiave pubblica in byte[]
-                //devo inviare la chiave publica al server
-                clientPublicKeyString = BitConverter.ToString(clientPublicKey); //converto la chiave pubblica in string. Byte separati da '-'
-                Console.WriteLine("PublicKey " + clientPublicKeyString);
+            clientECDH.KeyDerivationFunction = ECDiffieHellmanKeyDerivationFunction.Hash;
+            clientECDH.HashAlgorithm = CngAlgorithm.Sha256;
+            clientPublicKey = clientECDH.PublicKey.ToByteArray();   //chiave pubblica in byte[]
+            //devo inviare la chiave publica al server
+            clientPublicKeyString = BitConverter.ToString(clientPublicKey); //converto la chiave pubblica in string. Byte separati da '-'
+            Console.WriteLine("PublicKey " + clientPublicKeyString);
 
-                WriteStringOnStream(ECDH + clientPublicKeyString);    //comunico che voglio iniziare il DH + mando la pkey
-                string serverResponse = ReadStringFromStream(); //deve essere ECDH + serverPublicKeyString
-                if (!serverResponse.Contains(ECDH))
-                {
-                    //Console.WriteLine("Risposta inaspettata dal server");
-                    //throw new Exception();
-                    e.Cancel = true;
-                    return;
-                }
-                String[] parametri = serverResponse.Split('>');
-                string serverPublicKeyString = parametri[2];
-                Console.WriteLine("serverPublicKey " + serverPublicKeyString);
-                //la chiave del server deve essere convertita in byte[]
-                String[] arr = serverPublicKeyString.Split('-');
-                byte[] serverPublicKey = new byte[arr.Length];
-                for (int i = 0; i < arr.Length; i++)
-                {
-                    serverPublicKey[i] = Convert.ToByte(arr[i], 16);
-                }
-                CngKey k = CngKey.Import(serverPublicKey, CngKeyBlobFormat.EccPublicBlob);
-                byte[] clientKey = clientECDH.DeriveKeyMaterial(k); //derivo la chiave simmetrica
-                Console.WriteLine("ClientSimmetricKey " + BitConverter.ToString(clientKey));
+            WriteStringOnStream(ECDH + clientPublicKeyString);    //comunico che voglio iniziare il DH + mando la pkey
+            string serverResponse = ReadStringFromStream(); //deve essere ECDH + serverPublicKeyString
+            if (!serverResponse.Contains(ECDH))
+            {
+                e.Cancel = true;
+                return;
+            }
+            String[] parametri = serverResponse.Split('>');
+            string serverPublicKeyString = parametri[2];
+            Console.WriteLine("serverPublicKey " + serverPublicKeyString);
+            //la chiave del server deve essere convertita in byte[]
+            String[] arr = serverPublicKeyString.Split('-');
+            byte[] serverPublicKey = new byte[arr.Length];
+            for (int i = 0; i < arr.Length; i++)
+            {
+                serverPublicKey[i] = Convert.ToByte(arr[i], 16);
+            }
+            CngKey k = CngKey.Import(serverPublicKey, CngKeyBlobFormat.EccPublicBlob);
+            byte[] clientKey = clientECDH.DeriveKeyMaterial(k); //derivo la chiave simmetrica
+            Console.WriteLine("ClientSimmetricKey " + BitConverter.ToString(clientKey));
 
-                //procedo con la cifratura delle credenziali username e password
-                string encryptedMessage = null;
-                byte[] iv = null;
-                String secretMessage = username + '>' + password;
-                encryptedMessage = EffettuaCifraturaSimmetrica(clientKey, secretMessage, out iv);
+            //procedo con la cifratura delle credenziali username e password
+            string encryptedMessage = null;
+            byte[] iv = null;
+            String secretMessage = username + '>' + password;
+            encryptedMessage = EffettuaCifraturaSimmetrica(clientKey, secretMessage, out iv);
 
-                //invio al server credenziali cifrate + iv
-                string ivString = BitConverter.ToString(iv);
-                Console.WriteLine("IV" + ivString.Length + ": " + ivString);
-                Console.WriteLine("ciphertext: " + encryptedMessage);
+            //invio al server credenziali cifrate + iv
+            string ivString = BitConverter.ToString(iv);
+            Console.WriteLine("IV" + ivString.Length + ": " + ivString);
+            Console.WriteLine("ciphertext: " + encryptedMessage);
 
-                String messaggio = REGISTRAZIONE + ivString + '>' + encryptedMessage;
-                WriteStringOnStream(messaggio);
-                Console.WriteLine("messaggio: " + messaggio);
-                e.Result = parameters;
-            //}
-            //catch
-            //{
-            //    if (clientsocket.Connected)
-            //    {
-            //        clientsocket.GetStream().Close();
-            //        clientsocket.Close();
-            //    }
-            //    //MainControl main = new MainControl(1);  //FIXME: magicnumber
-            //    //App.Current.MainWindow.Content = main;
-            //    mw.restart(true);
-            //}
+            String messaggio = REGISTRAZIONE + ivString + '>' + encryptedMessage;
+            WriteStringOnStream(messaggio);
+            Console.WriteLine("messaggio: " + messaggio);
+            e.Result = parameters;
         }
 
         /*
@@ -481,17 +385,10 @@ namespace Client
         {
             try
             {
-                // Le eccezioni (prevedibili o imprevedibili) generate nella DoWork vengono gestite qui.
                 if (e.Error != null || e.Cancelled)
                 {
-                    //if (clientsocket.Connected)
-                    //{
-                    //    clientsocket.GetStream().Close();
-                    //    clientsocket.Close();
-                    //}
                     DisconnectAndClose();
-                    //MainControl main = new MainControl(1);
-                    //App.Current.MainWindow.Content = main;
+                
                     if (e.Cancelled)
                     {
                         mw.restart(true, "Registrazione fallita: problema di comunicazione con il server.");
@@ -501,7 +398,6 @@ namespace Client
                         mw.restart(true, e.Error.Message);
 
                     }
-                    //return;
                 }
                 else
                 {
@@ -523,36 +419,13 @@ namespace Client
                         String messaggioErrore = message.Substring(tmp.IndexOf('>') + 2, tmp.Length - tmp.IndexOf('>') - 1);
                         //se l'autenticazione non va a buon fine torno alla finestra principale e chiude lo stream
                         rc.Registrati_Esito(false, "Registrazione fallita: " + messaggioErrore);
-                        //MainControl main = new MainControl(1);  //FIXME: magicnumber
-                        //App.Current.MainWindow.Content = main;
-                        //mw.restart(true);
-                        //if (clientsocket.Client.Connected)   //FIXME: ma mw.clientLogic non punta a questo stesso oggetto?!
-                        //{
-                        //    clientsocket.GetStream().Close();
-                        //    clientsocket.Close();
-                        //}
-                        //if (this.clientsocket.Client.Connected)
-                        //{
-                        //    this.clientsocket.GetStream().Close();
-                        //    this.clientsocket.Close();
-                        //}
-                        //return;
                     }
                 }
             }
             catch (Exception exc)
             {
-                //Le eccezioni della workCompleted vengono gestite qui.
-                //if (clientsocket.Connected)
-                //{
-                //    clientsocket.GetStream().Close();
-                //    clientsocket.Close();
-                //}
                 DisconnectAndClose();
-                //MainControl main = new MainControl(1);
-                //App.Current.MainWindow.Content = main;
                 mw.restart(true, exc.Message);
-                //return;
             }
         }
 
@@ -576,119 +449,10 @@ namespace Client
 
         }
 
-
-        /*callback usata sia in caso di registrazione sia in caso di login
-         il discriminante è ciò che è contenuto in action dopo che l'array dei parametri viene parsificato
-        */
-        //private void Workertransaction_LoginRegistrazione(object sender, DoWorkEventArgs e)
-        //{
-        //    object[] parameters = e.Argument as object[];
-        //    string[] resultArray = Array.ConvertAll(parameters, x => x.ToString());
-        //    string username = resultArray[0];
-        //    this.username = username;
-        //    string password = resultArray[1];
-        //    string action = resultArray[2];
-        //    try
-        //    {
-        //        WriteStringOnStream(action + username + ">" + password + ">" + mac);    //invio al server le credenziali - IN CHIARO
-        //    }
-        //    catch
-        //    {
-        //        if (clientsocket.Connected)
-        //        {
-        //            clientsocket.GetStream().Close();
-        //            clientsocket.Close();
-        //        }
-        //        //MainControl main = new MainControl(1);  //FIXME: magicnumber
-        //        //App.Current.MainWindow.Content = main;
-        //        mw.restart(true);
-        //    }
-
-        //}
         #endregion
 
         #region Metodi di Disconnesione e Logout
-        //internal void Echo_Request()
-        //{
-        //    workertransaction = new BackgroundWorker();
-        //    workertransaction.DoWork += new DoWorkEventHandler(Workertransaction_Echo_Request);
-        //    workertransaction.RunWorkerCompleted += new RunWorkerCompletedEventHandler(Workertransaction_Echo_RequestCompleted);
-        //    workertransaction.RunWorkerAsync();
-
-        //}
-
-        //private void Workertransaction_Echo_Request(object sender, DoWorkEventArgs e)
-        //{
-        //    bool start = true;
-        //    int start_instant = 0;
-        //    DateTime d1 = DateTime.Now;
-        //    DateTime d2 = DateTime.Now;
-        //    TimeSpan ts = d2 - d1;
-        //    int time = 0;
-
-        //    while (start) {
-        //        if (clientsocket.Connected)
-        //        {
-        //            if (time > start_instant + POLLING)
-        //            {
-        //                throw new Exception("Problema nella sincronizzazione client server.");
-        //            }
-
-
-        //            if (time == start_instant + POLLING)
-        //            {
-        //                WriteStringOnStream(ECHO_REQUEST);
-
-        //                String message = ReadStringFromStream();
-        //                if (message.Contains(OK))
-        //                {
-        //                    d2 = DateTime.Now;
-        //                    ts = d2 - d1;
-        //                    start_instant = ts.Minutes * 60 + ts.Seconds;
-        //                }
-        //            }
-
-        //            // Il client non aspetta all'infinito perché c'è già un timeout se non riceve risposta dal server per troppo tempo.
-        //            //if (ts.Minutes * 60 + ts.Seconds == start_instant + TIME_OUT)
-        //            //{
-        //            //    start = false;
-        //            //}
-        //        }
-        //        else
-        //        {
-        //            e.Cancel = true;
-        //        }
-
-        //        d2 = DateTime.Now;
-        //        ts = d2 - d1;
-        //        time = ts.Minutes * 60 + ts.Seconds;
-        //    }
-        //    //e.Cancel = true;
-        //}
-
-        //private void Workertransaction_Echo_RequestCompleted(object sender, RunWorkerCompletedEventArgs e)
-        //{
-        //    try
-        //    {
-        //        if (e.Error != null)
-        //        {
-        //            DisconnectAndClose();
-        //            mw.restart(true, e.Error.Message);
-        //        }
-        //        if (e.Cancelled)
-        //        {
-        //            //mw.restart(true, "Il server non risponde.");
-        //            DisconnectAndClose(false);
-        //        }
-        //    }
-        //    catch (Exception exc)
-        //    {
-        //        DisconnectAndClose();
-        //        mw.restart(true, exc.Message);
-        //    }
-        //}
-
-
+        
         internal void Logout(MenuControl menuc)
         {
             workertransaction = new BackgroundWorker();
@@ -700,10 +464,7 @@ namespace Client
 
         private void Workertransaction_Logout(object sender, DoWorkEventArgs e)
         {
-            //object[] res = { ERRORE + "Errore inatteso nel logout", e.Argument }; //oggetto che verrà analizzato da Workertransaction_LoginCompleted
-            //e.Result = res;
             WriteStringOnStream(LOGOUT + username);
-            //res[0] = message;
             e.Result = e.Argument;
         }
 
@@ -713,11 +474,6 @@ namespace Client
             {
                 if (e.Error != null)
                 {
-                    //if (clientsocket.Connected)
-                    //{
-                    //    clientsocket.GetStream().Close();
-                    //    clientsocket.Close();
-                    //}
                     DisconnectAndClose();
                     mw.restart(true, e.Error.Message);
                 }
@@ -737,25 +493,13 @@ namespace Client
                         //se il logout non va a buon fine torno alla MainControl e chiudo lo stream
                         menuc.Logout_Esito(false, "Errore nella procedura di logout");
                         mw.restart(false);
-                        //if (this.clientsocket.Client.Connected)
-                        //{
-                        //    this.clientsocket.GetStream().Close();
-                        //    this.clientsocket.Close();
-                        //}
                         DisconnectAndClose(false);
                     }
                 }
             }
             catch (Exception exc)
             {
-                //if (clientsocket.Connected)
-                //{
-                //    clientsocket.GetStream().Close();
-                //    clientsocket.Close();
-                //}
                 DisconnectAndClose();
-                //MainControl main = new MainControl(1);
-                //App.Current.MainWindow.Content = main;
                 mw.restart(true, exc.Message);
             }
         }
@@ -870,8 +614,6 @@ namespace Client
          */
         public void WriteByteArrayOnStream(byte[] message)
         {
-            //TcpState statoConn = GetState(clientsocket);
-            //if (statoConn == TcpState.Established)
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 if (timer != null)
@@ -893,8 +635,6 @@ namespace Client
          */
         public void ReadByteArrayFromStream(byte[] buffer)
         {
-            //TcpState statoConn = GetState(clientsocket);
-            //if (statoConn == TcpState.Established)
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 if (timer != null)
@@ -916,8 +656,6 @@ namespace Client
 
         public void WriteStringOnStream(string message)
         {
-            //TcpState statoConn = GetState(clientsocket);
-            //if (statoConn == TcpState.Established)
             if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 if (timer != null)
@@ -940,7 +678,6 @@ namespace Client
         {
             TcpState statoConn = GetState(clientsocket);
             if (statoConn == TcpState.Established)
-            //if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 if (timer != null)
                 {
@@ -1112,7 +849,6 @@ namespace Client
                 //chiudo il FileStream visto che non è necessario inviarlo
                 fs.Close();
                 fs.Dispose();
-                //return false;
                 inviato = false;
             }
             else
@@ -1174,13 +910,6 @@ namespace Client
             }
 
             return null;
-        }
-
-        private /*async*/ void messaggioErrore(string mess)
-        {
-            //MetroWindow mw = (MetroWindow)App.Current.MainWindow;
-            //await mw.ShowMessageAsync("Errore", mess);
-            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
         }
         #endregion
 

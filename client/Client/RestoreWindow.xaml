@@ -4,6 +4,6 @@
         ResizeMode="NoResize"
         Icon="/Images/imageres_1040.ico"  
         Background="#d4f6ff"
-        Title="MYCLOUD - Restore" Height="400" Width="400"
+        Title="BackApp - Ripristino" Height="400" Width="400"
         WindowStartupLocation="CenterScreen" Closing="Window_Closing">
 </Window>
