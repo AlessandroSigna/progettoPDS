@@ -45,9 +45,9 @@ namespace Client
                 mostraErroreUsername("Campo username vuoto.");
                 return false;
             }
-            else if (Username.Text.Contains("+") || Username.Text.Contains("(") || Username.Text.Contains(")") || Username.Text.Contains("{") || Username.Text.Contains("}") || Username.Text.Contains("'"))
+            else if (Username.Text.Contains("<") || Username.Text.Contains(">") || Username.Text.Contains("(") || Username.Text.Contains(")") || Username.Text.Contains("{") || Username.Text.Contains("}") || Username.Text.Contains("'"))
             {
-                mostraErroreUsername("Lo username contiene uno o piu' caratteri invalidi: + () {} '");
+                mostraErroreUsername("Lo username contiene uno o piu' caratteri invalidi: <> () {} '");
                 return false;
             }
             else if (Username.Text.Length > 15)
@@ -71,7 +71,7 @@ namespace Client
                 mostraErrorePassword("La lunghezza della password deve essere compresa tra 5 e 15 caratteri.");
                 return false;
             }
-            else if (password.Contains("+") || password.Contains("(") || password.Contains(")") || password.Contains("{") || password.Contains("}") || password.Contains("'"))
+            else if (password.Contains(">") || password.Contains("(") || password.Contains(")") || password.Contains("{") || password.Contains("}") || password.Contains("'"))
             {
                 mostraErrorePassword("La password contiene uno o piu' caratteri invalidi: + () {} '");
                 return false;
@@ -89,7 +89,7 @@ namespace Client
         {
 
             Username.BorderBrush = Brushes.Red;
-            Username.BorderThickness = new Thickness(2);
+            Username.BorderThickness = new Thickness(1);
             erroreUsername.Content = errore;
             erroreUsername.Visibility = Visibility.Visible;
         }
@@ -98,7 +98,7 @@ namespace Client
         {
 
             Password.BorderBrush = Brushes.Red;
-            Password.BorderThickness = new Thickness(2);
+            Password.BorderThickness = new Thickness(1);
             errorePassword.Content = errore;
             errorePassword.Visibility = Visibility.Visible;
         }

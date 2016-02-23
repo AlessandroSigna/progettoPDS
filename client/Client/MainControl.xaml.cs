@@ -143,7 +143,7 @@ namespace Client
                 else
                 {
                     IpAddressBox.BorderBrush = Brushes.Red;
-                    IpAddressBox.BorderThickness = new Thickness(2);
+                    IpAddressBox.BorderThickness = new Thickness(1);
                     erroreIndirizzo.Content = "Inserire un indirizzo IP nel formato A.B.C.D";
                     erroreIndirizzo.Visibility = Visibility.Visible;
                     return false;
@@ -152,7 +152,7 @@ namespace Client
             catch
             {
                 IpAddressBox.BorderBrush = Brushes.Red;
-                IpAddressBox.BorderThickness = new Thickness(2);
+                IpAddressBox.BorderThickness = new Thickness(1);
                 erroreIndirizzo.Content = "Inserire un indirizzo IP nel formato A.B.C.D";
                 erroreIndirizzo.Visibility = Visibility.Visible;
                 return false;
@@ -176,7 +176,7 @@ namespace Client
                 else
                 {
                     PortBox.BorderBrush = Brushes.Red;
-                    PortBox.BorderThickness = new Thickness(2);
+                    PortBox.BorderThickness = new Thickness(1);
                     errorePorta.Content = "Inserire una porta TCP [1-65535]";
                     errorePorta.Visibility = Visibility.Visible;
                     return false;
@@ -185,7 +185,7 @@ namespace Client
             catch
             {
                 PortBox.BorderBrush = Brushes.Red;
-                PortBox.BorderThickness = new Thickness(2);
+                PortBox.BorderThickness = new Thickness(1);
                 errorePorta.Content = "Inserire una porta TCP [1-65535]";
                 errorePorta.Visibility = Visibility.Visible;
                 return false;

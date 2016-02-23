@@ -44,7 +44,7 @@ namespace Client
                 App.Current.MainWindow.Width = 600;
                 App.Current.MainWindow.Height = 430;
                 //domando al server le versioni del file selezionato
-                clientLogic.WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + "+" + folder + "+" + completePath + "+" + idFile);
+                clientLogic.WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + ">" + folder + ">" + completePath + ">" + idFile);
                 String retFiles;
                 Boolean exit = false;
 
@@ -52,7 +52,7 @@ namespace Client
                 while (!exit)
                 {
                     retFiles = clientLogic.ReadStringFromStream();
-                    String[] parametri = retFiles.Split('+');
+                    String[] parametri = retFiles.Split('>');
                     String comando = parametri[1];
                     if (comando.Equals("FLP"))
                     {

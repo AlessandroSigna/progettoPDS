@@ -29,34 +29,34 @@ namespace Client
         #region Costanti comandi
         private const int BUFFERSIZE = 1024;
         private const int CHALLENGESIZE = 64;
-        public const string OK = "+OK+";
-        public const string ERRORE = "+ERR+";
-        public const string INFO = "+INFO+";
-        public const string REGISTRAZIONE = "+REG+";
-        public const string ECDH = "+ECDH+";   //key agreement per proteggere la registrazione
-        public const string LOGIN = "+LOGIN+";
-        public const string LOGOUT = "+LOGOUT+";
-        public const string ECHO_REQUEST = "+ECHO_REQUEST+";
-        public const string STOP = "+STOP+";
-        public const string DISCONETTI = "+DISCO+";//obsoleto
-        public const string DISCONNETTICLIENT = "+DISCOCLIENT+"; //chiude lo stream di comunicazione con il client (utente non loggato)
-        public const string FILE = "+FILE+";
-        public const string NONINVIARE = "+NOINVIO+";
-        public const string EXITDOWNLOAD = "+EXITDOWNLOAD+";
-        public const string RESTORE = "+RESTORE+"; // +RESTORE+user+folderBackup+folderDestinazione (voglio anche la destinazione, così creo una nuova folderRoot) 
-        public const string FOLDER = "+FOLDER+";
-        public const string GETFILEV = "+GETVF+"; // +GETVF+user+file+versione -> Invio la specifica versione di un file
-        public const string GETVFILE = "+GVF+"; // +GVF+user+file -> Prendo le versioni di un file
-        public const string LISTFILES = "+LISTFILES+"; //+LISTFILES+user+folder+nomeLike (solo nome, senza path -> barra di ricerca. Se nullo, allora nomeLike="")
-        public const string CANC = "+CANC+"; //+CANC+user+filename
-        public const string RENAMEFILE = "+RENAMEFI+"; //+RENAMEFILE+user+fileNameOLD+fileNameNEW
-        public const string ENDSYNC = "+ENDSYN+"; //+ENDSYN+user+folder
-        public const string DISCONNETTIUTENTE = "+DISCUTENTE+"; //+DISCUTENTE+user
-        public const string GETFOLDERUSER = "+GETFOLDUSER+"; // +GETFOLDUSER+user
-        public const string FLP = "+FLP+";
+        public const string OK = ">OK>";
+        public const string ERRORE = ">ERR>";
+        public const string INFO = ">INFO>";
+        public const string REGISTRAZIONE = ">REG>";
+        public const string ECDH = ">ECDH>";   //key agreement per proteggere la registrazione
+        public const string LOGIN = ">LOGIN>";
+        public const string LOGOUT = ">LOGOUT>";
+        public const string ECHO_REQUEST = ">ECHO_REQUEST>";
+        public const string STOP = ">STOP>";
+        public const string DISCONETTI = ">DISCO>";//obsoleto
+        public const string DISCONNETTICLIENT = ">DISCOCLIENT>"; //chiude lo stream di comunicazione con il client (utente non loggato)
+        public const string FILE = ">FILE>";
+        public const string NONINVIARE = ">NOINVIO>";
+        public const string EXITDOWNLOAD = ">EXITDOWNLOAD>";
+        public const string RESTORE = ">RESTORE>"; // +RESTORE+user+folderBackup+folderDestinazione (voglio anche la destinazione, così creo una nuova folderRoot) 
+        public const string FOLDER = ">FOLDER>";
+        public const string GETFILEV = ">GETVF>"; // +GETVF+user+file+versione -> Invio la specifica versione di un file
+        public const string GETVFILE = ">GVF>"; // +GVF+user+file -> Prendo le versioni di un file
+        public const string LISTFILES = ">LISTFILES>"; //+LISTFILES+user+folder+nomeLike (solo nome, senza path -> barra di ricerca. Se nullo, allora nomeLike="")
+        public const string CANC = ">CANC>"; //+CANC+user+filename
+        public const string RENAMEFILE = ">RENAMEFI>"; //+RENAMEFILE+user+fileNameOLD+fileNameNEW
+        public const string ENDSYNC = ">ENDSYN>"; //+ENDSYN+user+folder
+        public const string DISCONNETTIUTENTE = ">DISCUTENTE>"; //+DISCUTENTE+user
+        public const string GETFOLDERUSER = ">GETFOLDUSER>"; // +GETFOLDUSER+user
+        public const string FLP = ">FLP>";
         public const string CONNESSIONE_CHIUSA_SERVER = "Connessione chiusa dal server";
         
-        public const int POLLING = 20; // (secondi) uguale alla metà del timer del server
+        public const int POLLING = 30; // (secondi) uguale alla metà del timer del server
 
         #endregion
 
@@ -339,7 +339,7 @@ namespace Client
 
                     string message = ReadStringFromStream();
                     String tmp = message.Substring(1, message.Length - 1);
-                    String messaggioErrore = message.Substring(tmp.IndexOf('+') + 2, tmp.Length - tmp.IndexOf('+') - 1);
+                    String messaggioErrore = message.Substring(tmp.IndexOf('>') + 2, tmp.Length - tmp.IndexOf('>') - 1);
 
 
                     if (message.Contains(OK))
@@ -353,7 +353,7 @@ namespace Client
                     else
                     {
                         //String tmp = message.Substring(1, message.Length - 1);
-                        //String messaggioErrore = message.Substring(tmp.IndexOf('+') + 2, tmp.Length - tmp.IndexOf('+') - 1);
+                        //String messaggioErrore = message.Substring(tmp.IndexOf('>') + 2, tmp.Length - tmp.IndexOf('>') - 1);
                         //if (messaggioErrore == CONNESSIONE_CHIUSA_SERVER)
                         //{
                         //    clientsocket.GetStream().Close();
@@ -430,7 +430,7 @@ namespace Client
                     e.Cancel = true;
                     return;
                 }
-                String[] parametri = serverResponse.Split('+');
+                String[] parametri = serverResponse.Split('>');
                 string serverPublicKeyString = parametri[2];
                 Console.WriteLine("serverPublicKey " + serverPublicKeyString);
                 //la chiave del server deve essere convertita in byte[]
@@ -447,7 +447,7 @@ namespace Client
                 //procedo con la cifratura delle credenziali username e password
                 string encryptedMessage = null;
                 byte[] iv = null;
-                String secretMessage = username + '+' + password;
+                String secretMessage = username + '>' + password;
                 encryptedMessage = EffettuaCifraturaSimmetrica(clientKey, secretMessage, out iv);
 
                 //invio al server credenziali cifrate + iv
@@ -455,7 +455,7 @@ namespace Client
                 Console.WriteLine("IV" + ivString.Length + ": " + ivString);
                 Console.WriteLine("ciphertext: " + encryptedMessage);
 
-                String messaggio = REGISTRAZIONE + ivString + '+' + encryptedMessage;
+                String messaggio = REGISTRAZIONE + ivString + '>' + encryptedMessage;
                 WriteStringOnStream(messaggio);
                 Console.WriteLine("messaggio: " + messaggio);
                 e.Result = parameters;
@@ -520,7 +520,7 @@ namespace Client
                     else
                     {
                         String tmp = message.Substring(1, message.Length - 1);
-                        String messaggioErrore = message.Substring(tmp.IndexOf('+') + 2, tmp.Length - tmp.IndexOf('+') - 1);
+                        String messaggioErrore = message.Substring(tmp.IndexOf('>') + 2, tmp.Length - tmp.IndexOf('>') - 1);
                         //se l'autenticazione non va a buon fine torno alla finestra principale e chiude lo stream
                         rc.Registrati_Esito(false, "Registrazione fallita: " + messaggioErrore);
                         //MainControl main = new MainControl(1);  //FIXME: magicnumber
@@ -590,7 +590,7 @@ namespace Client
         //    string action = resultArray[2];
         //    try
         //    {
-        //        WriteStringOnStream(action + username + "+" + password + "+" + mac);    //invio al server le credenziali - IN CHIARO
+        //        WriteStringOnStream(action + username + ">" + password + ">" + mac);    //invio al server le credenziali - IN CHIARO
         //    }
         //    catch
         //    {
@@ -826,12 +826,12 @@ namespace Client
 
         public static void UpdateNotifyIconDisconnesso()
         {
-            MainWindow.MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/disconnessoicon.ico");
+            MainWindow.MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/imageres_1040.ico");
         }
 
         public static void UpdateNotifyIconConnesso()
         {
-            MainWindow.MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/connessoicon.ico");
+            MainWindow.MyNotifyIcon.Icon = new System.Drawing.Icon(@"Images/imageres_1040.ico");
         }
 
         /*
@@ -842,6 +842,12 @@ namespace Client
          */
         public void DisconnectAndClose(bool disconnect = true)
         {
+
+            if (timer != null)
+            {
+                timer.Dispose();
+                timer = null;
+            }
             if (clientsocket.Connected)
             {
                 if (disconnect)
@@ -1018,7 +1024,7 @@ namespace Client
                     return;
                 }
             }
-            this.WriteStringOnStream(ClientLogic.ENDSYNC + username + "+" + cartellaMonitorata);    //comunico al server che ho terminato l'invio dei file
+            this.WriteStringOnStream(ClientLogic.ENDSYNC + username + ">" + cartellaMonitorata);    //comunico al server che ho terminato l'invio dei file
 
         }
 

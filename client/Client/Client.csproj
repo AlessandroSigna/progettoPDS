@@ -222,6 +222,7 @@
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -236,11 +237,8 @@
   <ItemGroup>
     <Resource Include="Images\user.png" />
     <Resource Include="Images\auth.png" />
-    <Resource Include="imageres_1040.ico" />
-    <Content Include="Images\back.png" />
-    <Resource Include="Images\BackBlack.png" />
-    <Content Include="Images\backLight.png" />
-    <Resource Include="Images\BackWhite.png" />
+    <Resource Include="Images\Back.png" />
+    <Resource Include="Images\BackDisabled.png" />
     <Content Include="Images\CloudNuova.png" />
     <Resource Include="Images\folder.png" />
     <Resource Include="Images\Connesso.png" />
@@ -263,6 +261,14 @@
     <Resource Include="Images\Restore.png" />
     <Resource Include="Images\Disconnect.png" />
     <Resource Include="Images\imageres_1040.ico" />
+    <Resource Include="Images\tree_disckdrive.ico" />
+    <Resource Include="Images\tree_file.ico" />
+    <Resource Include="Images\tree_filegreen.ico" />
+    <Resource Include="Images\tree_filered.ico" />
+    <Resource Include="Images\tree_folder.ico" />
+    <Resource Include="Images\tree_disckdrive2.ico" />
+    <Resource Include="Images\RestoreDisabled.png" />
+    <Resource Include="Images\folderDisabled.png" />
     <Content Include="Images\upload.png" />
     <Resource Include="Images\uploadIcon.ico" />
   </ItemGroup>

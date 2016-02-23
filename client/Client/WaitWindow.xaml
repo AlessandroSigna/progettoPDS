@@ -3,9 +3,10 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         ResizeMode="NoResize"
         Title="WaitWindow" Height="100" Width="300"
-        WindowStyle ="None" Closing="Window_Closing">
+        WindowStyle ="None" Closing="Window_Closing"
+        Background="#d4f6ff">
     <Grid >
-        <Label Name = "LabelMessaggio" HorizontalAlignment="Center"/>
+        <Label Name = "LabelMessaggio" Content="Inserisci qui il tuo messaggio" HorizontalAlignment="Center" VerticalAlignment="Top"/>
         <ProgressBar Minimum="0" Maximum="100" x:Name="pbStatus" IsIndeterminate="True" Margin="49,44,49,20"/>
 
     </Grid>

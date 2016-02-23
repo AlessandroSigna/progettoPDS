@@ -289,13 +289,12 @@ namespace Client
                     //istanzio un ItemTag con le info contenute in subFileInfo
                     ItemTag fileTag = new ItemTag(subFileInfo, ItemType.FileVersion);   //in questo caso il primo campo di subFileInfo contiene solo in nome non il fullPath
                     fileTag.relativePath = parentTag.relativePath;
-                    fileTag.nome = parentTag.nome;
                     fileTag.rootDir = parentTag.rootDir;
-                    fileTag.fullPath = parentTag.fullPath;
+                    fileTag.fullPath = parentTag.fullPath.Replace(parentTag.nome, fileTag.nome);
 
                     //istanzio il TreeViewItem (oggetto visibile nel TreeView) mettendogli come tag l'oggetto ItemTag appena creato
                     TreeViewItem fileItem = new TreeViewItem();
-                    fileItem.Header = fileTag.timeStamp + SizeSuffix(fileTag.dimFile);     //FIXME: decidere cosa mostrare sulla entry con la versione del file
+                    fileItem.Header = fileTag.nome + "\t" + fileTag.timeStamp + SizeSuffix(fileTag.dimFile);     //FIXME: decidere cosa mostrare sulla entry con la versione del file
                     fileItem.Tag = fileTag;
                     fileItem.FontWeight = FontWeights.Normal;
                     if (fileTag.dimFile != 0)   //se il FileVersion non è relativo ad una cancellazione
@@ -458,6 +457,7 @@ namespace Client
             {
                 ItemTag tag = file.Tag as ItemTag;
                 System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
+                fbd.Description = "Scegli la cartella in cui effettuare il download";
                 System.Windows.Forms.DialogResult result = fbd.ShowDialog();
                 if (fbd.SelectedPath != "")
                 {
@@ -485,6 +485,7 @@ namespace Client
             {
                 ItemTag tag = folder.Tag as ItemTag;
                 System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
+                fbd.Description = "Scegli la cartella in cui effettuare il download";
                 System.Windows.Forms.DialogResult result = fbd.ShowDialog();
                 if (fbd.SelectedPath != "")
                 {
@@ -543,6 +544,10 @@ namespace Client
                     dimFile = int.Parse(info[2]);
                     timeStamp = info[3];
                     id = info[4];
+                    if (tipo == ItemType.FileVersion)
+                    {
+                        nome = fullPath;
+                    }
                 }
             }
         }
@@ -562,26 +567,26 @@ namespace Client
                     if (tag.tipo == ItemType.File)
                     {
 
-                        Uri uri = new Uri("pack://application:,,,/Images/file.png");
+                        Uri uri = new Uri("pack://application:,,,/Images/tree_file.ico");
                         BitmapImage source = new BitmapImage(uri);
                         return source;
                     }
                     else if (tag.tipo == ItemType.FileVersion)
                     {
-                        String uriPath = tag.dimFile == 0 ? "pack://application:,,,/Images/filedel.png" : "pack://application:,,,/Images/fileadd.png";
+                        String uriPath = tag.dimFile == 0 ? "pack://application:,,,/Images/tree_filered.ico" : "pack://application:,,,/Images/tree_filegreen.ico";
                         Uri uri = new Uri(uriPath);
                         BitmapImage source = new BitmapImage(uri);
                         return source;
                     }
                     else if (tag.tipo == ItemType.Folder)
                     {
-                        Uri uri = new Uri("pack://application:,,,/Images/folder.png");
+                        Uri uri = new Uri("pack://application:,,,/Images/tree_folder.ico");
                         BitmapImage source = new BitmapImage(uri);
                         return source;
                     }
                     else //if (tag.tipo == ItemType.RootFolder)
                     {
-                        Uri uri = new Uri("pack://application:,,,/Images/home.png");
+                        Uri uri = new Uri("pack://application:,,,/Images/tree_disckdrive2.ico");
                         BitmapImage source = new BitmapImage(uri);
                         return source;
                     }
@@ -589,7 +594,7 @@ namespace Client
                 catch
                 {
                     //in caso di eccezione in questa fase attribuisco all'item un'immagine di default
-                    Uri uri = new Uri("pack://application:,,,/Images/file.png");
+                    Uri uri = new Uri("pack://application:,,,/Images/tree_file.ico");
                     BitmapImage source = new BitmapImage(uri);
                     return source;
                 }
@@ -708,11 +713,11 @@ namespace Client
             {
                 clientlogic.WriteStringOnStream(ClientLogic.GETFOLDERUSER + clientlogic.username);  //chiedo al server le cartelle backuppate dall'utente
                 String retFolders = clientlogic.ReadStringFromStream();
-                String[] parametri = retFolders.Split('+'); //splitto la risposta in modo da ottenerne dei comandi
+                String[] parametri = retFolders.Split('>'); //splitto la risposta in modo da ottenerne dei comandi
                 String comando = parametri[1];
                 if (comando.Equals("OK"))
                 {
-                    folders = parametri[2].Split(';'); //contiene i path delle root dir + un ultima stringa vuota (colpa della split)
+                    folders = parametri[2].Split('<'); //contiene i path delle root dir + un ultima stringa vuota (colpa della split)
                     folders = folders.Where(x => !string.IsNullOrEmpty(x)).ToArray();
 
                 }
@@ -736,7 +741,7 @@ namespace Client
             try
             {
                 //si chiede al server la lista dei file nella folder
-                clientlogic.WriteStringOnStream(ClientLogic.LISTFILES + clientlogic.username + "+" + folderPath);
+                clientlogic.WriteStringOnStream(ClientLogic.LISTFILES + clientlogic.username + ">" + folderPath);
 
                 Boolean exit = false;
                 Boolean fine = false;
@@ -744,7 +749,7 @@ namespace Client
                 while (!exit)
                 {
                     String messaggio = clientlogic.ReadStringFromStream();
-                    String[] parametri = messaggio.Split('+');
+                    String[] parametri = messaggio.Split('>');
                     String comando = parametri[1];
                     if (comando.Equals("FLP"))
                     {
@@ -783,9 +788,9 @@ namespace Client
             try
             {
                 //richiesta versioni del file
-                //WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + "+" + pathDellaRootFolderDiBackup + "+" + fullPathDelFile + "+" + idFile);
+                //WriteStringOnStream(ClientLogic.GETVFILE + clientLogic.username + ">" + pathDellaRootFolderDiBackup + ">" + fullPathDelFile + ">" + idFile);
 
-                clientlogic.WriteStringOnStream(ClientLogic.GETVFILE + clientlogic.username + "+" + fileTag.rootDir + "+" + fileTag.fullPath + "+" + fileTag.id);
+                clientlogic.WriteStringOnStream(ClientLogic.GETVFILE + clientlogic.username + ">" + fileTag.rootDir + ">" + fileTag.fullPath + ">" + fileTag.id);
 
 
                 Boolean exit = false;
@@ -794,7 +799,7 @@ namespace Client
                 while (!exit)
                 {
                     String messaggio = clientlogic.ReadStringFromStream();
-                    String[] parametri = messaggio.Split('+');
+                    String[] parametri = messaggio.Split('>');
                     String comando = parametri[1];
                     if (comando.Equals("FLP"))
                     {

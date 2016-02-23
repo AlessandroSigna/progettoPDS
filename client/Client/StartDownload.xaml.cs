@@ -127,7 +127,7 @@ namespace Client
         {
             downloading = true;
             //richiedo al server la versione del file fileName
-            clientLogic.WriteStringOnStream(ClientLogic.GETFILEV + clientLogic.username + "+" + root + "+" + fileName + "+" + versione + "+" + idFile);
+            clientLogic.WriteStringOnStream(ClientLogic.GETFILEV + clientLogic.username + ">" + root + ">" + fileName + ">" + versione + ">" + idFile);
             int bufferSize = 1024;
             byte[] buffer = null;
             string headerStr = "";

@@ -46,7 +46,7 @@ namespace Client
                 App.Current.MainWindow.Width = 600;
                 App.Current.MainWindow.Height = 430;
                 //si chiede al server la lista dei file nella folder (che contengono likeNome)
-                clientLogic.WriteStringOnStream(ClientLogic.LISTFILES + clientLogic.username + "+" + folder + "+" + likeNome);
+                clientLogic.WriteStringOnStream(ClientLogic.LISTFILES + clientLogic.username + ">" + folder + ">" + likeNome);
 
 
                 String retFiles;
@@ -56,7 +56,7 @@ namespace Client
                 while (!exit)
                 {
                     retFiles = clientLogic.ReadStringFromStream();
-                    String[] parametri = retFiles.Split('+');
+                    String[] parametri = retFiles.Split('>');
                     String comando = parametri[1];
                     if (comando.Equals("FLP"))
                     {

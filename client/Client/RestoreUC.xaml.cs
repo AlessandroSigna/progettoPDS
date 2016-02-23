@@ -38,11 +38,11 @@ namespace Client
                 App.Current.MainWindow.Height = 400;
                 clientLogic.WriteStringOnStream(ClientLogic.GETFOLDERUSER + clientLogic.username);  //chiedo al server le cartelle backuppate dall'utente
                 String retFolders = clientLogic.ReadStringFromStream();
-                String[] parametri = retFolders.Split('+'); //splitto la risposta in modo da ottenerne dei comandi
+                String[] parametri = retFolders.Split('>'); //splitto la risposta in modo da ottenerne dei comandi
                 String comando = parametri[1];
                 if (comando.Equals("OK"))
                 {
-                    String[] folders = parametri[2].Split(';');
+                    String[] folders = parametri[2].Split('<');
                     int numParametri = folders.Length;
                     if (numParametri > 1)
                     {
