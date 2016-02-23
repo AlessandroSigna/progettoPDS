@@ -289,13 +289,12 @@ namespace Client
                     //istanzio un ItemTag con le info contenute in subFileInfo
                     ItemTag fileTag = new ItemTag(subFileInfo, ItemType.FileVersion);   //in questo caso il primo campo di subFileInfo contiene solo in nome non il fullPath
                     fileTag.relativePath = parentTag.relativePath;
-                    fileTag.nome = parentTag.nome;
                     fileTag.rootDir = parentTag.rootDir;
-                    fileTag.fullPath = parentTag.fullPath;
+                    fileTag.fullPath = parentTag.fullPath.Replace(parentTag.nome, fileTag.nome);
 
                     //istanzio il TreeViewItem (oggetto visibile nel TreeView) mettendogli come tag l'oggetto ItemTag appena creato
                     TreeViewItem fileItem = new TreeViewItem();
-                    fileItem.Header = fileTag.timeStamp + SizeSuffix(fileTag.dimFile);     //FIXME: decidere cosa mostrare sulla entry con la versione del file
+                    fileItem.Header = fileTag.nome + "\t" + fileTag.timeStamp + SizeSuffix(fileTag.dimFile);     //FIXME: decidere cosa mostrare sulla entry con la versione del file
                     fileItem.Tag = fileTag;
                     fileItem.FontWeight = FontWeights.Normal;
                     if (fileTag.dimFile != 0)   //se il FileVersion non è relativo ad una cancellazione
@@ -545,6 +544,10 @@ namespace Client
                     dimFile = int.Parse(info[2]);
                     timeStamp = info[3];
                     id = info[4];
+                    if (tipo == ItemType.FileVersion)
+                    {
+                        nome = fullPath;
+                    }
                 }
             }
         }

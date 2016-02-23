@@ -238,6 +238,7 @@
     <Resource Include="Images\user.png" />
     <Resource Include="Images\auth.png" />
     <Resource Include="Images\Back.png" />
+    <Resource Include="Images\BackDisabled.png" />
     <Content Include="Images\CloudNuova.png" />
     <Resource Include="Images\folder.png" />
     <Resource Include="Images\Connesso.png" />
@@ -266,6 +267,8 @@
     <Resource Include="Images\tree_filered.ico" />
     <Resource Include="Images\tree_folder.ico" />
     <Resource Include="Images\tree_disckdrive2.ico" />
+    <Resource Include="Images\RestoreDisabled.png" />
+    <Resource Include="Images\folderDisabled.png" />
     <Content Include="Images\upload.png" />
     <Resource Include="Images\uploadIcon.ico" />
   </ItemGroup>

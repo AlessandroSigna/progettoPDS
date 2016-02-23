@@ -23,7 +23,20 @@
 
         <Button x:Name ="FolderButton" VerticalAlignment="Top" HorizontalAlignment="Left" Height="49" Width="52" Margin="323,91,0,0" MouseEnter="Folder_MouseEnter" MouseLeave="Folder_MouseLeave"  Click="Select_Folder">
             <StackPanel Orientation="Horizontal" Margin="0">
-                <Image x:Name="folderImage"  Source="Images/folder.png" Height="33" Width="37" Cursor="Hand" />
+                <Image x:Name="folderImage" Height="33" Width="37" Cursor="Hand" >
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Path=IsEnabled, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Value="True">
+                                    <Setter Property="Source" Value="Images/folder.png" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Path=IsEnabled, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Value="False">
+                                    <Setter Property="Source" Value="Images/folderDisabled.png" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
             </StackPanel>
             <Button.Style>
 
@@ -63,7 +76,20 @@
 
         <Button x:Name="RestoreFile" HorizontalAlignment="Left" Margin="283,-11,-14,0" VerticalAlignment="Top" Width="131" Height="93" IsEnabled="True" MouseEnter="RestoreFile_MouseEnter" MouseLeave="RestoreFile_MouseLeave" Click="RestoreFile_Click">
             <StackPanel Orientation="Horizontal" Margin="0">
-                <Image x:Name="restoreImage"  Source="Images/Restore.png" Height="67" Width="106" Cursor="Hand" />
+                <Image x:Name="restoreImage" Height="67" Width="106" Cursor="Hand" >
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Path=IsEnabled, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Value="True">
+                                    <Setter Property="Source" Value="Images/Restore.png" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Path=IsEnabled, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Value="False">
+                                    <Setter Property="Source" Value="Images/RestoreDisabled.png" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
             </StackPanel>
 
             <Button.Style>

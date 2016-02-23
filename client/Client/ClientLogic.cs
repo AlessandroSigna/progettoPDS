@@ -56,7 +56,7 @@ namespace Client
         public const string FLP = ">FLP>";
         public const string CONNESSIONE_CHIUSA_SERVER = "Connessione chiusa dal server";
         
-        public const int POLLING = 4; // (secondi) uguale alla metà del timer del server
+        public const int POLLING = 30; // (secondi) uguale alla metà del timer del server
 
         #endregion
 

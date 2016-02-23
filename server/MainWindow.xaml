@@ -59,7 +59,20 @@
 
         <Button x:Name="BSfoglia" HorizontalAlignment="Left" Margin="411,48,0,0" VerticalAlignment="Top" Width="40" Height="50" Click="SelezionafileDB" Grid.Column="1" FontWeight="Bold" MouseEnter="BSfoglia_MouseEnter" MouseLeave="BSfoglia_MouseLeave">
             <StackPanel Orientation="Horizontal" Margin="0">
-                <Image x:Name="folderImage"  Source="Images/Folder.png" Height="33" Width="37" RenderTransformOrigin="0.5,0.5" Cursor="Hand" ToolTip="Esplora risorse per selezionare o creare un database in una posizione a tua scelta." />
+                <Image x:Name="folderImage"  Height="33" Width="37" RenderTransformOrigin="0.5,0.5" Cursor="Hand" ToolTip="Esplora risorse per selezionare o creare un database in una posizione a tua scelta." >
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Path=IsEnabled, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Value="True">
+                                    <Setter Property="Source" Value="Images/Folder.png" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Path=IsEnabled, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Value="False">
+                                    <Setter Property="Source" Value="Images/FolderDisabled.png" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
             </StackPanel>
             <Button.Style>
 

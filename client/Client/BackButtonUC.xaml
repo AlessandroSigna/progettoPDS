@@ -12,8 +12,21 @@
 
         <Button x:Name="BackButton" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Top" Width="40" Height="40" MouseEnter="Back_MouseEnter" MouseLeave="Back_MouseLeave"  Cursor="Hand">
             <StackPanel Orientation="Horizontal" Margin="0">
-                <Image x:Name="backImage"  Source="Images/Back.png" Height="40" Width="40" />
-                </StackPanel>
+                <Image x:Name="backImage" Height="40" Width="40" >
+                    <Image.Style>
+                        <Style TargetType="Image">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Path=IsEnabled, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Value="True">
+                                    <Setter Property="Source" Value="Images/Back.png" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Path=IsEnabled, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=Button}}" Value="False">
+                                    <Setter Property="Source" Value="Images/BackDisabled.png" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Image.Style>
+                </Image>
+            </StackPanel>
             <Button.Style>
 
                 <Style TargetType="Button">

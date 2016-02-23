@@ -55,7 +55,7 @@ namespace BackupServer
         public const string ENDLIST = ">ENDLIST>"; //+ENDSYN+username
         public const string ECHO_REQUEST = ">ECHO_REQUEST>";
 
-        public const int TIME_OUT = 8000; //(ms) timeout per la read sullo stream (mi aspetto un messaggio di hearthbeat ogni 20 sec)
+        public const int TIME_OUT = 60000; //(ms) timeout per la read sullo stream (mi aspetto un messaggio di hearthbeat ogni 20 sec)
 
         #endregion
 
