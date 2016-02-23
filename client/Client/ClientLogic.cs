@@ -850,7 +850,7 @@ namespace Client
             }
             if (clientsocket.Connected)
             {
-                if (disconnect)
+                if (disconnect && System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
                 {
                     DisconnettiServer(false);
                 }
