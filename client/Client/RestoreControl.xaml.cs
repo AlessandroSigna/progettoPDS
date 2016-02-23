@@ -458,6 +458,7 @@ namespace Client
             {
                 ItemTag tag = file.Tag as ItemTag;
                 System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
+                fbd.Description = "Scegli la cartella in cui effettuare il download";
                 System.Windows.Forms.DialogResult result = fbd.ShowDialog();
                 if (fbd.SelectedPath != "")
                 {
@@ -485,6 +486,7 @@ namespace Client
             {
                 ItemTag tag = folder.Tag as ItemTag;
                 System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
+                fbd.Description = "Scegli la cartella in cui effettuare il download";
                 System.Windows.Forms.DialogResult result = fbd.ShowDialog();
                 if (fbd.SelectedPath != "")
                 {
