@@ -14,20 +14,20 @@
             <RowDefinition Height="38*"/>
 
         </Grid.RowDefinitions>
-        <Label x:Name="LabelPass" Content="Password:" HorizontalAlignment="Left" Margin="50,116,0,0" VerticalAlignment="Top" Width="110" HorizontalContentAlignment="Right" Grid.Row="0"/>
-        <Label x:Name="LabelUser" Content="Username:" HorizontalAlignment="Left" Margin="50,66,0,0" VerticalAlignment="Top" Width="110" HorizontalContentAlignment="Right" Grid.Row="0"/>
+        <Label x:Name="LabelPass" Content="Password:" HorizontalAlignment="Left" Margin="40,95,0,0" VerticalAlignment="Top" Width="110" HorizontalContentAlignment="Right" Grid.Row="0"/>
+        <Label x:Name="LabelUser" Content="Username:" HorizontalAlignment="Left" Margin="40,45,0,0" VerticalAlignment="Top" Width="110" HorizontalContentAlignment="Right" Grid.Row="0"/>
 
-        <TextBox x:Name="Username" Height="19" Margin="190,69,0,0" VerticalAlignment="Top" Grid.Row="0" VerticalContentAlignment="Center" HorizontalAlignment="Left" Width="140" GotFocus="Username_GotFocus" LostFocus="Username_LostFocus"></TextBox>
+        <TextBox x:Name="Username" Height="19" Margin="163,48,0,0" VerticalAlignment="Top" Grid.Row="0" VerticalContentAlignment="Center" HorizontalAlignment="Left" Width="140" GotFocus="Username_GotFocus" LostFocus="Username_LostFocus"></TextBox>
 
-        <PasswordBox x:Name="Password"  HorizontalAlignment="Left" Height="19" Margin="190,119,0,0"  VerticalAlignment="Top" Width="140" VerticalContentAlignment="Center" Grid.Row="0" GotFocus="Password_GotFocus" LostFocus="Password_LostFocus"></PasswordBox>
+        <PasswordBox x:Name="Password"  HorizontalAlignment="Left" Height="19" Margin="163,98,0,0"  VerticalAlignment="Top" Width="140" VerticalContentAlignment="Center" Grid.Row="0" GotFocus="Password_GotFocus" LostFocus="Password_LostFocus"></PasswordBox>
 
-        <Label x:Name="erroreUsername" Foreground="Red" Visibility="Hidden" Content="Scrivi il tuo errore" HorizontalAlignment="Center" Grid.Row="0" VerticalAlignment="Top" Margin="0,88,0,0"></Label>
-        <Label x:Name="errorePassword" Foreground="Red" Visibility="Hidden" Content="Scrivi il tuo errore" HorizontalAlignment="Center" Grid.Row="0" VerticalAlignment="Top" Margin="0,138,0,0"></Label>
+        <Label x:Name="erroreUsername" Foreground="Red" Content="Scrivi il tuo errore" HorizontalAlignment="Center" Grid.Row="0" VerticalAlignment="Top" Width="347" HorizontalContentAlignment="Center" Margin="26,67,27,0" Visibility="Hidden"/>
+        <Label x:Name="errorePassword" Foreground="Red" Content="Scrivi il tuo errore" HorizontalAlignment="Center" Grid.Row="0" VerticalAlignment="Top" Width="348" HorizontalContentAlignment="Center" Margin="26,117,26,0" Visibility="Hidden"/>
 
         <Client:BackButtonUC x:Name="BackButtonControl" VerticalAlignment="Top" HorizontalAlignment="Left"/>
         <Client:DisconnettiButtonUC VerticalAlignment="Top" HorizontalAlignment="Left" Margin="50,0,0,0"/>
 
-        <Button x:Name="Registrati" Content="Registrati" IsDefault="True" HorizontalAlignment="Center"  VerticalAlignment="Center" Width="120" Height="38" Click="Registrati_Click" Grid.Row="1"></Button>
+        <Button x:Name="Registrati" Content="Registrati" IsDefault="True" HorizontalAlignment="Center"  VerticalAlignment="Center" Width="100" Height="26" Click="Registrati_Click" Grid.Row="1"></Button>
 
     </Grid>
 </UserControl>
