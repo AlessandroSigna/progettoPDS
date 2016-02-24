@@ -8,7 +8,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -31,11 +30,6 @@ namespace Client
             BackButtonControl.BackButton.Click += Back_Click;
         }
 
-        private void messaggioerrore(string mess)
-        {
-            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-
         #region Controlli username e password
         private Boolean IsValidUsername(String username)
         {
@@ -51,7 +45,7 @@ namespace Client
             }
             else if (Username.Text.Length > 15)
             {
-                mostraErroreUsername("La lunghezza dello username deve essere inferiore a 15 caratteri.");
+                mostraErroreUsername("Lo username è maggiore di 15 caratteri.");
                 return false;
             }
             else
@@ -67,12 +61,12 @@ namespace Client
         {
             if (password == null || password.Equals("") || password.Length < 5 || password.Length > 15)
             {
-                mostraErrorePassword("La lunghezza della password deve essere compresa tra 5 e 15 caratteri.");
+                mostraErrorePassword("La password non è compresa tra 5 e 15 caratteri.");
                 return false;
             }
-            else if (password.Contains(">") || password.Contains("(") || password.Contains(")") || password.Contains("{") || password.Contains("}") || password.Contains("'"))
+            else if (password.Contains("<") || Username.Text.Contains(">") || password.Contains("(") || password.Contains(")") || password.Contains("{") || password.Contains("}") || password.Contains("'"))
             {
-                mostraErrorePassword("La password contiene uno o piu' caratteri invalidi: + () {} '");
+                mostraErrorePassword("La password contiene uno o piu' caratteri invalidi: <> () {} '");
                 return false;
             }
             else
@@ -156,18 +150,6 @@ namespace Client
             }
         }
 
-        private void Registrati_MouseEnter(object sender, MouseEventArgs e)
-        {
-            BrushConverter bc = new BrushConverter();
-            Registrati.Background = (Brush)bc.ConvertFrom("#99FFFF");
-        }
-
-        private void Registrati_MouseLeave(object sender, MouseEventArgs e)
-        {
-            BrushConverter bc = new BrushConverter();
-            Registrati.Background = (Brush)bc.ConvertFrom("#33CCFF");
-
-        }
         #endregion
 
         #region Button Back

@@ -446,7 +446,7 @@ namespace Client
                 ItemTag tag = file.Tag as ItemTag;
                 System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
                 fbd.Description = "Scegli la cartella in cui effettuare il download";
-                System.Windows.Forms.DialogResult result = fbd.ShowDialog();
+                fbd.ShowDialog();
                 if (fbd.SelectedPath != "")
                 {
                     if (clientlogic.cartellaMonitorata != null && fbd.SelectedPath.Contains(clientlogic.cartellaMonitorata))
@@ -474,7 +474,7 @@ namespace Client
                 ItemTag tag = folder.Tag as ItemTag;
                 System.Windows.Forms.FolderBrowserDialog fbd = new System.Windows.Forms.FolderBrowserDialog();
                 fbd.Description = "Scegli la cartella in cui effettuare il download";
-                System.Windows.Forms.DialogResult result = fbd.ShowDialog();
+                fbd.ShowDialog();
                 if (fbd.SelectedPath != "")
                 {
                     if (clientlogic.cartellaMonitorata != null && fbd.SelectedPath.Contains(clientlogic.cartellaMonitorata))
@@ -505,7 +505,7 @@ namespace Client
         {
             public ItemType tipo;
             public String nome;
-            public String fileInfo;
+            private String fileInfo;
             public String rootDir;
             public String fullPath;
             public String relativePath;

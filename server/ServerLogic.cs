@@ -395,7 +395,6 @@ namespace BackupServer
                     return ERRORE + "Numero di paramentri passati per il logout errato";
                 }
 
-                String comando = parametri[1];
                 String user = parametri[2].ToUpper();
 
                 SQLiteCommand comandoP = new SQLiteCommand(mainWindow.m_dbConnection);
@@ -618,7 +617,7 @@ namespace BackupServer
                 return OK + "Login effettuato correttamente";
 
             }
-            catch (Exception exc)
+            catch (Exception)
             {
                 if (reader != null && !reader.IsClosed)
                     reader.Close();
@@ -639,7 +638,6 @@ namespace BackupServer
                 if (numParametri > 4 || numParametri < 4)
                     return false;
 
-                String comando = parametri[1];
                 String user = parametri[2].ToUpper();
                 if (user != null && !user.Equals(""))
                 {
@@ -958,8 +956,6 @@ namespace BackupServer
 
                     while (rdr.Read())
                     {
-                        string path = Convert.ToString(rdr["percorsoFile"]);
-                        string nomeFile = path.Substring(path.LastIndexOf('\\') + 1); //nomeFile dovrebbe usarlo in listaFiles
                         listaFiles += Convert.ToString(rdr["percorsoFile"]) + "?" + Convert.ToString(rdr["versione"]) + "?" + Convert.ToString(rdr["dimFile"]) + "?" + Convert.ToString(rdr["timestamp"]) + "?" + Convert.ToString(rdr["idfile"]) + "<";
                     }
                 }
@@ -979,7 +975,7 @@ namespace BackupServer
                 for (int i = 0; i < numFile - 1; i++)
                 {
                     writeStringOnStream(clientsocket, FLP + i + ">" + splittato[i]);
-                    string s = ReadStringFromStream(clientsocket);     //FIXME: questa risposta non viene esaminata
+                    ReadStringFromStream(clientsocket);
                 }
 
                 return ">ENDLIST>";
@@ -1226,7 +1222,7 @@ namespace BackupServer
                 {
                     string headerStr = "Content-length:" + fs.Length.ToString() + "\r\nFilename:" + fileName + "\r\nChecksum:" + checksum + "\r\n";
                     writeStringOnStream(clientsocket, headerStr);
-                    string streamReady = ReadStringFromStream(clientsocket);
+                    ReadStringFromStream(clientsocket);
                     int bufferCount = Convert.ToInt32(Math.Ceiling((double)fs.Length / (double)bufferSize));
                     Console.WriteLine("inizio invio");
                     for (int i = 0; i < bufferCount; i++)
@@ -1242,7 +1238,7 @@ namespace BackupServer
                 return OK + "Versione file inviata";
 
             }
-            catch (Exception e)
+            catch (Exception)
             {
                 return ERRORE + "Invio file non riuscito";
             }
@@ -1902,7 +1898,6 @@ namespace BackupServer
             {
                 String[] parametri = responseData.Split('>');
                 int numParametri = parametri.Length;
-                string listaFiles = string.Empty;
 
                 if (numParametri != 6)
                 {
@@ -1957,7 +1952,6 @@ namespace BackupServer
                         string idfile = Convert.ToString(dr["idfile"]);
                         string checksum = Convert.ToString(dr["checksum"]);
                         string fileName = Convert.ToString(dr["percorsoFile"]);
-                        string versione = Convert.ToString(dr["versione"]);
                         string isDelete = Convert.ToString(dr["isDelete"]);
                         if (DBNull.Value.Equals(dr["file"]))
                             file = null;
@@ -2116,8 +2110,6 @@ namespace BackupServer
 
                 writeStringOnStream(client, OK);
 
-
-                int bufferCount = Convert.ToInt32(Math.Ceiling((double)filesize / (double)BUFFERSIZE));
 
                 pathTmp = Directory.GetCurrentDirectory() + "\\" + token; // Il token serve solo per non avere path temporanei coincidenti
                 using (FileStream fs = new FileStream(pathTmp, FileMode.OpenOrCreate))
@@ -2699,7 +2691,7 @@ namespace BackupServer
                         {
                             writeStringOnStream(clientsocket, risposta);
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
                             chiudere = true;
                         }

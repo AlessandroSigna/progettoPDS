@@ -70,7 +70,7 @@ namespace Client
                         StartDownload df = (StartDownload)App.Current.MainWindow.Content;
                         if (df.downloading)
                         {
-                            MessageBoxResult result = System.Windows.MessageBox.Show("Ancora un istante...", "Attendi", MessageBoxButton.OK, MessageBoxImage.Stop);
+                            System.Windows.MessageBox.Show("Ancora un istante...", "Attendi", MessageBoxButton.OK, MessageBoxImage.Stop);
                             e.Cancel = true;
                             return;
                         }

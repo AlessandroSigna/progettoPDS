@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,8 +21,6 @@ namespace Client
     /// </summary>
     public partial class LoginControl : UserControl
     {
-        private static Regex sUserNameAllowedRegEx = new Regex(@"^[a-zA-Z]{1}[a-zA-Z0-9]{3,23}[^.-]$", RegexOptions.Compiled);
-
         #region Costruttore ed Errore
         public LoginControl()
         {
@@ -31,11 +28,6 @@ namespace Client
             App.Current.MainWindow.Title = "Login";
         }
 
-        private void messaggioErrore(string mess)
-        {
-            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
-
-        }
         #endregion
 
         #region Controlli username e password
@@ -53,7 +45,7 @@ namespace Client
             }
             else if (Username.Text.Length > 15)
             {
-                mostraErroreUsername("La lunghezza dello username deve essere inferiore a 15 caratteri.");
+                mostraErroreUsername("Lo username è maggiore di 15 caratteri.");
                 return false;
             }
             else
@@ -69,12 +61,12 @@ namespace Client
         {
             if (password == null || password.Equals("") || password.Length < 5 || password.Length > 15)
             {
-                mostraErrorePassword("La lunghezza della password deve essere compresa tra 5 e 15 caratteri.");
+                mostraErrorePassword("La password non è compresa tra 5 e 15 caratteri.");
                 return false;
             }
-            else if (password.Contains(">") || password.Contains("(") || password.Contains(")") || password.Contains("{") || password.Contains("}") || password.Contains("'"))
+            else if (password.Contains(">") || Username.Text.Contains("<") || password.Contains("(") || password.Contains(")") || password.Contains("{") || password.Contains("}") || password.Contains("'"))
             {
-                mostraErrorePassword("La password contiene uno o piu' caratteri invalidi: + () {} '");
+                mostraErrorePassword("La password contiene uno o piu' caratteri invalidi: <> () {} '");
                 return false;
             }
             else

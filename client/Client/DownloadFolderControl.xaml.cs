@@ -12,8 +12,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
@@ -80,34 +78,6 @@ namespace Client
         private void Stop_Click(object sender, RoutedEventArgs e)
         {
             StopRestore();
-        }
-
-        private void File_MouseEnter(object sender, MouseEventArgs e)
-        {
-            if (!downloading)
-            {
-                BrushConverter bc = new BrushConverter();
-                Start.Background = (Brush)bc.ConvertFrom("#F5FFFA");
-            }
-            else
-            {
-                BrushConverter bc = new BrushConverter();
-                Start.Background = (Brush)bc.ConvertFrom("#F6CECE");
-            }
-        }
-
-        private void File_MouseLeave(object sender, MouseEventArgs e)
-        {
-            if (!downloading)
-            {
-                BrushConverter bc = new BrushConverter();
-                Start.Background = (Brush)bc.ConvertFrom("#FF44E572");
-            }
-            else
-            {
-                BrushConverter bc = new BrushConverter();
-                Start.Background = (Brush)bc.ConvertFrom("#FA5858");
-            }
         }
 
         public void StopRestore()
