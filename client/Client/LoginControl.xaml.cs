@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,8 +21,6 @@ namespace Client
     /// </summary>
     public partial class LoginControl : UserControl
     {
-        private static Regex sUserNameAllowedRegEx = new Regex(@"^[a-zA-Z]{1}[a-zA-Z0-9]{3,23}[^.-]$", RegexOptions.Compiled);
-
         #region Costruttore ed Errore
         public LoginControl()
         {
@@ -31,11 +28,6 @@ namespace Client
             App.Current.MainWindow.Title = "Login";
         }
 
-        private void messaggioErrore(string mess)
-        {
-            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
-
-        }
         #endregion
 
         #region Controlli username e password

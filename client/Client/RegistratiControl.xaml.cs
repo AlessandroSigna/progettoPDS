@@ -8,7 +8,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
@@ -29,11 +28,6 @@ namespace Client
             //deve essere la finestra a customizzare l'evento per il click sul back button
             //perché è la finestra stessa a sapere quale è la finestra precedente
             BackButtonControl.BackButton.Click += Back_Click;
-        }
-
-        private void messaggioerrore(string mess)
-        {
-            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
         #region Controlli username e password
@@ -156,18 +150,6 @@ namespace Client
             }
         }
 
-        private void Registrati_MouseEnter(object sender, MouseEventArgs e)
-        {
-            BrushConverter bc = new BrushConverter();
-            Registrati.Background = (Brush)bc.ConvertFrom("#99FFFF");
-        }
-
-        private void Registrati_MouseLeave(object sender, MouseEventArgs e)
-        {
-            BrushConverter bc = new BrushConverter();
-            Registrati.Background = (Brush)bc.ConvertFrom("#33CCFF");
-
-        }
         #endregion
 
         #region Button Back

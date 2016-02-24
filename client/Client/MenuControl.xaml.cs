@@ -79,7 +79,7 @@ namespace Client
             try
             {
                 FolderBrowserDialog fbd = new FolderBrowserDialog();    //finestra di sistema per selezionare la cartella
-                DialogResult result = fbd.ShowDialog();
+                fbd.ShowDialog();
                 if (fbd.SelectedPath != "")
                 {
                     //se il path non è vuoto lo inserisco nella TextBox e cambio colore al Button EffettuaBackup
@@ -117,7 +117,7 @@ namespace Client
                     BackupDir.Background = Brushes.Transparent;
 
                     //inizio a monitorare e a inviare al server lo stato attuale della cartella
-                    BrushConverter bc = new BrushConverter();
+                    new BrushConverter();
                     EffettuaBackup.Content = "Arresta";    //e la scritta
                     FolderButton.IsEnabled = false;     //disabilito il bottone folder
                     mw.clientLogic.cartellaMonitorata = backupFolder;
@@ -190,8 +190,7 @@ namespace Client
                     mw.clientLogic.event_1.Set();   //segnalo l'evento e ritorno
                     return;
                 }
-                
-                WatcherChangeTypes wct = e.ChangeType;
+
                 if (e.ChangeType == WatcherChangeTypes.Deleted) //bisogna effettivamente controllare il ChangeType? 
                 {
                     updating = true;
@@ -341,7 +340,6 @@ namespace Client
                 }
                 else
                 {
-                    WatcherChangeTypes wct = e.ChangeType;
                     if (e.ChangeType == WatcherChangeTypes.Renamed)
                     {
                         updating = true;
@@ -603,7 +601,7 @@ namespace Client
                     else
                     {
                         //errore recuperabile: il controllo resta su MenuControl
-                        MessageBoxResult result = System.Windows.MessageBox.Show("Errore durante durante la fase di restore.\nRiprovare.", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+                        System.Windows.MessageBox.Show("Errore durante durante la fase di restore.\nRiprovare.", "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             }
@@ -787,14 +785,9 @@ namespace Client
 
         private void messaggioErrore(string mess)
         {
-            MessageBoxResult result = System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
+            System.Windows.MessageBox.Show(mess, "Errore", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
-
-        private void messaggioAttesa()
-        {
-            MessageBoxResult result = System.Windows.MessageBox.Show("Blocca il monitoraggio per effettuare un restore", "Errore", MessageBoxButton.OK, MessageBoxImage.Stop);
-        }
         #endregion
     }
 }

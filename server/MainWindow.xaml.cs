@@ -478,12 +478,6 @@ namespace BackupServer
 
         }
 
-        private void ButtonOkOnClick(object sender, RoutedEventArgs e)
-        {
-            stopServer();
-            this.Close();
-        }
-
 
         void MyNotifyIcon_MouseClick(object sender, System.Windows.Forms.MouseEventArgs e)
         {
