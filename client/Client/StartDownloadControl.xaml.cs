@@ -133,13 +133,13 @@ namespace Client
             string headerStr = "";
             int filesize = 0;
             
-            fileName = fileName.Substring(fileName.LastIndexOf(@"\"));
+            fileName = fileName.Substring(fileName.LastIndexOf(@"\") + 1);
 
-            string folderCreated = "Ripristino " + fileName.Substring(fileName.LastIndexOf(@"\") + 1);
+            string folderCreated = "Ripristino " + fileName;
             completePath = clientLogic.restoreFolder + "\\" + folderCreated;
             Directory.CreateDirectory(completePath);    //creo la cartella dove salverò il file ricevuto
 
-            string pathTmp = completePath + @"\" + fileName.Substring(fileName.LastIndexOf(@"\") + 1);
+            string pathTmp = completePath + @"\" + fileName;
             //Creo il file usando un FileStream dentro la direttiva using 
             //in questo modo il FileStream viene chiuso anche in caso di eccezioni
             using (FileStream fs = new FileStream(pathTmp, FileMode.OpenOrCreate))
