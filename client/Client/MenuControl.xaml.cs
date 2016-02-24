@@ -115,6 +115,7 @@ namespace Client
                     BackupDir.BorderBrush = Brushes.Transparent;
                     BackupDir.IsEnabled = false;
                     BackupDir.Background = Brushes.Transparent;
+                    Monitor.Text = "Monitorando: ";
 
                     //inizio a monitorare e a inviare al server lo stato attuale della cartella
                     new BrushConverter();
@@ -491,6 +492,7 @@ namespace Client
                     BackupDir.IsEnabled = true;
                     BackupDir.Background = Brushes.White;
                     BackupDir.BorderBrush = Brushes.Gray;
+                    Monitor.Text = "Cartella da monitorare: ";
                     FolderButton.IsEnabled = true;
                     if (watcher != null)
                     {
