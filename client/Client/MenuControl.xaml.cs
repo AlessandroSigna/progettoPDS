@@ -527,6 +527,11 @@ namespace Client
             }
             try
             {
+
+                BackupDir.IsEnabled = true;
+                BackupDir.Background = Brushes.White;
+                BackupDir.BorderBrush = Brushes.Gray;
+                Monitor.Text = "Cartella da monitorare: ";
                 pbStatus.Value = 0;
                 pbStatus.Visibility = Visibility.Hidden;
                 EffettuaBackup.IsEnabled = true;
