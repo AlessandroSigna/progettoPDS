@@ -2574,7 +2574,7 @@ namespace BackupServer
                 }
                 catch (Exception e)
                 {
-                    if (username != null)
+                    if (username != null && !serverKO)
                     {
                         comandoLogout(DISCONNETTIUTENTE + username);    //serve per eliminare l'utente crashato dagli utenti loggati
                     }

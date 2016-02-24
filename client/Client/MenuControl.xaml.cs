@@ -210,7 +210,7 @@ namespace Client
             catch
             {
                 //devo lanciare un apposito thread per gestire l'eccezione: The calling thread must be STA, because many UI components require this.
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<Boolean>(ExitStub)); }));
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<Boolean>(ExitStub), true); }));
                 t.Start();
             }
         }
@@ -252,7 +252,7 @@ namespace Client
             }
             catch
             {
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<Boolean>(ExitStub)); }));
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<Boolean>(ExitStub), true); }));
                 t.Start();
             }
 
@@ -296,7 +296,7 @@ namespace Client
             }
             catch
             {
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<Boolean>(ExitStub)); }));
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<Boolean>(ExitStub), true); }));
                 t.Start();
             }
         }
@@ -358,7 +358,7 @@ namespace Client
             }
             catch
             {
-                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<Boolean>(ExitStub)); }));
+                Thread t = new Thread(new ThreadStart(delegate { Dispatcher.Invoke(DispatcherPriority.Normal, new Action<Boolean>(ExitStub), true); }));
                 t.Start();
             }
         }

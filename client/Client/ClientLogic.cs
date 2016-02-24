@@ -594,7 +594,7 @@ namespace Client
             }
             if (clientsocket.Connected)
             {
-                if (disconnect)
+                if (disconnect && System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
                 {
                     DisconnettiServer(false);
                 }
@@ -676,8 +676,7 @@ namespace Client
         // Riscrivere come ReadArrayByte
         public string ReadStringFromStream()
         {
-            TcpState statoConn = GetState(clientsocket);
-            if (statoConn == TcpState.Established)
+            if (System.Net.NetworkInformation.NetworkInterface.GetIsNetworkAvailable())
             {
                 if (timer != null)
                 {
