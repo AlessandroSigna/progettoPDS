@@ -59,7 +59,7 @@ namespace BackupServer
         {
             if (e.Error != null)
             {
-                TAddressP.Text = "Errore.";
+                TAddressP.Text = "Non connesso.";
             }
             else
             {
