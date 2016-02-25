@@ -98,6 +98,12 @@ namespace Client
 
         public void restart(bool error, string messaggio = null)
         {
+            if (App.Current.MainWindow.Content is RestoreControl || App.Current.MainWindow.Content is StartDownload || App.Current.MainWindow.Content is DownloadFolder)
+            {
+
+                App.Current.MainWindow.Close();
+                return;
+            }
             Console.WriteLine("Restart");
             if (clientLogic.timer != null)
             {
